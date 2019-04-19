@@ -1,0 +1,21 @@
+#!wing
+#!version=7.0
+##################################################################
+# Wing project file                                              #
+##################################################################
+[project attributes]
+proj.directory-list = [{'dirloc': loc('../..'),
+                        'excludes': (),
+                        'filter': u'*',
+                        'include_hidden': False,
+                        'recursive': True,
+                        'watch_for_changes': True}]
+proj.file-type = 'shared'
+proj.home-dir = loc('../..')
+proj.launch-config = {loc('../../../../../Dropbox/Scripts and shortcuts/_simplify3d_add_m600.py'): ('p'\
+        'roject',
+        (u'"C:\\Users\\Administrator\\Dropbox\\Desktop\\foo.gcode"',
+         ''))}
+testing.auto-test-file-specs = (('regex',
+                                 'pysnooper/tests.*/test[^./]*.py.?$'),)
+testing.test-framework = {None: ':internal pytest'}
