@@ -91,3 +91,6 @@ Use `pip`:
 # Copyright #
 
 Copyright (c) 2019 Ram Rachum, released under the MIT license.
+
+I provide
+[Development services in Python and Django](https://chipmunkdev.com) and I give workshops to teach people Python and related topics.
