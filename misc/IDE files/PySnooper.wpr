@@ -5,8 +5,10 @@
 ##################################################################
 [project attributes]
 proj.directory-list = [{'dirloc': loc('../..'),
-                        'excludes': (),
-                        'filter': u'*',
+                        'excludes': [u'PySnooper.egg-info',
+                                     u'dist',
+                                     u'build'],
+                        'filter': '*',
                         'include_hidden': False,
                         'recursive': True,
                         'watch_for_changes': True}]
