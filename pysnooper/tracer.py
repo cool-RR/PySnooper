@@ -56,7 +56,7 @@ def get_source_from_frame(frame):
             pass
     function = frame.f_code.co_name
     loader = frame.f_globals.get('__loader__')
-    
+
     source = None
     if hasattr(loader, 'get_source'):
         try:
@@ -106,7 +106,7 @@ class Tracer:
         self.depth = depth
         self.prefix = prefix
         assert self.depth >= 1
-        
+
     def write(self, s):
         s = '{self.prefix}{s}\n'.format(**locals())
         if isinstance(s, bytes): # Python 2 compatibility
@@ -119,16 +119,16 @@ class Tracer:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         sys.settrace(self.original_trace_function)
-        
+
 
     def trace(self, frame, event, arg):
-        
+
         ### Checking whether we should trace this line: #######################
         #                                                                     #
         # We should trace this line either if it's in the decorated function,
         # or the user asked to go a few levels deeper and we're within that
         # number of levels deeper.
-        
+
         if frame.f_code is not self.target_code_object:
             if self.depth == 1:
                 # We did the most common and quickest check above, because the
@@ -150,23 +150,23 @@ class Tracer:
             indent = ''
         #                                                                     #
         ### Finished checking whether we should trace this line. ##############
-        
+
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
         self.frame_to_old_local_reprs[frame] = old_local_reprs = \
                                                self.frame_to_local_reprs[frame]
         self.frame_to_local_reprs[frame] = local_reprs = \
                                get_local_reprs(frame, variables=self.variables)
-        
+
         modified_local_reprs = {}
         newish_local_reprs = {}
-        
+
         for key, value in local_reprs.items():
             if key not in old_local_reprs:
                 newish_local_reprs[key] = value
             elif old_local_reprs[key] != value:
                 modified_local_reprs[key] = value
-        
+
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
         for name, value_repr in newish_local_reprs.items():
@@ -177,7 +177,7 @@ class Tracer:
                                                                    **locals()))
         #                                                                     #
         ### Finished newish and modified variables. ###########################
-        
+
         now_string = datetime_module.datetime.now().time().isoformat()
         source_line = get_source_from_frame(frame)[frame.f_lineno - 1]
         self.write('{indent}{now_string} {event:9} '

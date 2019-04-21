@@ -29,21 +29,21 @@ def test_string_io():
         (
             VariableEntry('foo', value_regex="u?'baba'"),
             CallEntry(),
-            LineEntry('x = 7'), 
-            VariableEntry('x', '7'), 
-            LineEntry('y = 8'), 
-            VariableEntry('y', '8'), 
-            LineEntry('return y + x'), 
-            ReturnEntry('return y + x'), 
+            LineEntry('x = 7'),
+            VariableEntry('x', '7'),
+            LineEntry('y = 8'),
+            VariableEntry('y', '8'),
+            LineEntry('return y + x'),
+            ReturnEntry('return y + x'),
         )
     )
-    
+
 def test_variables():
 
     class Foo(object):
         def __init__(self):
             self.x = 2
-            
+
         def square(self):
             self.x **= 2
 
@@ -64,42 +64,42 @@ def test_variables():
             VariableEntry(),
             VariableEntry(),
             CallEntry(),
-            LineEntry('foo = Foo()'), 
+            LineEntry('foo = Foo()'),
             VariableEntry(),
             VariableEntry(),
-            LineEntry(), 
+            LineEntry(),
             VariableEntry('i', '0'),
-            LineEntry(), 
+            LineEntry(),
             VariableEntry('foo.x', '4'),
-            LineEntry(), 
+            LineEntry(),
             VariableEntry('i', '1'),
-            LineEntry(), 
+            LineEntry(),
             VariableEntry('foo.x', '16'),
-            LineEntry(), 
-            ReturnEntry(), 
+            LineEntry(),
+            ReturnEntry(),
         )
     )
-    
+
 def test_depth():
     string_io = io.StringIO()
-    
+
     def f4(x4):
         result4 = x4 * 2
         return result4
-    
+
     def f3(x3):
         result3 = f4(x3)
         return result3
-    
+
     def f2(x2):
         result2 = f3(x2)
         return result2
-    
+
     @pysnooper.snoop(string_io, depth=3)
     def f1(x1):
         result1 = f2(x1)
         return result1
-    
+
     result = f1(10)
     assert result == 20
     output = string_io.getvalue()
@@ -109,26 +109,26 @@ def test_depth():
             VariableEntry(),
             VariableEntry(),
             CallEntry(),
-            LineEntry(), 
-            
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry(),
-            LineEntry(), 
-            
+            LineEntry(),
+
             VariableEntry(),
             VariableEntry(),
             CallEntry(),
             LineEntry(),
-            
+
+            VariableEntry(),
+            VariableEntry(),
+            CallEntry(),
+            LineEntry(),
+
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
-            
+
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
-            
+
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
@@ -141,7 +141,7 @@ def test_method_and_prefix():
     class Baz(object):
         def __init__(self):
             self.x = 2
-            
+
         @pysnooper.snoop(variables=('self.x'), prefix='ZZZ')
         def square(self):
             foo = 7
@@ -161,11 +161,11 @@ def test_method_and_prefix():
         (
             VariableEntry(),
             CallEntry(),
-            LineEntry('foo = 7'), 
+            LineEntry('foo = 7'),
             VariableEntry('foo', '7'),
-            LineEntry('self.x **= 2'), 
-            LineEntry(), 
-            ReturnEntry(), 
+            LineEntry('self.x **= 2'),
+            LineEntry(),
+            ReturnEntry(),
         ),
         prefix='ZZZ'
     )

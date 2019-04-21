@@ -14,8 +14,8 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/cool-RR/PySnooper',
     packages=setuptools.find_packages(),
-    install_requires=open('requirements.txt', 'r').read().split('\n'), 
-    tests_require=open('test_requirements.txt', 'r').read().split('\n'), 
+    install_requires=open('requirements.txt', 'r').read().split('\n'),
+    tests_require=open('test_requirements.txt', 'r').read().split('\n'),
     classifiers=[
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
@@ -23,5 +23,5 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    
+
 )

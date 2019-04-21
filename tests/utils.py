@@ -13,7 +13,7 @@ class _BaseEntry(pysnooper.pycompat.ABC):
     @abc.abstractmethod
     def check(self, s):
         pass
-    
+
 class VariableEntry(_BaseEntry):
     line_pattern = re.compile(
         r"""^(?P<prefix>.*?)(?P<indent>(?: {4})*)"""
@@ -124,7 +124,7 @@ class OpcodeEntry(_BaseEventEntry):
 
 class OutputFailure(Exception):
     pass
-        
+
 
 def assert_output(output, expected_entries, prefix=None):
     lines = tuple(filter(None, output.split('\n')))
@@ -137,7 +137,7 @@ def assert_output(output, expected_entries, prefix=None):
         for line in lines:
             if not line.startswith(prefix):
                 raise OutputFailure(line)
-                
+
     for expected_entry, line in zip(expected_entries, lines):
         if not expected_entry.check(line):
             raise OutputFailure(line)

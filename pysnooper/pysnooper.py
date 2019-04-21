@@ -17,7 +17,7 @@ from . import utils
 from . import pycompat
 from .tracer import Tracer
 
-        
+
 def get_write_function(output):
     if output is None:
         def write(s):
@@ -31,10 +31,10 @@ def get_write_function(output):
         assert isinstance(output, utils.WritableStream)
         def write(s):
             output.write(s)
-            
+
     return write
-    
-    
+
+
 
 def snoop(output=None, variables=(), depth=1, prefix=''):
     write = get_write_function(output)
@@ -45,8 +45,7 @@ def snoop(output=None, variables=(), depth=1, prefix=''):
                     write=write, variables=variables,
                     depth=depth, prefix=prefix):
             return function(*args, **kwargs)
-    
+
     return decorate
-    
-    
-    
+
+

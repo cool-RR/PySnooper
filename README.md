@@ -4,11 +4,11 @@
 
 [![Travis CI](https://img.shields.io/travis/cool-RR/PySnooper/master.svg)](https://travis-ci.org/cool-RR/PySnooper)
 
-**PySnooper** is a poor man's debugger. 
+**PySnooper** is a poor man's debugger.
 
 You're trying to figure out why your Python code isn't doing what you think it should be doing. You'd love to use a full-fledged debugger with breakpoints and watches, but you can't be bothered to set one up right now.
 
-You're looking at a section of Python code. You want to know which lines are running and which aren't, and what the values of the local variables are. 
+You're looking at a section of Python code. You want to know which lines are running and which aren't, and what the values of the local variables are.
 
 Most people would use a `print` line. Probably several of them, in strategic locations, some of them showing the values of variables. Then they'd use the output of the prints to figure out which code ran when and what was in the variables.
 
@@ -21,7 +21,7 @@ What makes **PySnooper** stand out from all other code intelligence tools? You c
 We're writing a function that converts a number to binary, by returing a list of bits. Let's snoop on it by adding the `@pysnooper.snoop()` decorator:
 
     import pysnooper
-    
+
     @pysnooper.snoop()
     def number_to_bits(number):
         if number:
@@ -32,11 +32,11 @@ We're writing a function that converts a number to binary, by returing a list of
             return bits
         else:
             return [0]
-        
+
     number_to_bits(6)
 
-The output to stderr is: 
-    
+The output to stderr is:
+
     Starting var:.. number = 6
     21:14:32.099769 call         3 @pysnooper.snoop()
     21:14:32.099769 line         5     if number:
@@ -69,13 +69,13 @@ The output to stderr is:
 If stderr is not easily accessible for you, you can redirect the output to a file easily:
 
     @pysnooper.snoop('/my/log/file.log')
-    
+
 Want to see values of some variables that aren't local variables?
 
     @pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
-    
-    
-# Installation # 
+
+
+# Installation #
 
 Use `pip`:
 
