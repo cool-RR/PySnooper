@@ -37,31 +37,31 @@ We're writing a function that converts a number to binary, by returing a list of
 
 The output to stderr is: 
     
-    ............... number = 6
-    00:24:15.284000 call         3 @pysnooper.snoop()
-    00:24:15.284000 line         5     if number:
-    00:24:15.284000 line         6         bits = []
-    ............... bits = []
-    00:24:15.284000 line         7         while number:
-    00:24:15.284000 line         8             number, remainder = divmod(number, 2)
-    ............... number = 3
-    ............... remainder = 0
-    00:24:15.284000 line         9             bits.insert(0, remainder)
-    ............... bits = [0]
-    00:24:15.284000 line         7         while number:
-    00:24:15.284000 line         8             number, remainder = divmod(number, 2)
-    ............... number = 1
-    ............... remainder = 1
-    00:24:15.284000 line         9             bits.insert(0, remainder)
-    ............... bits = [1, 0]
-    00:24:15.284000 line         7         while number:
-    00:24:15.284000 line         8             number, remainder = divmod(number, 2)
-    ............... number = 0
-    00:24:15.284000 line         9             bits.insert(0, remainder)
-    ............... bits = [1, 1, 0]
-    00:24:15.284000 line         7         while number:
-    00:24:15.284000 line        10         return bits
-    00:24:15.284000 return      10         return bits
+    Starting var:.. number = 6
+    21:14:32.099769 call         3 @pysnooper.snoop()
+    21:14:32.099769 line         5     if number:
+    21:14:32.099769 line         6         bits = []
+    New var:....... bits = []
+    21:14:32.099769 line         7         while number:
+    21:14:32.099769 line         8             number, remainder = divmod(number, 2)
+    New var:....... remainder = 0
+    Modified var:.. number = 3
+    21:14:32.099769 line         9             bits.insert(0, remainder)
+    Modified var:.. bits = [0]
+    21:14:32.099769 line         7         while number:
+    21:14:32.099769 line         8             number, remainder = divmod(number, 2)
+    Modified var:.. number = 1
+    Modified var:.. remainder = 1
+    21:14:32.099769 line         9             bits.insert(0, remainder)
+    Modified var:.. bits = [1, 0]
+    21:14:32.099769 line         7         while number:
+    21:14:32.099769 line         8             number, remainder = divmod(number, 2)
+    Modified var:.. number = 0
+    21:14:32.099769 line         9             bits.insert(0, remainder)
+    Modified var:.. bits = [1, 1, 0]
+    21:14:32.099769 line         7         while number:
+    21:14:32.099769 line        10         return bits
+    21:14:32.099769 return      10         return bits
 
 
 # Features #

@@ -16,7 +16,8 @@ class _BaseEntry(pysnooper.pycompat.ABC):
     
 class VariableEntry(_BaseEntry):
     line_pattern = re.compile(
-        r"""^(?P<indent>(?: {4})*)(?P<stage>New|Modified|Starting) var:"""
+        r"""^(?P<prefix>.*?)(?P<indent>(?: {4})*)"""
+        r"""(?P<stage>New|Modified|Starting) var:"""
         r"""\.{2,7} (?P<name>[^ ]+) = (?P<value>.+)$"""
     )
     def __init__(self, name=None, value=None, stage=None,
@@ -62,7 +63,7 @@ class VariableEntry(_BaseEntry):
         match = self.line_pattern.match(s)
         if not match:
             return False
-        indent, stage, name, value = match.groups()
+        _, _, stage, name, value = match.groups()
         return (self._check_name(name) and self._check_value(value) and
                 self._check_stage(stage))
 
@@ -79,8 +80,9 @@ class _BaseEventEntry(_BaseEntry):
                              re.compile(source_regex))
 
     line_pattern = re.compile(
-        (r"""^(?P<indent>(?: {4})*)[0-9:.]{15} (?P<event_name>[a-z]*) +"""
-         r"""(?P<line_number>[0-9]*) +(?P<source>.*)$""")
+        (r"""^(?P<prefix>.*?)(?P<indent>(?: {4})*)[0-9:.]{15} """
+         r"""(?P<event_name>[a-z]*) +(?P<line_number>[0-9]*) """
+         r"""+(?P<source>.*)$""")
     )
 
     @caching.CachedProperty
@@ -99,7 +101,7 @@ class _BaseEventEntry(_BaseEntry):
         match = self.line_pattern.match(s)
         if not match:
             return False
-        indent, event_name, _, source = match.groups()
+        _, _, event_name, _, source = match.groups()
         return event_name == self.event_name and self._check_source(source)
 
 
@@ -124,13 +126,18 @@ class OutputFailure(Exception):
     pass
         
 
-def assert_output(output, expected_entries):
+def assert_output(output, expected_entries, prefix=None):
     lines = tuple(filter(None, output.split('\n')))
     if len(lines) != len(expected_entries):
         raise OutputFailure(
             'Output has {len(lines)} lines, while we expect '
             '{len(expected_entries)} lines.'.format(**locals())
         )
+    if prefix is not None:
+        for line in lines:
+            if not line.startswith(prefix):
+                raise OutputFailure(line)
+                
     for expected_entry, line in zip(expected_entries, lines):
         if not expected_entry.check(line):
             raise OutputFailure(line)

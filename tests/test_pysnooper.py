@@ -135,3 +135,37 @@ def test_depth():
         )
     )
 
+
+def test_method_and_prefix():
+
+    class Baz(object):
+        def __init__(self):
+            self.x = 2
+            
+        @pysnooper.snoop(variables=('self.x'), prefix='ZZZ')
+        def square(self):
+            foo = 7
+            self.x **= 2
+            return self
+
+    baz = Baz()
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = baz.square()
+    assert result is baz
+    assert result.x == 4
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry(),
+            CallEntry(),
+            LineEntry('foo = 7'), 
+            VariableEntry('foo', '7'),
+            LineEntry('self.x **= 2'), 
+            LineEntry(), 
+            ReturnEntry(), 
+        ),
+        prefix='ZZZ'
+    )

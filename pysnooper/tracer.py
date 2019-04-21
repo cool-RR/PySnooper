@@ -96,14 +96,22 @@ def get_source_from_frame(frame):
     return source
 
 class Tracer:
-    def __init__(self, target_code_object, write, variables=(), depth=1):
+    def __init__(self, target_code_object, write, variables=(), depth=1,
+                 prefix=''):
         self.target_code_object = target_code_object
-        self.write = write
+        self._write = write
         self.variables = variables
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
         self.depth = depth
+        self.prefix = prefix
         assert self.depth >= 1
+        
+    def write(self, s):
+        s = '{self.prefix}{s}\n'.format(**locals())
+        if isinstance(s, bytes): # Python 2 compatibility
+            s = s.decode()
+        self._write(s)
 
     def __enter__(self):
         self.original_trace_function = sys.gettrace()

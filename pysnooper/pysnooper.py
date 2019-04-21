@@ -21,38 +21,29 @@ from .tracer import Tracer
 def get_write_function(output):
     if output is None:
         def write(s):
-            s += '\n'
-            if isinstance(s, bytes): # Python 2 compatibility
-                s = s.decode('utf-8')
             stderr = sys.stderr
             stderr.write(s)
     elif isinstance(output, (pycompat.PathLike, str)):
         def write(s):
-            s += '\n'
-            if isinstance(s, bytes): # Python 2 compatibility
-                s = s.decode('utf-8')
             with open(output_path, 'a') as output_file:
                 output_file.write(s)
     else:
         assert isinstance(output, utils.WritableStream)
         def write(s):
-            s += '\n'
-            if isinstance(s, bytes): # Python 2 compatibility
-                s = s.decode('utf-8')
             output.write(s)
             
     return write
     
     
 
-def snoop(output=None, variables=(), depth=1):
+def snoop(output=None, variables=(), depth=1, prefix=''):
     write = get_write_function(output)
     @decorator.decorator
     def decorate(function, *args, **kwargs):
         target_code_object = function.__code__
         with Tracer(target_code_object=target_code_object,
                     write=write, variables=variables,
-                    depth=depth):
+                    depth=depth, prefix=prefix):
             return function(*args, **kwargs)
     
     return decorate
