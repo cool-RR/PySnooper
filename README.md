@@ -64,7 +64,7 @@ The output to stderr is:
 
 # Features #
 
-If stderr is not easily accessible for you, you can redirect the output to a file easily:
+If stderr is not easily accessible for you, you can redirect the output to a file:
 
     @pysnooper.snoop('/my/log/file.log')
 
