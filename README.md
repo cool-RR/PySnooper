@@ -1,5 +1,3 @@
-# WORK-IN-PROGRESS, NOT USABLE YET #
-
 # PySnooper - Never use print for debugging again #
 
 [![Travis CI](https://img.shields.io/travis/cool-RR/PySnooper/master.svg)](https://travis-ci.org/cool-RR/PySnooper)
