@@ -4,6 +4,7 @@
 import abc
 import sys
 
+from .pycompat import ABC
 
 def _check_methods(C, *methods):
     mro = C.__mro__
@@ -18,7 +19,7 @@ def _check_methods(C, *methods):
     return True
 
 
-class WritableStream(metaclass=abc.ABCMeta):
+class WritableStream(ABC):
     @abc.abstractmethod
     def write(self, s):
         pass

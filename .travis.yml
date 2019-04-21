@@ -1,0 +1,21 @@
+dist: xenial
+language: python
+python:
+#- pypy2.7
+- 2.7
+- 3.4
+- 3.5
+- 3.6
+- 3.7
+- 3.8-dev
+- pypy3.5
+
+env:
+ - PYTHONWARNINGS='ignore::DeprecationWarning' # Until python_toolbox is fixed
+
+install:
+- pip install -r requirements.txt -r test_requirements.txt
+script:
+- pytest
+
+

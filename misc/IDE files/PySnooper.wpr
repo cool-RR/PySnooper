@@ -12,7 +12,11 @@ proj.directory-list = [{'dirloc': loc('../..'),
                         'watch_for_changes': True}]
 proj.file-type = 'shared'
 proj.home-dir = loc('../..')
-proj.launch-config = {loc('../../../../../Dropbox/Scripts and shortcuts/_simplify3d_add_m600.py'): ('p'\
+proj.launch-config = {loc('../../../../../../../Program Files/Python37/Scripts/pasteurize-script.py'): ('p'\
+        'roject',
+        (u'"c:\\Users\\Administrator\\Documents\\Python Projects\\PySnooper\\pysnooper" "c:\\Users\\Administrator\\Documents\\Python Projects\\PySnooper\\tests"',
+         '')),
+                      loc('../../../../../Dropbox/Scripts and shortcuts/_simplify3d_add_m600.py'): ('p'\
         'roject',
         (u'"C:\\Users\\Administrator\\Dropbox\\Desktop\\foo.gcode"',
          ''))}

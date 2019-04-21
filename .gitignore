@@ -5,3 +5,5 @@ __pycache__
 .pytest_cache
 
 *.wpu
+
+*.bak

@@ -1,6 +1,10 @@
+# WORK-IN-PROGRESS, NOT USABLE YET #
+
 # PySnooper - Never use print for debugging again #
 
-**PySnooper** is a poor man's debugger.
+[![Travis CI](https://img.shields.io/travis/cool-RR/PySnooper/master.svg)](https://travis-ci.org/cool-RR/PySnooper)
+
+**PySnooper** is a poor man's debugger. 
 
 You're trying to figure out why your Python code isn't doing what you think it should be doing. You'd love to use a full-fledged debugger with breakpoints and watches, but you can't be bothered to set one up right now.
 
@@ -33,28 +37,28 @@ We're writing a function that converts a number to binary, by returing a list of
 
 The output to stderr is: 
     
-                ==> number = 6
+    ............... number = 6
     00:24:15.284000 call         3 @pysnooper.snoop()
     00:24:15.284000 line         5     if number:
     00:24:15.284000 line         6         bits = []
-                ==> bits = []
+    ............... bits = []
     00:24:15.284000 line         7         while number:
     00:24:15.284000 line         8             number, remainder = divmod(number, 2)
-                ==> number = 3
-                ==> remainder = 0
+    ............... number = 3
+    ............... remainder = 0
     00:24:15.284000 line         9             bits.insert(0, remainder)
-                ==> bits = [0]
+    ............... bits = [0]
     00:24:15.284000 line         7         while number:
     00:24:15.284000 line         8             number, remainder = divmod(number, 2)
-                ==> number = 1
-                ==> remainder = 1
+    ............... number = 1
+    ............... remainder = 1
     00:24:15.284000 line         9             bits.insert(0, remainder)
-                ==> bits = [1, 0]
+    ............... bits = [1, 0]
     00:24:15.284000 line         7         while number:
     00:24:15.284000 line         8             number, remainder = divmod(number, 2)
-                ==> number = 0
+    ............... number = 0
     00:24:15.284000 line         9             bits.insert(0, remainder)
-                ==> bits = [1, 1, 0]
+    ............... bits = [1, 1, 0]
     00:24:15.284000 line         7         while number:
     00:24:15.284000 line        10         return bits
     00:24:15.284000 return      10         return bits
