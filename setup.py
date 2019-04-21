@@ -3,8 +3,6 @@
 
 import setuptools
 
-with open('README.md', 'r') as readme_file:
-    long_description = readme_file.read()
 
 setuptools.setup(
     name='PySnooper',
@@ -12,15 +10,12 @@ setuptools.setup(
     author='Ram Rachum',
     author_email='ram@rachum.com',
     description="A poor man's debugger for Python.",
-    long_description=long_description,
+    long_description=open('README.md', 'r').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/cool-RR/PySnooper',
     packages=setuptools.find_packages(),
-    install_requires=('decorator>=4.3.0',), 
-    tests_require=(
-        'pytest>=4.4.1',
-        'python_toolbox>=0.9.3',
-    ), 
+    install_requires=open('requirements.txt', 'r').read().split('\n'), 
+    tests_require=open('test_requirements.txt', 'r').read().split('\n'), 
     classifiers=[
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',

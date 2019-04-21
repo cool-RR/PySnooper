@@ -40,7 +40,7 @@ def test_string_io():
     
 def test_variables():
 
-    class Foo:
+    class Foo(object):
         def __init__(self):
             self.x = 2
             

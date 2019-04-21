@@ -11,7 +11,7 @@ import pysnooper.pycompat
 
 class _BaseEntry(pysnooper.pycompat.ABC):
     @abc.abstractmethod
-    def check(self, s: str) -> bool:
+    def check(self, s):
         pass
     
 class VariableEntry(_BaseEntry):
@@ -19,7 +19,7 @@ class VariableEntry(_BaseEntry):
         r"""^(?P<indent>(?: {4})*)(?P<stage>New|Modified|Starting) var:"""
         r"""\.{2,7} (?P<name>[^ ]+) = (?P<value>.+)$"""
     )
-    def __init__(self, name=None, value=None, stage=None, *,
+    def __init__(self, name=None, value=None, stage=None,
                  name_regex=None, value_regex=None):
         if name is not None:
             assert name_regex is None
@@ -35,7 +35,7 @@ class VariableEntry(_BaseEntry):
         self.value_regex = (None if value_regex is None else
                             re.compile(value_regex))
 
-    def _check_name(self, name: str) -> bool:
+    def _check_name(self, name):
         if self.name is not None:
             return name == self.name
         elif self.name_regex is not None:
@@ -43,7 +43,7 @@ class VariableEntry(_BaseEntry):
         else:
             return True
 
-    def _check_value(self, value: str) -> bool:
+    def _check_value(self, value):
         if self.value is not None:
             return value == self.value
         elif self.value_regex is not None:
@@ -51,14 +51,14 @@ class VariableEntry(_BaseEntry):
         else:
             return True
 
-    def _check_stage(self, stage: str) -> bool:
+    def _check_stage(self, stage):
         stage = stage.lower()
         if self.stage is None:
             return stage in ('starting', 'new', 'modified')
         else:
             return stage == self.value
 
-    def check(self, s: str) -> bool:
+    def check(self, s):
         match = self.line_pattern.match(s)
         if not match:
             return False
@@ -68,7 +68,7 @@ class VariableEntry(_BaseEntry):
 
 
 class _BaseEventEntry(_BaseEntry):
-    def __init__(self, source=None, *, source_regex=None):
+    def __init__(self, source=None, source_regex=None):
         if type(self) is _BaseEventEntry:
             raise TypeError
         if source is not None:
@@ -87,7 +87,7 @@ class _BaseEventEntry(_BaseEntry):
     def event_name(self):
         return re.match('^[A-Z][a-z]*', type(self).__name__).group(0).lower()
 
-    def _check_source(self, source: str) -> bool:
+    def _check_source(self, source):
         if self.source is not None:
             return source == self.source
         elif self.source_regex is not None:
@@ -95,7 +95,7 @@ class _BaseEventEntry(_BaseEntry):
         else:
             return True
 
-    def check(self, s: str) -> bool:
+    def check(self, s):
         match = self.line_pattern.match(s)
         if not match:
             return False

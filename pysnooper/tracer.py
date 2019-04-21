@@ -7,14 +7,15 @@ import re
 import collections
 import datetime as datetime_module
 
-def get_shortish_repr(item) -> str:
+import six
+
+def get_shortish_repr(item):
     r = repr(item)
     if len(r) > 100:
         r = '{r[:97]}...'.format(**locals())
     return r
 
-def get_local_reprs(frame: types.FrameType, *,
-                    variables=()) -> dict:
+def get_local_reprs(frame, variables=()):
     result = {}
     for key, value in frame.f_locals.items():
         try:
@@ -40,7 +41,7 @@ def get_local_reprs(frame: types.FrameType, *,
 
 source_cache_by_module_name = {}
 source_cache_by_file_name = {}
-def get_source_from_frame(frame: types.FrameType) -> str:
+def get_source_from_frame(frame):
     module_name = frame.f_globals.get('__name__') or ''
     if module_name:
         try:
@@ -85,7 +86,8 @@ def get_source_from_frame(frame: types.FrameType) -> str:
             if match:
                 encoding = match.group(1).decode('ascii')
                 break
-        source = [str(sline, encoding, 'replace') for sline in source]
+        source = [six.text_type(sline, encoding, 'replace') for sline in
+                  source]
 
     if module_name:
         source_cache_by_module_name[module_name] = source
@@ -94,8 +96,7 @@ def get_source_from_frame(frame: types.FrameType) -> str:
     return source
 
 class Tracer:
-    def __init__(self, *, target_code_object: types.CodeType, write: callable,
-                 variables=(), depth: int=1):
+    def __init__(self, target_code_object, write, variables=(), depth=1):
         self.target_code_object = target_code_object
         self.write = write
         self.variables = variables
@@ -112,8 +113,7 @@ class Tracer:
         sys.settrace(self.original_trace_function)
         
 
-    def trace(self: 'Tracer', frame: types.FrameType, event: str,
-              arg):
+    def trace(self, frame, event, arg):
         
         ### Checking whether we should trace this line: #######################
         #                                                                     #

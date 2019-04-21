@@ -1,2 +1,3 @@
 decorator>=4.3.0
 future>=0.17.1
+six>=1.12.0
