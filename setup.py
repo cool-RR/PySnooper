@@ -6,7 +6,7 @@ import setuptools
 
 setuptools.setup(
     name='PySnooper',
-    version='0.0.4',
+    version='0.0.5',
     author='Ram Rachum',
     author_email='ram@rachum.com',
     description="A poor man's debugger for Python.",
