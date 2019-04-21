@@ -1,8 +1,6 @@
 # Copyright 2019 Ram Rachum.
 # This program is distributed under the MIT license.
 
-from future import standard_library
-standard_library.install_aliases()
 import sys
 import os
 import inspect
