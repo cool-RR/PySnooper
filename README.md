@@ -70,9 +70,17 @@ If stderr is not easily accessible for you, you can redirect the output to a fil
 
     @pysnooper.snoop('/my/log/file.log')
 
-Want to see values of some variables that aren't local variables?
+See values of some variables that aren't local variables:
 
     @pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
+
+Show snoop lines for functions that your function calls:
+
+    @pysnooper.snoop(depth=2)
+
+Start all snoop lines with a prefix, to grep for them easily:
+
+    @pysnooper.snoop(prefix='ZZZ ')
 
 
 # Installation #
