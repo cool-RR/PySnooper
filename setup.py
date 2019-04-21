@@ -17,6 +17,9 @@ setuptools.setup(
     install_requires=open('requirements.txt', 'r').read().split('\n'),
     tests_require=open('test_requirements.txt', 'r').read().split('\n'),
     classifiers=[
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
