@@ -6,9 +6,9 @@
 
 You're trying to figure out why your Python code isn't doing what you think it should be doing. You'd love to use a full-fledged debugger with breakpoints and watches, but you can't be bothered to set one up right now.
 
-You're looking at a section of Python code. You want to know which lines are running and which aren't, and what the values of the local variables are.
+You want to know which lines are running and which aren't, and what the values of the local variables are.
 
-Most people would use a `print` line. Probably several of them, in strategic locations, some of them showing the values of variables. Then they'd use the output of the prints to figure out which code ran when and what was in the variables.
+Most people would use `print` lines, in strategic locations, some of them showing the values of variables.
 
 **PySnooper** lets you do the same, except instead of carefully crafting the right `print` lines, you just add one decorator line to the function you're interested in. You'll get a play-by-play log of your function, including which lines ran and   when, and exactly when local variables were changed.
 
