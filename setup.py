@@ -1,13 +1,9 @@
 # Copyright 2019 Ram Rachum.
 # This program is distributed under the MIT license.
 
-import setuptools
+from setuptools import find_packages, setup
 
-
-packages = [package for package in setuptools.find_packages()
-            if package != 'tests']
-
-setuptools.setup(
+setup(
     name='PySnooper',
     version='0.0.7',
     author='Ram Rachum',
@@ -16,7 +12,7 @@ setuptools.setup(
     long_description=open('README.md', 'r').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/cool-RR/PySnooper',
-    packages=packages,
+    packages=find_packages(exclude=['tests']),
     install_requires=open('requirements.txt', 'r').read().split('\n'),
     tests_require=open('test_requirements.txt', 'r').read().split('\n'),
     classifiers=[
