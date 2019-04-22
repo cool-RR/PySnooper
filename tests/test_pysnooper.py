@@ -1,6 +1,7 @@
 # Copyright 2019 Ram Rachum.
 # This program is distributed under the MIT license.
 
+import inspect
 import io
 import re
 import abc
@@ -197,3 +198,33 @@ def test_file_output():
             )
         )
 
+
+def test_generator():
+    string_io = io.StringIO()
+
+    @pysnooper.snoop(string_io)
+    def generator_empty_output():
+        yield 1
+
+    result = generator_empty_output()
+    assert inspect.isgenerator(result)
+    assert next(result) == 1
+    output = string_io.getvalue()
+    assert_output(output, ())
+
+    @pysnooper.snoop(string_io, is_generator=True)
+    def generator():
+        yield 1
+
+    result = generator()
+    assert inspect.isgenerator(result)
+    assert next(result) == 1
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            CallEntry(),
+            LineEntry('yield 1'),
+            ReturnEntry('yield 1'),
+        )
+    )

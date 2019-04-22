@@ -33,8 +33,7 @@ def get_write_function(output):
     return write
 
 
-
-def snoop(output=None, variables=(), depth=1, prefix=''):
+def snoop(output=None, variables=(), depth=1, prefix='', is_generator=False):
     '''
     Snoop on the function, writing everything it's doing to stderr.
 
@@ -69,8 +68,20 @@ def snoop(output=None, variables=(), depth=1, prefix=''):
         with Tracer(target_code_object=target_code_object,
                     write=write, variables=variables,
                     depth=depth, prefix=prefix):
-            return function(*args, **kwargs)
+                return function(*args, **kwargs)
 
+    @decorator.decorator
+    def generator_decorate(function, *args, **kwargs):
+        target_code_object = function.__code__
+        with Tracer(target_code_object=target_code_object,
+                    write=write, variables=variables,
+                    depth=depth, prefix=prefix):
+                for v in function(*args, **kwargs):
+                    yield v
+                # yield from function(*args, **kwargs)
+
+    if is_generator:
+        return generator_decorate
     return decorate
 
 
