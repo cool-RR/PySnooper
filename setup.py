@@ -9,7 +9,7 @@ packages = [package for package in setuptools.find_packages()
 
 setuptools.setup(
     name='PySnooper',
-    version='0.0.6',
+    version='0.0.7',
     author='Ram Rachum',
     author_email='ram@rachum.com',
     description="A poor man's debugger for Python.",
