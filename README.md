@@ -16,7 +16,7 @@ What makes **PySnooper** stand out from all other code intelligence tools? You c
 
 # Example #
 
-We're writing a function that converts a number to binary, by returing a list of bits. Let's snoop on it by adding the `@pysnooper.snoop()` decorator:
+We're writing a function that converts a number to binary, by returning a list of bits. Let's snoop on it by adding the `@pysnooper.snoop()` decorator:
 
     import pysnooper
 
