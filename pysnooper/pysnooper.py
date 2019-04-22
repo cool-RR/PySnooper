@@ -35,6 +35,33 @@ def get_write_function(output):
 
 
 def snoop(output=None, variables=(), depth=1, prefix=''):
+    '''
+    Snoop on the function, writing everything it's doing to stderr.
+
+    This is useful for debugging.
+
+    When you decorate a function with `@pysnooper.snoop()`, you'll get a log of
+    every line that ran in the function and a play-by-play of every local
+    variable that changed.
+
+    If stderr is not easily accessible for you, you can redirect the output to
+    a file::
+
+        @pysnooper.snoop('/my/log/file.log')
+
+    See values of some variables that aren't local variables::
+
+        @pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
+
+    Show snoop lines for functions that your function calls::
+
+        @pysnooper.snoop(depth=2)
+
+    Start all snoop lines with a prefix, to grep for them easily::
+
+        @pysnooper.snoop(prefix='ZZZ ')
+
+    '''
     write = get_write_function(output)
     @decorator.decorator
     def decorate(function, *args, **kwargs):

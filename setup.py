@@ -4,16 +4,19 @@
 import setuptools
 
 
+packages = [package for package in setuptools.find_packages()
+            if package != 'tests']
+
 setuptools.setup(
     name='PySnooper',
-    version='0.0.5',
+    version='0.0.6',
     author='Ram Rachum',
     author_email='ram@rachum.com',
     description="A poor man's debugger for Python.",
     long_description=open('README.md', 'r').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/cool-RR/PySnooper',
-    packages=setuptools.find_packages(),
+    packages=packages,
     install_requires=open('requirements.txt', 'r').read().split('\n'),
     tests_require=open('test_requirements.txt', 'r').read().split('\n'),
     classifiers=[
