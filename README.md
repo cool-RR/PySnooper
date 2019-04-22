@@ -17,22 +17,22 @@ What makes **PySnooper** stand out from all other code intelligence tools? You c
 # Example #
 
 We're writing a function that converts a number to binary, by returning a list of bits. Let's snoop on it by adding the `@pysnooper.snoop()` decorator:
+```python
+import pysnooper
 
-    import pysnooper
+@pysnooper.snoop()
+def number_to_bits(number):
+    if number:
+        bits = []
+        while number:
+            number, remainder = divmod(number, 2)
+            bits.insert(0, remainder)
+        return bits
+    else:
+        return [0]
 
-    @pysnooper.snoop()
-    def number_to_bits(number):
-        if number:
-            bits = []
-            while number:
-                number, remainder = divmod(number, 2)
-                bits.insert(0, remainder)
-            return bits
-        else:
-            return [0]
-
-    number_to_bits(6)
-
+number_to_bits(6)
+```
 The output to stderr is:
 
     Starting var:.. number = 6
