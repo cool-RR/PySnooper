@@ -7,6 +7,7 @@ import abc
 
 from python_toolbox import caching
 from python_toolbox import sys_tools
+from python_toolbox import temp_file_tools
 
 import pysnooper
 
@@ -169,3 +170,30 @@ def test_method_and_prefix():
         ),
         prefix='ZZZ'
     )
+
+def test_file_output():
+
+    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+        path = folder / 'foo.log'
+        @pysnooper.snoop(str(path))
+        def my_function(foo):
+            x = 7
+            y = 8
+            return y + x
+        result = my_function('baba')
+        assert result == 15
+        output = path.open().read()
+        assert_output(
+            output,
+            (
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry(),
+                LineEntry('x = 7'),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x'),
+                ReturnEntry('return y + x'),
+            )
+        )
+

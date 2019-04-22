@@ -23,7 +23,7 @@ def get_write_function(output):
             stderr.write(s)
     elif isinstance(output, (pycompat.PathLike, str)):
         def write(s):
-            with open(output_path, 'a') as output_file:
+            with open(output, 'a') as output_file:
                 output_file.write(s)
     else:
         assert isinstance(output, utils.WritableStream)
