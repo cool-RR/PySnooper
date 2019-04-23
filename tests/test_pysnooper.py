@@ -29,7 +29,7 @@ def test_string_io():
         output,
         (
             VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry(),
+            CallEntry('def my_function(foo):'),
             LineEntry('x = 7'),
             VariableEntry('x', '7'),
             LineEntry('y = 8'),
@@ -64,7 +64,7 @@ def test_variables():
         (
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def my_function():'),
             LineEntry('foo = Foo()'),
             VariableEntry(),
             VariableEntry(),
@@ -109,17 +109,17 @@ def test_depth():
         (
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def f1(x1):'),
             LineEntry(),
 
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def f2(x2):'),
             LineEntry(),
 
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def f3(x3):'),
             LineEntry(),
 
             VariableEntry(),
@@ -161,7 +161,7 @@ def test_method_and_prefix():
         output,
         (
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def square(self):'),
             LineEntry('foo = 7'),
             VariableEntry('foo', '7'),
             LineEntry('self.x **= 2'),
@@ -187,7 +187,7 @@ def test_file_output():
             output,
             (
                 VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry(),
+                CallEntry('def my_function(foo):'),
                 LineEntry('x = 7'),
                 VariableEntry('x', '7'),
                 LineEntry('y = 8'),
