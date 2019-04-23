@@ -1,13 +1,13 @@
-*.pyc
-*.pyo
-__pycache__
+*.py[co]
+__pycache__/
 
-.pytest_cache
+.tox/
+.pytest_cache/
 
-*.wpu
+dist/
+build/
+*.egg-info/
 
 *.bak
 
-dist
-build
-*.egg-info
+*.wpu

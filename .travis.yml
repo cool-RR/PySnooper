@@ -1,5 +1,6 @@
 dist: xenial
 language: python
+
 python:
 - 2.7
 - 3.4
@@ -10,10 +11,37 @@ python:
 - pypy2.7-6.0
 - pypy3.5
 
-env:
- - PYTHONWARNINGS='ignore::DeprecationWarning' # Until python_toolbox is fixed
-
 install:
-- pip install -r test_requirements.txt
+- pip install tox-travis
 script:
-- pytest
+- tox
+
+stages:
+- lint
+- test
+- deploy
+
+matrix:
+  allow_failures:
+  - env: TOXENV=flake8
+  - env: TOXENV=pylint
+  - env: TOXENV=bandit
+
+jobs:
+  include:
+  - { stage: lint, python: 3.7, env: TOXENV=flake8 }
+  - { stage: lint, python: 3.7, env: TOXENV=pylint }
+  - { stage: lint, python: 3.7, env: TOXENV=bandit }
+  - { stage: lint, python: 3.7, env: TOXENV=readme }
+
+  - stage: deploy
+    install: skip
+    script: skip
+    deploy:
+      provider: pypi
+      distributions: sdist bdist_wheel
+      user: cool-RR
+      password:
+        secure: <your-pypi-password-here-encrypted-using-the-travis-cli>
+      on:
+        tags: true
