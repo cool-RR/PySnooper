@@ -1,0 +1,3 @@
+include README.md
+include requirements.in
+include requirements.txt
