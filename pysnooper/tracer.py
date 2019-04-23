@@ -181,9 +181,16 @@ class Tracer:
         ### Finished newish and modified variables. ###########################
 
         now_string = datetime_module.datetime.now().time().isoformat()
-        source_line = get_source_from_frame(frame)[frame.f_lineno - 1]
+        line_no = frame.f_lineno
+        source_line = get_source_from_frame(frame)[line_no - 1]
+        if event == 'call':
+            # Skip lines containing function decorators to print actual
+            # function name
+            while source_line.lstrip()[0] == '@':
+                line_no += 1
+                source_line = get_source_from_frame(frame)[line_no - 1]
         self.write('{indent}{now_string} {event:9} '
-                   '{frame.f_lineno:4} {source_line}'.format(**locals()))
+                   '{line_no:4} {source_line}'.format(**locals()))
         return self.trace
 
 
