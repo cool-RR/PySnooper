@@ -1,2 +1,5 @@
-python_toolbox>=0.9.3
-pytest>=4.4.1
+-r requirements.txt
+
+pip-tools
+pytest
+python_toolbox
