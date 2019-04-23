@@ -197,3 +197,35 @@ def test_file_output():
             )
         )
 
+def test_function_name_finding():
+    string_io = io.StringIO()
+    @pysnooper.snoop(string_io,
+    depth = 2
+    # Multiline decorator
+    )
+    def my_function(foo):
+        x = lambda bar: 7
+        y = 8
+        return y + x(foo)
+    result = my_function('baba')
+    assert result == 15
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_function(foo):'),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+            # inside lambda
+            VariableEntry('bar', value_regex="u?'baba'"),
+            CallEntry('x = lambda bar: 7'),
+            LineEntry(),
+            ReturnEntry(),
+            # back in my_function
+            ReturnEntry(),
+        )
+    )
