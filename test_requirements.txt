@@ -1,5 +1,0 @@
--r requirements.txt
-
-pip-tools
-pytest
-python_toolbox
