@@ -183,12 +183,19 @@ class Tracer:
         now_string = datetime_module.datetime.now().time().isoformat()
         line_no = frame.f_lineno
         source_line = get_source_from_frame(frame)[line_no - 1]
+
         if event == 'call':
             # Skip lines containing function decorators to print actual
             # function name
             while source_line.lstrip()[0] == '@':
                 line_no += 1
                 source_line = get_source_from_frame(frame)[line_no - 1]
+            # Check that source_line is actually a function definition,
+            # otherwise fall back to original line
+            if not source_line.lstrip().startswith('def'):
+                line_no = frame.f_lineno
+                source_line = get_source_from_frame(frame)[line_no - 1]
+
         self.write('{indent}{now_string} {event:9} '
                    '{line_no:4} {source_line}'.format(**locals()))
         return self.trace
