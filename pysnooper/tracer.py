@@ -184,17 +184,24 @@ class Tracer:
         line_no = frame.f_lineno
         source_line = get_source_from_frame(frame)[line_no - 1]
 
-        if event == 'call':
-            # Skip lines containing function decorators to print actual
-            # function name
-            while source_line.lstrip()[0] == '@':
-                line_no += 1
-                source_line = get_source_from_frame(frame)[line_no - 1]
-            # Check that source_line is actually a function definition,
-            # otherwise fall back to original line
-            if not source_line.lstrip().startswith('def'):
-                line_no = frame.f_lineno
-                source_line = get_source_from_frame(frame)[line_no - 1]
+        if event == 'call' and len(source_line.lstrip()) > 0 and \
+                                                source_line.lstrip()[0] == '@':
+            # If a function decorator is found, skip lines until
+            # an actual function definition is found.
+            try:
+                def_line_no = line_no
+                def_source_line = get_source_from_frame(frame)[def_line_no]
+                while not def_source_line.lstrip().startswith('def'):
+                    def_line_no += 1
+                    def_source_line = get_source_from_frame(frame)[def_line_no]
+                else:
+                    # Found a function definition
+                    line_no = def_line_no
+                    source_line = def_source_line
+            except IndexError:
+                # End of source file reached without finding a function definition.
+                # Fall back to original source line.
+                pass
 
         self.write('{indent}{now_string} {event:9} '
                    '{line_no:4} {source_line}'.format(**locals()))
