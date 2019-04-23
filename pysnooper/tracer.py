@@ -12,7 +12,7 @@ import six
 def get_shortish_repr(item):
     r = repr(item)
     if len(r) > 100:
-        r = '{r[:97]}...'.format(**locals())
+        r = '{truncated_r}...'.format(truncated_r=r[:97])
     return r
 
 def get_local_reprs(frame, variables=()):
