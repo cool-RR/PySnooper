@@ -1,4 +1,4 @@
-# Copyright 2019 Ram Rachum.
+# Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 '''Python 2/3 compatibility'''
 
