@@ -9,7 +9,7 @@ import datetime as datetime_module
 import re
 import collections
 
-import decorator
+from .third_party import decorator
 
 from . import utils
 from . import pycompat

@@ -12,7 +12,7 @@ except ImportError:
 import datetime as datetime_module
 import itertools
 
-import six
+from .third_party import six
 
 MAX_VARIABLE_LENGTH = 100
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
