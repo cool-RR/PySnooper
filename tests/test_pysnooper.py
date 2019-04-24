@@ -8,7 +8,7 @@ import abc
 from python_toolbox import caching
 from python_toolbox import sys_tools
 from python_toolbox import temp_file_tools
-import six
+from pysnooper.third_party import six
 
 import pysnooper
 
