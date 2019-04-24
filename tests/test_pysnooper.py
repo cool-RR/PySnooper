@@ -48,7 +48,7 @@ def test_variables():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(variables=('foo.x', 're'))
+    @pysnooper.snoop(variables=('foo.x', 're'), color='green')
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -196,4 +196,3 @@ def test_file_output():
                 ReturnEntry('return y + x'),
             )
         )
-
