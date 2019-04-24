@@ -189,7 +189,8 @@ def test_file_output():
             return y + x
         result = my_function('baba')
         assert result == 15
-        output = path.open().read()
+        with path.open() as output_file:
+            output = output_file.read()
         assert_output(
             output,
             (
