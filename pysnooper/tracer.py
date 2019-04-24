@@ -5,6 +5,10 @@ import types
 import sys
 import re
 import collections
+if sys.version.startswith("3"):
+    from collections import ChainMap
+else:
+    from ConfigParser import _Chainmap as ChainMap
 import datetime as datetime_module
 import itertools
 
@@ -25,7 +29,7 @@ def get_local_reprs(frame, variables=()):
             result[key] = get_shortish_repr(value)
         except Exception:
             continue
-    locals_and_globals = collections.ChainMap(frame.f_locals, frame.f_globals)
+    locals_and_globals = ChainMap(frame.f_locals, frame.f_globals)
     for variable in variables:
         steps = variable.split('.')
         step_iterator = iter(steps)
