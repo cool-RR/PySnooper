@@ -44,6 +44,14 @@ def get_local_reprs(frame, variables=()):
     return result
 
 
+class UnavailableSource(object):
+    def __getitem__(self, i):
+        content = 'SOURCE IS UNAVAILABLE'
+        if six.PY2:
+            content = content.decode()
+        return content
+
+
 source_cache_by_module_name = {}
 source_cache_by_file_name = {}
 def get_source_from_frame(frame):
@@ -77,7 +85,7 @@ def get_source_from_frame(frame):
         except (OSError, IOError):
             pass
     if source is None:
-        raise NotImplementedError
+        source = UnavailableSource()
 
     # If we just read the source from a file, or if the loader did not
     # apply tokenize.detect_encoding to decode the source into a

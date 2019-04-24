@@ -8,6 +8,7 @@ import abc
 from python_toolbox import caching
 from python_toolbox import sys_tools
 from python_toolbox import temp_file_tools
+import six
 
 import pysnooper
 
@@ -260,3 +261,36 @@ def test_lambda():
             ReturnValueEntry('49'),
         )
     )
+
+def test_unavailable_source():
+    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder, \
+                                       sys_tools.TempSysPathAdder(str(folder)):
+        module_name = 'iaerojajsijf'
+        python_file_path = folder / ('%s.py' % (module_name,))
+        content = ('import pysnooper\n'
+                   '\n'
+                   '@pysnooper.snoop()\n'
+                   'def f(x):\n'
+                   '    return x\n')
+        if six.PY2:
+            content = content.decode()
+        with python_file_path.open('w') as python_file:
+            python_file.write(content)
+        module = __import__(module_name)
+        python_file_path.unlink()
+        with sys_tools.OutputCapturer(stdout=False,
+                                      stderr=True) as output_capturer:
+            result = getattr(module, 'f')(7)
+        assert result == 7
+        output = output_capturer.output
+        assert_output(
+            output,
+            (
+                VariableEntry(stage='starting'),
+                CallEntry('SOURCE IS UNAVAILABLE'),
+                LineEntry('SOURCE IS UNAVAILABLE'),
+                ReturnEntry('SOURCE IS UNAVAILABLE'),
+                ReturnValueEntry('7'),
+            )
+        )
+
