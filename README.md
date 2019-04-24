@@ -38,30 +38,31 @@ The output to stderr is:
 
 ```
 Starting var:.. number = 6
-21:14:32.099769 call         3 @pysnooper.snoop()
-21:14:32.099769 line         5     if number:
-21:14:32.099769 line         6         bits = []
+15:29:11.327032 call         4 def number_to_bits(number):
+15:29:11.327032 line         5     if number:
+15:29:11.327032 line         6         bits = []
 New var:....... bits = []
-21:14:32.099769 line         7         while number:
-21:14:32.099769 line         8             number, remainder = divmod(number, 2)
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line         8             number, remainder = divmod(number, 2)
 New var:....... remainder = 0
 Modified var:.. number = 3
-21:14:32.099769 line         9             bits.insert(0, remainder)
+15:29:11.327032 line         9             bits.insert(0, remainder)
 Modified var:.. bits = [0]
-21:14:32.099769 line         7         while number:
-21:14:32.099769 line         8             number, remainder = divmod(number, 2)
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line         8             number, remainder = divmod(number, 2)
 Modified var:.. number = 1
 Modified var:.. remainder = 1
-21:14:32.099769 line         9             bits.insert(0, remainder)
+15:29:11.327032 line         9             bits.insert(0, remainder)
 Modified var:.. bits = [1, 0]
-21:14:32.099769 line         7         while number:
-21:14:32.099769 line         8             number, remainder = divmod(number, 2)
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line         8             number, remainder = divmod(number, 2)
 Modified var:.. number = 0
-21:14:32.099769 line         9             bits.insert(0, remainder)
+15:29:11.327032 line         9             bits.insert(0, remainder)
 Modified var:.. bits = [1, 1, 0]
-21:14:32.099769 line         7         while number:
-21:14:32.099769 line        10         return bits
-21:14:32.099769 return      10         return bits
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line        10         return bits
+15:29:11.327032 return      10         return bits
+Return value:.. [1, 1, 0]
 ```
 
 # Features #
