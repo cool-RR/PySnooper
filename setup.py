@@ -15,7 +15,7 @@ def read_file(filename):
 
 setuptools.setup(
     name='PySnooper',
-    version='0.0.12',
+    version='0.0.13',
     author='Ram Rachum',
     author_email='ram@rachum.com',
     description="A poor man's debugger for Python.",
