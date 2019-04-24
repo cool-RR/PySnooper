@@ -22,6 +22,7 @@ def get_shortish_repr(item):
         r = repr(item)
     except Exception:
         r = 'REPR FAILED'
+    r = r.replace('\r', '').replace('\n', '')
     if len(r) > MAX_VARIABLE_LENGTH:
         r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
     return r
