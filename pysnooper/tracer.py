@@ -15,6 +15,7 @@ import itertools
 import six
 
 MAX_VARIABLE_LENGTH = 100
+ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
 def get_shortish_repr(item):
@@ -79,11 +80,23 @@ def get_source_from_frame(frame):
         if source is not None:
             source = source.splitlines()
     if source is None:
-        try:
-            with open(file_name, 'rb') as fp:
-                source = fp.read().splitlines()
-        except (OSError, IOError):
-            pass
+        ipython_filename_match = ipython_filename_pattern.match(file_name)
+        if ipython_filename_match:
+            entry_number = int(ipython_filename_match.group(1))
+            try:
+                import IPython
+                ipython_shell = IPython.get_ipython()
+                ((_, _, source_chunk),) = ipython_shell.history_manager. \
+                                  get_range(0, entry_number, entry_number + 1)
+                source = source_chunk.splitlines()
+            except Exception:
+                pass
+        else:
+            try:
+                with open(file_name, 'rb') as fp:
+                    source = fp.read().splitlines()
+            except (OSError, IOError):
+                pass
     if source is None:
         source = UnavailableSource()
 
