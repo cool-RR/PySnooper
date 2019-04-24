@@ -6,6 +6,8 @@ This program is distributed under the MIT license.
 """
 import setuptools
 
+import pysnooper
+
 
 def read_file(filename):
     """Return the contents of a file"""
@@ -15,7 +17,7 @@ def read_file(filename):
 
 setuptools.setup(
     name='PySnooper',
-    version='0.0.15',
+    version=pysnooper.__version__,
     author='Ram Rachum',
     author_email='ram@rachum.com',
     description="A poor man's debugger for Python.",
