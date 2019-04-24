@@ -1,0 +1,8 @@
+{
+  "files": ["AUTHORS2"],
+  "imageSize": 100,
+  "contributorsPerLine": 1,
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square)](#contributors)",
+  "contributorTemplate": "<%= avatarBlock %><br /><%= contributions %>",
+  "contributors": []
+}
