@@ -131,7 +131,7 @@ class VariableEntry(_BaseValueEntry):
         if self.stage is None:
             return stage in ('starting', 'new', 'modified')
         else:
-            return stage == self.value
+            return stage == self.stage
 
 class ReturnValueEntry(_BaseValueEntry):
     def __init__(self, value=None, value_regex=None, prefix=''):
