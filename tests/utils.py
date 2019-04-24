@@ -81,13 +81,13 @@ class _BaseEventEntry(_BaseEntry):
 
     line_pattern = re.compile(
         (r"""^(?P<prefix>.*?)(?P<indent>(?: {4})*)[0-9:.]{15} """
-         r"""(?P<event_name>[a-z]*) +(?P<line_number>[0-9]*) """
+         r"""(?P<event_name>[a-z_]*) +(?P<line_number>[0-9]*) """
          r"""+(?P<source>.*)$""")
     )
 
     @caching.CachedProperty
     def event_name(self):
-        return re.match('^[A-Z][a-z]*', type(self).__name__).group(0).lower()
+        return re.match('^[A-Z][a-z_]*', type(self).__name__).group(0).lower()
 
     def _check_source(self, source):
         if self.source is not None:
@@ -121,6 +121,8 @@ class ExceptionEntry(_BaseEventEntry):
 class OpcodeEntry(_BaseEventEntry):
     pass
 
+class Return_valueEntry(_BaseEventEntry):
+    pass
 
 class OutputFailure(Exception):
     pass

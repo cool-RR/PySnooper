@@ -213,6 +213,8 @@ class Tracer:
 
         self.write('{indent}{now_string} {event:9} '
                    '{line_no:4} {source_line}'.format(**locals()))
+        if event == 'return':
+            self.write('{indent}{now_string} return_value {line_no:4} {arg}'.format(**locals()))
         return self.trace
 
 
