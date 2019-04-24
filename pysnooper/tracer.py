@@ -6,6 +6,7 @@ import sys
 import re
 import collections
 import datetime as datetime_module
+import itertools
 
 import six
 
@@ -184,24 +185,27 @@ class Tracer:
         line_no = frame.f_lineno
         source_line = get_source_from_frame(frame)[line_no - 1]
 
-        if event == 'call' and len(source_line.lstrip()) > 0 and \
-                                                source_line.lstrip()[0] == '@':
-            # If a function decorator is found, skip lines until
-            # an actual function definition is found.
-            try:
-                def_line_no = line_no
-                def_source_line = get_source_from_frame(frame)[def_line_no]
-                while not def_source_line.lstrip().startswith('def'):
-                    def_line_no += 1
-                    def_source_line = get_source_from_frame(frame)[def_line_no]
-                else:
-                    # Found a function definition
-                    line_no = def_line_no
-                    source_line = def_source_line
-            except IndexError:
-                # End of source file reached without finding a function definition.
-                # Fall back to original source line.
-                pass
+        ### Dealing with misplaced function definition: #######################
+        #                                                                     #
+        if event == 'call' and source_line.lstrip().startswith('@'):
+            # If a function decorator is found, skip lines until an actual
+            # function definition is found.
+            for candidate_line_no in itertools.count(line_no):
+                try:
+                    candidate_source_line = \
+                            get_source_from_frame(frame)[candidate_line_no - 1]
+                except IndexError:
+                    # End of source file reached without finding a function
+                    # definition. Fall back to original source line.
+                    break
+
+                if candidate_source_line.lstrip().startswith('def'):
+                    # Found the def line!
+                    line_no = candidate_line_no
+                    source_line = candidate_source_line
+                    break
+        #                                                                     #
+        ### Finished dealing with misplaced function definition. ##############
 
         self.write('{indent}{now_string} {event:9} '
                    '{line_no:4} {source_line}'.format(**locals()))
