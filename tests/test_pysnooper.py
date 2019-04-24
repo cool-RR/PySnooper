@@ -233,3 +233,20 @@ def test_confusing_decorator_lines():
             ReturnEntry(),
         )
     )
+
+
+def test_lambda():
+    string_io = io.StringIO()
+    my_function = pysnooper.snoop(string_io)(lambda x: x ** 2)
+    result = my_function(7)
+    assert result == 49
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('x', '7'),
+            CallEntry(source_regex='^my_function = pysnooper.*'),
+            LineEntry(source_regex='^my_function = pysnooper.*'),
+            ReturnEntry(source_regex='^my_function = pysnooper.*'),
+        )
+    )
