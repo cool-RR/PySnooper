@@ -16,19 +16,19 @@ import six
 
 MAX_VARIABLE_LENGTH = 100
 
+
 def get_shortish_repr(item):
-    r = repr(item)
+    try:
+        r = repr(item)
+    except Exception:
+        r = 'REPR FAILED'
     if len(r) > MAX_VARIABLE_LENGTH:
         r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
     return r
 
 def get_local_reprs(frame, variables=()):
-    result = {}
-    for key, value in frame.f_locals.items():
-        try:
-            result[key] = get_shortish_repr(value)
-        except Exception:
-            continue
+    result = {key: get_shortish_repr(value) for key, value
+                                                     in frame.f_locals.items()}
     locals_and_globals = ChainMap(frame.f_locals, frame.f_globals)
     for variable in variables:
         steps = variable.split('.')
@@ -39,10 +39,7 @@ def get_local_reprs(frame, variables=()):
                 current = getattr(current, step)
         except (KeyError, AttributeError):
             continue
-        try:
-            result[variable] = get_shortish_repr(current)
-        except Exception:
-            continue
+        result[variable] = get_shortish_repr(current)
     return result
 
 
@@ -213,8 +210,12 @@ class Tracer:
 
         self.write('{indent}{now_string} {event:9} '
                    '{line_no:4} {source_line}'.format(**locals()))
+
         if event == 'return':
-            self.write('{indent}{now_string} return_value {line_no:4} {arg}'.format(**locals()))
+            return_value_repr = get_shortish_repr(arg)
+            self.write('{indent}Return value:.. {return_value_repr}'.
+                                                            format(**locals()))
+
         return self.trace
 
 

@@ -12,7 +12,7 @@ from python_toolbox import temp_file_tools
 import pysnooper
 
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
-                    ReturnEntry, OpcodeEntry, Return_valueEntry, ExceptionEntry)
+                    ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
 
 def test_string_io():
@@ -36,7 +36,7 @@ def test_string_io():
             VariableEntry('y', '8'),
             LineEntry('return y + x'),
             ReturnEntry('return y + x'),
-            Return_valueEntry('15'),
+            ReturnValueEntry('15'),
         )
     )
 
@@ -79,7 +79,7 @@ def test_variables():
             VariableEntry('foo.x', '16'),
             LineEntry(),
             ReturnEntry(),
-            Return_valueEntry('None')
+            ReturnValueEntry('None')
         )
     )
 
@@ -127,17 +127,17 @@ def test_depth():
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
-            Return_valueEntry('20'),
+            ReturnValueEntry('20'),
 
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
-            Return_valueEntry('20'),
+            ReturnValueEntry('20'),
 
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
-            Return_valueEntry('20'),
+            ReturnValueEntry('20'),
         )
     )
 
@@ -165,14 +165,14 @@ def test_method_and_prefix():
     assert_output(
         output,
         (
-            VariableEntry(),
-            CallEntry('def square(self):'),
-            LineEntry('foo = 7'),
-            VariableEntry('foo', '7'),
-            LineEntry('self.x **= 2'),
-            LineEntry(),
-            ReturnEntry(),
-            Return_valueEntry(),
+            VariableEntry(prefix='ZZZ'),
+            CallEntry('def square(self):', prefix='ZZZ'),
+            LineEntry('foo = 7', prefix='ZZZ'),
+            VariableEntry('foo', '7', prefix='ZZZ'),
+            LineEntry('self.x **= 2', prefix='ZZZ'),
+            LineEntry(prefix='ZZZ'),
+            ReturnEntry(prefix='ZZZ'),
+            ReturnValueEntry(prefix='ZZZ'),
         ),
         prefix='ZZZ'
     )
@@ -200,7 +200,7 @@ def test_file_output():
                 VariableEntry('y', '8'),
                 LineEntry('return y + x'),
                 ReturnEntry('return y + x'),
-                Return_valueEntry('15'),
+                ReturnValueEntry('15'),
             )
         )
 
@@ -236,10 +236,10 @@ def test_confusing_decorator_lines():
             CallEntry('x = lambda bar: 7'),
             LineEntry(),
             ReturnEntry(),
-            Return_valueEntry('7'),
+            ReturnValueEntry('7'),
             # back in my_function
             ReturnEntry(),
-            Return_valueEntry('15'),
+            ReturnValueEntry('15'),
         )
     )
 
@@ -257,6 +257,6 @@ def test_lambda():
             CallEntry(source_regex='^my_function = pysnooper.*'),
             LineEntry(source_regex='^my_function = pysnooper.*'),
             ReturnEntry(source_regex='^my_function = pysnooper.*'),
-            Return_valueEntry('49'),
+            ReturnValueEntry('49'),
         )
     )
