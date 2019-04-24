@@ -96,11 +96,6 @@ Start all snoop lines with a prefix, to grep for them easily:
 $ pip install pysnooper
 ```
 
-If you lack permission for system-wide installation:
-```console
-$ pip install --user pysnooper
-```
-
 # Contribute #
 
 [Pull requests](https://github.com/cool-RR/PySnooper/pulls) are always welcome!
