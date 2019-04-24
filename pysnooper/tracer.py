@@ -174,10 +174,10 @@ class Tracer:
 
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
-        for name, value_repr in newish_local_reprs.items():
+        for name, value_repr in sorted(newish_local_reprs.items()):
             self.write('{indent}{newish_string}{name} = {value_repr}'.format(
                                                                    **locals()))
-        for name, value_repr in modified_local_reprs.items():
+        for name, value_repr in sorted(modified_local_reprs.items()):
             self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
                                                                    **locals()))
         #                                                                     #
