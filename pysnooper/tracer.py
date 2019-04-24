@@ -5,9 +5,9 @@ import types
 import sys
 import re
 import collections
-if sys.version.startswith("3"):
+try:
     from collections import ChainMap
-else:
+except ImportError:
     from ConfigParser import _Chainmap as ChainMap
 import datetime as datetime_module
 import itertools
