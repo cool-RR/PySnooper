@@ -197,12 +197,16 @@ def test_file_output():
             )
         )
 
-def test_function_name_finding():
+def test_confusing_decorator_lines():
     string_io = io.StringIO()
+
+    def empty_decorator(function):
+        return function
+    @empty_decorator
     @pysnooper.snoop(string_io,
-    depth = 2
-    # Multiline decorator
-    )
+                     depth=2) # Multi-line decorator for extra confusion!
+    @empty_decorator
+    @empty_decorator
     def my_function(foo):
         x = lambda bar: 7
         y = 8
