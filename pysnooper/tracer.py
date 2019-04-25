@@ -139,9 +139,7 @@ class Tracer:
         if self.overwrite and not self._did_overwrite:
             self.truncate()
             self._did_overwrite = True
-        s = '{self.prefix}{s}\n'.format(**locals())
-        if isinstance(s, bytes): # Python 2 compatibility
-            s = s.decode()
+        s = u'{self.prefix}{s}\n'.format(**locals())
         self._write(s)
 
     def __enter__(self):
