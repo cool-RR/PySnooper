@@ -7,7 +7,7 @@ import collections
 __VersionInfo = collections.namedtuple('VersionInfo',
                                        ('major', 'minor', 'micro'))
 
-__version_info__ = __VersionInfo(0, 0, 19)
-__version__ = '.'.join(map(str, __version_info__))
+__version__ = '0.0.20'
+__version_info__ = __VersionInfo(*(map(int, __version__.split('.'))))
 
 del collections, __VersionInfo # Avoid polluting the namespace
