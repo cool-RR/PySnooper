@@ -1,7 +1,6 @@
 # Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
-import types
 import sys
 import re
 import collections
@@ -28,6 +27,7 @@ def get_shortish_repr(item):
         r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
     return r
 
+
 def get_local_reprs(frame, variables=()):
     result = {key: get_shortish_repr(value) for key, value
                                                      in frame.f_locals.items()}
@@ -52,6 +52,8 @@ class UnavailableSource(object):
 
 source_cache_by_module_name = {}
 source_cache_by_file_name = {}
+
+
 def get_source_from_frame(frame):
     module_name = frame.f_globals.get('__name__') or ''
     if module_name:
@@ -65,7 +67,6 @@ def get_source_from_frame(frame):
             return source_cache_by_file_name[file_name]
         except KeyError:
             pass
-    function = frame.f_code.co_name
     loader = frame.f_globals.get('__loader__')
 
     source = None
@@ -118,6 +119,7 @@ def get_source_from_frame(frame):
         source_cache_by_file_name[file_name] = source
     return source
 
+
 class Tracer:
     def __init__(self, target_code_object, write, truncate, variables=(),
                  depth=1, prefix='', overwrite=False):
@@ -148,7 +150,6 @@ class Tracer:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         sys.settrace(self.original_trace_function)
-
 
     def trace(self, frame, event, arg):
 
@@ -242,5 +243,3 @@ class Tracer:
                                                             format(**locals()))
 
         return self.trace
-
-

@@ -2,12 +2,6 @@
 # This program is distributed under the MIT license.
 
 import sys
-import os
-import inspect
-import types
-import datetime as datetime_module
-import re
-import collections
 
 from .third_party import decorator
 
@@ -36,7 +30,6 @@ def get_write_and_truncate_functions(output):
         truncate = None
 
     return (write, truncate)
-
 
 
 def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
@@ -83,5 +76,3 @@ def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
         return decorator.decorate(function, inner)
 
     return decorate
-
-

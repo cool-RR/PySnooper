@@ -3,7 +3,7 @@
 # This program is distributed under the MIT license.
 
 
-"""
+'''
 Generate an AUTHORS file for your Git repo.
 
 This will list the authors by chronological order, from their first
@@ -13,7 +13,7 @@ You probably want to run it this way:
 
     ./generate_authors > AUTHORS
 
-"""
+'''
 
 
 import subprocess
