@@ -226,11 +226,7 @@ class OutputFailure(Exception):
 
 def assert_output(output, expected_entries, prefix=None):
     lines = tuple(filter(None, output.split('\n')))
-    if len(lines) != len(expected_entries):
-        raise OutputFailure(
-            'Output has {len(lines)} lines, while we expect '
-            '{len(expected_entries)} lines.'.format(**locals())
-        )
+
     if prefix is not None:
         for line in lines:
             if not line.startswith(prefix):
@@ -240,4 +236,9 @@ def assert_output(output, expected_entries, prefix=None):
         if not expected_entry.check(line):
             raise OutputFailure(line)
 
-
+    if len(lines) != len(expected_entries):
+        raise OutputFailure(
+            'Output has {} lines, while we expect '
+            '{} lines.'.format(
+                len(lines), len(expected_entries))
+        )
