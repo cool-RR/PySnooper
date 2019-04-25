@@ -11,3 +11,6 @@ build/
 *.bak
 
 *.wpu
+
+.coverage
+htmlcov
