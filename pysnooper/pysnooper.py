@@ -16,25 +16,30 @@ from . import pycompat
 from .tracer import Tracer
 
 
-def get_write_function(output):
+def get_write_and_truncate_functions(output):
     if output is None:
         def write(s):
             stderr = sys.stderr
             stderr.write(s)
+        truncate = None
     elif isinstance(output, (pycompat.PathLike, str)):
         def write(s):
             with open(output, 'a') as output_file:
                 output_file.write(s)
+        def truncate():
+            with open(output, 'w') as output_file:
+                pass
     else:
         assert isinstance(output, utils.WritableStream)
         def write(s):
             output.write(s)
+        truncate = None
 
-    return write
+    return (write, truncate)
 
 
 
-def snoop(output=None, variables=(), depth=1, prefix=''):
+def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
     '''
     Snoop on the function, writing everything it's doing to stderr.
 
@@ -62,14 +67,20 @@ def snoop(output=None, variables=(), depth=1, prefix=''):
         @pysnooper.snoop(prefix='ZZZ ')
 
     '''
-    write = get_write_function(output)
-    @decorator.decorator
-    def decorate(function, *args, **kwargs):
+    write, truncate = get_write_and_truncate_functions(output)
+    if truncate is None and overwrite:
+        raise Exception("`overwrite=True` can only be used when writing "
+                        "content to file.")
+    def decorate(function):
         target_code_object = function.__code__
-        with Tracer(target_code_object=target_code_object,
-                    write=write, variables=variables,
-                    depth=depth, prefix=prefix):
-            return function(*args, **kwargs)
+        tracer = Tracer(target_code_object=target_code_object, write=write,
+                        truncate=truncate, variables=variables, depth=depth,
+                        prefix=prefix, overwrite=overwrite)
+
+        def inner(function_, *args, **kwargs):
+            with tracer:
+                return function(*args, **kwargs)
+        return decorator.decorate(function, inner)
 
     return decorate
 
