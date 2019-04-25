@@ -21,7 +21,6 @@ def get_write_function(output,color):
         def write(s):
             stderr = sys.stderr
             if color is not None:
-                stderr = sys.stdout
                 color_func = getattr(huepy,color)
                 s = color_func(s)
             stderr.write(s)
