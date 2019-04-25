@@ -1,15 +1,10 @@
-"""
-Packaging implementation for PySnooper
-
-Copyright 2019 Ram Rachum and collaborators.
-This program is distributed under the MIT license.
-"""
+# Copyright 2019 Ram Rachum and collaborators.
+# This program is distributed under the MIT license.
 import setuptools
 import re
 
 
 def read_file(filename):
-    """Return the contents of a file"""
     with open(filename) as file:
         return file.read()
 
