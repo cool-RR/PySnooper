@@ -132,3 +132,10 @@ Copyright (c) 2019 Ram Rachum and collaborators, released under the MIT license.
 I provide [Development services in Python and Django](https://chipmunkdev.com
 ) and I [give Python workshops](http://pythonworkshops.co/) to teach people
 Python and related topics.
+
+# Media Coverage
+
+- [Ram's blog](https://blog.ram.rachum.com/post/184362978203/pysnooper-never-use-print-for-debugging-again) (22 April 2019)
+- [Twitter](https://twitter.com/coolRR/status/1120279587093610496) (22 April 2019)
+- [Hacker News](https://news.ycombinator.com/item?id=19717786) (22 April 2019)
+- [/r/Python Reddit Forum](https://www.reddit.com/r/Python/comments/bg0ida/pysnooper_never_use_print_for_debugging_again/) (22 April 2019)
