@@ -11,7 +11,6 @@ import collections
 
 from .third_party import decorator
 
-from . import utils
 from . import pycompat
 from .tracer import Tracer
 
@@ -26,9 +25,7 @@ def get_write_function(output):
             with open(output, 'a') as output_file:
                 output_file.write(s)
     else:
-        assert isinstance(output, utils.WritableStream)
-        def write(s):
-            output.write(s)
+        write = output.write
 
     return write
 
