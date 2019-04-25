@@ -16,8 +16,6 @@ You probably want to run it this way:
 """
 
 
-import time
-
 import subprocess
 
 
@@ -48,5 +46,6 @@ def print_authors():
     for author in iterate_authors_by_chronological_order():
         print(author)
 
-if __name__ ==  '__main__':
+
+if __name__ == '__main__':
     print_authors()
