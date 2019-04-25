@@ -4,10 +4,6 @@
 import sys
 import re
 import collections
-try:
-    from collections import ChainMap
-except ImportError:
-    from ConfigParser import _Chainmap as ChainMap
 import datetime as datetime_module
 import itertools
 
@@ -31,17 +27,11 @@ def get_shortish_repr(item):
 def get_local_reprs(frame, variables=()):
     result = {key: get_shortish_repr(value) for key, value
                                                      in frame.f_locals.items()}
-    locals_and_globals = ChainMap(frame.f_locals, frame.f_globals)
-    for variable in variables:
-        steps = variable.split('.')
-        step_iterator = iter(steps)
+    for variable, code in variables:
         try:
-            current = locals_and_globals[next(step_iterator)]
-            for step in step_iterator:
-                current = getattr(current, step)
-        except (KeyError, AttributeError):
-            continue
-        result[variable] = get_shortish_repr(current)
+            result[variable] = eval(code, frame.f_globals, frame.f_locals)
+        except Exception:
+            pass
     return result
 
 
@@ -126,7 +116,12 @@ class Tracer:
         self.target_code_object = target_code_object
         self._write = write
         self.truncate = truncate
-        self.variables = variables
+        if isinstance(variables, six.string_types):
+            variables = [variables]
+        self.variables = [
+            (v, compile(v, target_code_object.co_filename, 'eval'))
+            for v in variables
+        ]
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
         self.depth = depth
