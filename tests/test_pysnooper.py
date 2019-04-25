@@ -9,6 +9,7 @@ from python_toolbox import caching
 from python_toolbox import sys_tools
 from python_toolbox import temp_file_tools
 from pysnooper.third_party import six
+import pytest
 
 import pysnooper
 
@@ -179,7 +180,6 @@ def test_method_and_prefix():
     )
 
 def test_file_output():
-
     with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
         @pysnooper.snoop(str(path))
@@ -294,4 +294,88 @@ def test_unavailable_source():
                 ReturnValueEntry('7'),
             )
         )
+
+
+def test_no_overwrite_by_default():
+    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+        path = folder / 'foo.log'
+        with path.open('w') as output_file:
+            output_file.write(u'lala')
+        @pysnooper.snoop(str(path))
+        def my_function(foo):
+            x = 7
+            y = 8
+            return y + x
+        result = my_function('baba')
+        assert result == 15
+        with path.open() as output_file:
+            output = output_file.read()
+        assert output.startswith('lala')
+        shortened_output = output[4:]
+        assert_output(
+            shortened_output,
+            (
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):'),
+                LineEntry('x = 7'),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x'),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+            )
+        )
+
+
+def test_overwrite():
+    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+        path = folder / 'foo.log'
+        with path.open('w') as output_file:
+            output_file.write(u'lala')
+        @pysnooper.snoop(str(path), overwrite=True)
+        def my_function(foo):
+            x = 7
+            y = 8
+            return y + x
+        result = my_function('baba')
+        result = my_function('baba')
+        assert result == 15
+        with path.open() as output_file:
+            output = output_file.read()
+        assert 'lala' not in output
+        assert_output(
+            output,
+            (
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):'),
+                LineEntry('x = 7'),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x'),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):'),
+                LineEntry('x = 7'),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x'),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+            )
+        )
+
+
+def test_error_in_overwrite_argument():
+    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+        with pytest.raises(Exception, match='can only be used when writing'):
+            @pysnooper.snoop(overwrite=True)
+            def my_function(foo):
+                x = 7
+                y = 8
+                return y + x
 
