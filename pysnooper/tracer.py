@@ -1,30 +1,37 @@
-# Copyright 2019 Ram Rachum.
+# Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
 import types
 import sys
 import re
 import collections
+try:
+    from collections import ChainMap
+except ImportError:
+    from ConfigParser import _Chainmap as ChainMap
 import datetime as datetime_module
+import itertools
 
-import six
+from .third_party import six
 
 MAX_VARIABLE_LENGTH = 100
+ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
+
 
 def get_shortish_repr(item):
-    r = repr(item)
+    try:
+        r = repr(item)
+    except Exception:
+        r = 'REPR FAILED'
+    r = r.replace('\r', '').replace('\n', '')
     if len(r) > MAX_VARIABLE_LENGTH:
         r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
     return r
 
 def get_local_reprs(frame, variables=()):
-    result = {}
-    for key, value in frame.f_locals.items():
-        try:
-            result[key] = get_shortish_repr(value)
-        except Exception:
-            continue
-    locals_and_globals = collections.ChainMap(frame.f_locals, frame.f_globals)
+    result = {key: get_shortish_repr(value) for key, value
+                                                     in frame.f_locals.items()}
+    locals_and_globals = ChainMap(frame.f_locals, frame.f_globals)
     for variable in variables:
         steps = variable.split('.')
         step_iterator = iter(steps)
@@ -34,11 +41,16 @@ def get_local_reprs(frame, variables=()):
                 current = getattr(current, step)
         except (KeyError, AttributeError):
             continue
-        try:
-            result[variable] = get_shortish_repr(current)
-        except Exception:
-            continue
+        result[variable] = get_shortish_repr(current)
     return result
+
+
+class UnavailableSource(object):
+    def __getitem__(self, i):
+        content = 'SOURCE IS UNAVAILABLE'
+        if six.PY2:
+            content = content.decode()
+        return content
 
 
 source_cache_by_module_name = {}
@@ -68,13 +80,25 @@ def get_source_from_frame(frame):
         if source is not None:
             source = source.splitlines()
     if source is None:
-        try:
-            with open(file_name, 'rb') as fp:
-                source = fp.read().splitlines()
-        except (OSError, IOError):
-            pass
+        ipython_filename_match = ipython_filename_pattern.match(file_name)
+        if ipython_filename_match:
+            entry_number = int(ipython_filename_match.group(1))
+            try:
+                import IPython
+                ipython_shell = IPython.get_ipython()
+                ((_, _, source_chunk),) = ipython_shell.history_manager. \
+                                  get_range(0, entry_number, entry_number + 1)
+                source = source_chunk.splitlines()
+            except Exception:
+                pass
+        else:
+            try:
+                with open(file_name, 'rb') as fp:
+                    source = fp.read().splitlines()
+            except (OSError, IOError):
+                pass
     if source is None:
-        raise NotImplementedError
+        source = UnavailableSource()
 
     # If we just read the source from a file, or if the loader did not
     # apply tokenize.detect_encoding to decode the source into a
@@ -171,19 +195,49 @@ class Tracer:
 
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
-        for name, value_repr in newish_local_reprs.items():
+        for name, value_repr in sorted(newish_local_reprs.items()):
             self.write('{indent}{newish_string}{name} = {value_repr}'.format(
                                                                    **locals()))
-        for name, value_repr in modified_local_reprs.items():
+        for name, value_repr in sorted(modified_local_reprs.items()):
             self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
                                                                    **locals()))
         #                                                                     #
         ### Finished newish and modified variables. ###########################
 
         now_string = datetime_module.datetime.now().time().isoformat()
-        source_line = get_source_from_frame(frame)[frame.f_lineno - 1]
+        line_no = frame.f_lineno
+        source_line = get_source_from_frame(frame)[line_no - 1]
+
+        ### Dealing with misplaced function definition: #######################
+        #                                                                     #
+        if event == 'call' and source_line.lstrip().startswith('@'):
+            # If a function decorator is found, skip lines until an actual
+            # function definition is found.
+            for candidate_line_no in itertools.count(line_no):
+                try:
+                    candidate_source_line = \
+                            get_source_from_frame(frame)[candidate_line_no - 1]
+                except IndexError:
+                    # End of source file reached without finding a function
+                    # definition. Fall back to original source line.
+                    break
+
+                if candidate_source_line.lstrip().startswith('def'):
+                    # Found the def line!
+                    line_no = candidate_line_no
+                    source_line = candidate_source_line
+                    break
+        #                                                                     #
+        ### Finished dealing with misplaced function definition. ##############
+
         self.write('{indent}{now_string} {event:9} '
-                   '{frame.f_lineno:4} {source_line}'.format(**locals()))
+                   '{line_no:4} {source_line}'.format(**locals()))
+
+        if event == 'return':
+            return_value_repr = get_shortish_repr(arg)
+            self.write('{indent}Return value:.. {return_value_repr}'.
+                                                            format(**locals()))
+
         return self.trace
 
 

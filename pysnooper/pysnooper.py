@@ -1,4 +1,4 @@
-# Copyright 2019 Ram Rachum.
+# Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
 import sys
@@ -8,8 +8,8 @@ import types
 import datetime as datetime_module
 import re
 import collections
-import huepy
-import decorator
+
+from .third_party import decorator, hue
 
 from . import utils
 from . import pycompat
@@ -21,7 +21,7 @@ def get_write_function(output,color):
         def write(s):
             stderr = sys.stderr
             if color is not None:
-                color_func = getattr(huepy,color)
+                color_func = getattr(hue,color)
                 s = color_func(s)
             stderr.write(s)
     elif isinstance(output, (pycompat.PathLike, str)):

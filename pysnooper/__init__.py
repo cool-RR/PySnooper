@@ -1,8 +1,13 @@
-# Copyright 2019 Ram Rachum.
+# Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
-import future.standard_library
-future.standard_library.install_aliases()
-del future
-
 from .pysnooper import snoop
+import collections
+
+__VersionInfo = collections.namedtuple('VersionInfo',
+                                       ('major', 'minor', 'micro'))
+
+__version_info__ = __VersionInfo(0, 0, 19)
+__version__ = '.'.join(map(str, __version_info__))
+
+del collections, __VersionInfo # Avoid polluting the namespace

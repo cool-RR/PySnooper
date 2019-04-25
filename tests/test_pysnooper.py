@@ -1,4 +1,4 @@
-# Copyright 2019 Ram Rachum.
+# Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
 import io
@@ -8,11 +8,12 @@ import abc
 from python_toolbox import caching
 from python_toolbox import sys_tools
 from python_toolbox import temp_file_tools
+from pysnooper.third_party import six
 
 import pysnooper
 
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
-                    ReturnEntry, OpcodeEntry, ExceptionEntry)
+                    ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
 
 def test_string_io():
@@ -29,13 +30,14 @@ def test_string_io():
         output,
         (
             VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry(),
+            CallEntry('def my_function(foo):'),
             LineEntry('x = 7'),
             VariableEntry('x', '7'),
             LineEntry('y = 8'),
             VariableEntry('y', '8'),
             LineEntry('return y + x'),
             ReturnEntry('return y + x'),
+            ReturnValueEntry('15'),
         )
     )
 
@@ -64,7 +66,7 @@ def test_variables():
         (
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def my_function():'),
             LineEntry('foo = Foo()'),
             VariableEntry(),
             VariableEntry(),
@@ -78,6 +80,7 @@ def test_variables():
             VariableEntry('foo.x', '16'),
             LineEntry(),
             ReturnEntry(),
+            ReturnValueEntry('None')
         )
     )
 
@@ -109,30 +112,33 @@ def test_depth():
         (
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def f1(x1):'),
             LineEntry(),
 
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def f2(x2):'),
             LineEntry(),
 
             VariableEntry(),
             VariableEntry(),
-            CallEntry(),
+            CallEntry('def f3(x3):'),
             LineEntry(),
-
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
 
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
+            ReturnValueEntry('20'),
 
             VariableEntry(),
             LineEntry(),
             ReturnEntry(),
+            ReturnValueEntry('20'),
+
+            VariableEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('20'),
         )
     )
 
@@ -160,13 +166,14 @@ def test_method_and_prefix():
     assert_output(
         output,
         (
-            VariableEntry(),
-            CallEntry(),
-            LineEntry('foo = 7'),
-            VariableEntry('foo', '7'),
-            LineEntry('self.x **= 2'),
-            LineEntry(),
-            ReturnEntry(),
+            VariableEntry(prefix='ZZZ'),
+            CallEntry('def square(self):', prefix='ZZZ'),
+            LineEntry('foo = 7', prefix='ZZZ'),
+            VariableEntry('foo', '7', prefix='ZZZ'),
+            LineEntry('self.x **= 2', prefix='ZZZ'),
+            LineEntry(prefix='ZZZ'),
+            ReturnEntry(prefix='ZZZ'),
+            ReturnValueEntry(prefix='ZZZ'),
         ),
         prefix='ZZZ'
     )
@@ -182,17 +189,108 @@ def test_file_output():
             return y + x
         result = my_function('baba')
         assert result == 15
-        output = path.open().read()
+        with path.open() as output_file:
+            output = output_file.read()
         assert_output(
             output,
             (
                 VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry(),
+                CallEntry('def my_function(foo):'),
                 LineEntry('x = 7'),
                 VariableEntry('x', '7'),
                 LineEntry('y = 8'),
                 VariableEntry('y', '8'),
                 LineEntry('return y + x'),
                 ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+            )
+        )
+
+def test_confusing_decorator_lines():
+    string_io = io.StringIO()
+
+    def empty_decorator(function):
+        return function
+    @empty_decorator
+    @pysnooper.snoop(string_io,
+                     depth=2) # Multi-line decorator for extra confusion!
+    @empty_decorator
+    @empty_decorator
+    def my_function(foo):
+        x = lambda bar: 7
+        y = 8
+        return y + x(foo)
+    result = my_function('baba')
+    assert result == 15
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_function(foo):'),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+            # inside lambda
+            VariableEntry('bar', value_regex="u?'baba'"),
+            CallEntry('x = lambda bar: 7'),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('7'),
+            # back in my_function
+            ReturnEntry(),
+            ReturnValueEntry('15'),
+        )
+    )
+
+
+def test_lambda():
+    string_io = io.StringIO()
+    my_function = pysnooper.snoop(string_io)(lambda x: x ** 2)
+    result = my_function(7)
+    assert result == 49
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('x', '7'),
+            CallEntry(source_regex='^my_function = pysnooper.*'),
+            LineEntry(source_regex='^my_function = pysnooper.*'),
+            ReturnEntry(source_regex='^my_function = pysnooper.*'),
+            ReturnValueEntry('49'),
+        )
+    )
+
+def test_unavailable_source():
+    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder, \
+                                       sys_tools.TempSysPathAdder(str(folder)):
+        module_name = 'iaerojajsijf'
+        python_file_path = folder / ('%s.py' % (module_name,))
+        content = ('import pysnooper\n'
+                   '\n'
+                   '@pysnooper.snoop()\n'
+                   'def f(x):\n'
+                   '    return x\n')
+        if six.PY2:
+            content = content.decode()
+        with python_file_path.open('w') as python_file:
+            python_file.write(content)
+        module = __import__(module_name)
+        python_file_path.unlink()
+        with sys_tools.OutputCapturer(stdout=False,
+                                      stderr=True) as output_capturer:
+            result = getattr(module, 'f')(7)
+        assert result == 7
+        output = output_capturer.output
+        assert_output(
+            output,
+            (
+                VariableEntry(stage='starting'),
+                CallEntry('SOURCE IS UNAVAILABLE'),
+                LineEntry('SOURCE IS UNAVAILABLE'),
+                ReturnEntry('SOURCE IS UNAVAILABLE'),
+                ReturnValueEntry('7'),
             )
         )

@@ -17,6 +17,7 @@ What makes **PySnooper** stand out from all other code intelligence tools? You c
 # Example #
 
 We're writing a function that converts a number to binary, by returning a list of bits. Let's snoop on it by adding the `@pysnooper.snoop()` decorator:
+
 ```python
 import pysnooper
 
@@ -35,62 +36,99 @@ number_to_bits(6)
 ```
 The output to stderr is:
 
-    Starting var:.. number = 6
-    21:14:32.099769 call         3 @pysnooper.snoop()
-    21:14:32.099769 line         5     if number:
-    21:14:32.099769 line         6         bits = []
-    New var:....... bits = []
-    21:14:32.099769 line         7         while number:
-    21:14:32.099769 line         8             number, remainder = divmod(number, 2)
-    New var:....... remainder = 0
-    Modified var:.. number = 3
-    21:14:32.099769 line         9             bits.insert(0, remainder)
-    Modified var:.. bits = [0]
-    21:14:32.099769 line         7         while number:
-    21:14:32.099769 line         8             number, remainder = divmod(number, 2)
-    Modified var:.. number = 1
-    Modified var:.. remainder = 1
-    21:14:32.099769 line         9             bits.insert(0, remainder)
-    Modified var:.. bits = [1, 0]
-    21:14:32.099769 line         7         while number:
-    21:14:32.099769 line         8             number, remainder = divmod(number, 2)
-    Modified var:.. number = 0
-    21:14:32.099769 line         9             bits.insert(0, remainder)
-    Modified var:.. bits = [1, 1, 0]
-    21:14:32.099769 line         7         while number:
-    21:14:32.099769 line        10         return bits
-    21:14:32.099769 return      10         return bits
-
+```
+Starting var:.. number = 6
+15:29:11.327032 call         4 def number_to_bits(number):
+15:29:11.327032 line         5     if number:
+15:29:11.327032 line         6         bits = []
+New var:....... bits = []
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line         8             number, remainder = divmod(number, 2)
+New var:....... remainder = 0
+Modified var:.. number = 3
+15:29:11.327032 line         9             bits.insert(0, remainder)
+Modified var:.. bits = [0]
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line         8             number, remainder = divmod(number, 2)
+Modified var:.. number = 1
+Modified var:.. remainder = 1
+15:29:11.327032 line         9             bits.insert(0, remainder)
+Modified var:.. bits = [1, 0]
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line         8             number, remainder = divmod(number, 2)
+Modified var:.. number = 0
+15:29:11.327032 line         9             bits.insert(0, remainder)
+Modified var:.. bits = [1, 1, 0]
+15:29:11.327032 line         7         while number:
+15:29:11.327032 line        10         return bits
+15:29:11.327032 return      10         return bits
+Return value:.. [1, 1, 0]
+```
 
 # Features #
 
 If stderr is not easily accessible for you, you can redirect the output to a file:
 
-    @pysnooper.snoop('/my/log/file.log')
+```python
+@pysnooper.snoop('/my/log/file.log')
+```
 
 See values of some variables that aren't local variables:
 
-    @pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
+```python
+@pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
+```
 
 Show snoop lines for functions that your function calls:
 
-    @pysnooper.snoop(depth=2)
+```python
+@pysnooper.snoop(depth=2)
+```
 
 Start all snoop lines with a prefix, to grep for them easily:
 
-    @pysnooper.snoop(prefix='ZZZ ')
-
+```python
+@pysnooper.snoop(prefix='ZZZ ')
+```
 
 # Installation #
 
-Use `pip`:
+```console
+$ pip install pysnooper
+```
 
-    pip install pysnooper
+# Contribute #
 
+[Pull requests](https://github.com/cool-RR/PySnooper/pulls) are always welcome!
+Please, write tests and run them with [Tox](https://tox.readthedocs.io/).
 
-# Copyright #
+Tox installs all dependencies automatically. You only need to install Tox itself:
 
-Copyright (c) 2019 Ram Rachum, released under the MIT license.
+```console
+$ pip install tox
+```
 
-I provide
-[Development services in Python and Django](https://chipmunkdev.com) and I [give Python workshops](http://pythonworkshops.co/) to teach people Python and related topics.
+List all environments `tox` would run:
+
+```console
+$ tox -lv
+```
+
+If you want to run tests agains all target Python versions use [pyenv](
+https://github.com/pyenv/pyenv) to install them. Otherwise, you can run
+only linters and the ones you have already installed on your machine:
+
+```console
+# run only some environments
+$ tox -e flake8,pylint,bandit,py27,py36
+```
+
+Linters and tests should pass before you push your code. They will be run again on Travis CI.
+
+# License #
+
+Copyright (c) 2019 Ram Rachum and collaborators, released under the MIT license.
+
+I provide [Development services in Python and Django](https://chipmunkdev.com
+) and I [give Python workshops](http://pythonworkshops.co/) to teach people
+Python and related topics.
