@@ -167,11 +167,13 @@ def test_method_and_prefix():
     assert_output(
         output,
         (
-            VariableEntry(prefix='ZZZ'),
+            VariableEntry('self', prefix='ZZZ'),
+            VariableEntry('self.x', '2', prefix='ZZZ'),
             CallEntry('def square(self):', prefix='ZZZ'),
             LineEntry('foo = 7', prefix='ZZZ'),
             VariableEntry('foo', '7', prefix='ZZZ'),
             LineEntry('self.x **= 2', prefix='ZZZ'),
+            VariableEntry('self.x', '4', prefix='ZZZ'),
             LineEntry(prefix='ZZZ'),
             ReturnEntry(prefix='ZZZ'),
             ReturnValueEntry(prefix='ZZZ'),
