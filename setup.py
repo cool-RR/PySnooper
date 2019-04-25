@@ -5,8 +5,7 @@ Copyright 2019 Ram Rachum and collaborators.
 This program is distributed under the MIT license.
 """
 import setuptools
-
-import pysnooper
+import re
 
 
 def read_file(filename):
@@ -14,10 +13,12 @@ def read_file(filename):
     with open(filename) as file:
         return file.read()
 
+version = re.search("__version__ = '([0-9.]*)'",
+                    read_file('pysnooper/__init__.py')).group(1)
 
 setuptools.setup(
     name='PySnooper',
-    version=pysnooper.__version__,
+    version=version,
     author='Ram Rachum',
     author_email='ram@rachum.com',
     description="A poor man's debugger for Python.",
