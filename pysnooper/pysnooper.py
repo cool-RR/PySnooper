@@ -9,17 +9,20 @@ import datetime as datetime_module
 import re
 import collections
 
-from .third_party import decorator
+from .third_party import decorator, hue
 
 from . import utils
 from . import pycompat
 from .tracer import Tracer
 
 
-def get_write_function(output):
+def get_write_function(output,color):
     if output is None:
         def write(s):
             stderr = sys.stderr
+            if color is not None:
+                color_func = getattr(hue,color)
+                s = color_func(s)
             stderr.write(s)
     elif isinstance(output, (pycompat.PathLike, str)):
         def write(s):
@@ -34,7 +37,7 @@ def get_write_function(output):
 
 
 
-def snoop(output=None, variables=(), depth=1, prefix=''):
+def snoop(output=None, variables=(), depth=1, prefix='', color=None):
     '''
     Snoop on the function, writing everything it's doing to stderr.
 
@@ -61,8 +64,15 @@ def snoop(output=None, variables=(), depth=1, prefix=''):
 
         @pysnooper.snoop(prefix='ZZZ ')
 
+    Show output coloring('green', 'lightgreen', 'grey', 'black', 
+    
+    'red', 'lightred', 'cyan', 'lightcyan', 'blue', 'lightblue', 
+    
+    'purple', 'yellow', 'white', 'lightpurple', 'orange'):
+
+        @pysnooper.snoop(color='red')
     '''
-    write = get_write_function(output)
+    write = get_write_function(output, color)
     @decorator.decorator
     def decorate(function, *args, **kwargs):
         target_code_object = function.__code__

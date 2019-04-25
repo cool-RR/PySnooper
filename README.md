@@ -91,6 +91,13 @@ Start all snoop lines with a prefix, to grep for them easily:
 @pysnooper.snoop(prefix='ZZZ ')
 ```
 
+Show output colorful::
+
+```python
+# 'green', 'lightgreen', 'grey', 'black', 'red', 'lightred', 'cyan', 'lightcyan', 'blue', 'lightblue', 'purple','yellow', 'white', 'lightpurple', 'orange'
+ @pysnooper.snoop(color='red')
+``` 
+
 # Installation #
 
 ```console
