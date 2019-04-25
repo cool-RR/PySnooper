@@ -48,10 +48,7 @@ def get_local_reprs(frame, variables=()):
 
 class UnavailableSource(object):
     def __getitem__(self, i):
-        content = 'SOURCE IS UNAVAILABLE'
-        if six.PY2:
-            content = content.decode()
-        return content
+        return u'SOURCE IS UNAVAILABLE'
 
 
 source_cache_by_module_name = {}
