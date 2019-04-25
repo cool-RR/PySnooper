@@ -1,10 +1,10 @@
 # Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
-import types
 import sys
 import re
 import collections
+
 try:
     from collections import ChainMap
 except ImportError:
@@ -28,9 +28,10 @@ def get_shortish_repr(item):
         r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
     return r
 
+
 def get_local_reprs(frame, variables=()):
     result = {key: get_shortish_repr(value) for key, value
-                                                     in frame.f_locals.items()}
+              in frame.f_locals.items()}
     locals_and_globals = ChainMap(frame.f_locals, frame.f_globals)
     for variable in variables:
         steps = variable.split('.')
@@ -52,6 +53,8 @@ class UnavailableSource(object):
 
 source_cache_by_module_name = {}
 source_cache_by_file_name = {}
+
+
 def get_source_from_frame(frame):
     module_name = frame.f_globals.get('__name__') or ''
     if module_name:
@@ -65,7 +68,6 @@ def get_source_from_frame(frame):
             return source_cache_by_file_name[file_name]
         except KeyError:
             pass
-    function = frame.f_code.co_name
     loader = frame.f_globals.get('__loader__')
 
     source = None
@@ -84,7 +86,7 @@ def get_source_from_frame(frame):
                 import IPython
                 ipython_shell = IPython.get_ipython()
                 ((_, _, source_chunk),) = ipython_shell.history_manager. \
-                                  get_range(0, entry_number, entry_number + 1)
+                    get_range(0, entry_number, entry_number + 1)
                 source = source_chunk.splitlines()
             except Exception:
                 pass
@@ -118,6 +120,7 @@ def get_source_from_frame(frame):
         source_cache_by_file_name[file_name] = source
     return source
 
+
 class Tracer:
     def __init__(self, target_code_object, write, variables=(), depth=1,
                  prefix=''):
@@ -132,7 +135,7 @@ class Tracer:
 
     def write(self, s):
         s = '{self.prefix}{s}\n'.format(**locals())
-        if isinstance(s, bytes): # Python 2 compatibility
+        if isinstance(s, bytes):  # Python 2 compatibility
             s = s.decode()
         self._write(s)
 
@@ -142,7 +145,6 @@ class Tracer:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         sys.settrace(self.original_trace_function)
-
 
     def trace(self, frame, event, arg):
 
@@ -177,9 +179,9 @@ class Tracer:
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
         self.frame_to_old_local_reprs[frame] = old_local_reprs = \
-                                               self.frame_to_local_reprs[frame]
+            self.frame_to_local_reprs[frame]
         self.frame_to_local_reprs[frame] = local_reprs = \
-                               get_local_reprs(frame, variables=self.variables)
+            get_local_reprs(frame, variables=self.variables)
 
         modified_local_reprs = {}
         newish_local_reprs = {}
@@ -191,13 +193,13 @@ class Tracer:
                 modified_local_reprs[key] = value
 
         newish_string = ('Starting var:.. ' if event == 'call' else
-                                                            'New var:....... ')
+                         'New var:....... ')
         for name, value_repr in sorted(newish_local_reprs.items()):
             self.write('{indent}{newish_string}{name} = {value_repr}'.format(
-                                                                   **locals()))
+                **locals()))
         for name, value_repr in sorted(modified_local_reprs.items()):
             self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
-                                                                   **locals()))
+                **locals()))
         #                                                                     #
         ### Finished newish and modified variables. ###########################
 
@@ -213,7 +215,7 @@ class Tracer:
             for candidate_line_no in itertools.count(line_no):
                 try:
                     candidate_source_line = \
-                            get_source_from_frame(frame)[candidate_line_no - 1]
+                        get_source_from_frame(frame)[candidate_line_no - 1]
                 except IndexError:
                     # End of source file reached without finding a function
                     # definition. Fall back to original source line.
@@ -233,8 +235,6 @@ class Tracer:
         if event == 'return':
             return_value_repr = get_shortish_repr(arg)
             self.write('{indent}Return value:.. {return_value_repr}'.
-                                                            format(**locals()))
+                       format(**locals()))
 
         return self.trace
-
-

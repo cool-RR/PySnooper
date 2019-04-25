@@ -10,4 +10,4 @@ __VersionInfo = collections.namedtuple('VersionInfo',
 __version__ = '0.0.20'
 __version_info__ = __VersionInfo(*(map(int, __version__.split('.'))))
 
-del collections, __VersionInfo # Avoid polluting the namespace
+del collections, __VersionInfo  # Avoid polluting the namespace

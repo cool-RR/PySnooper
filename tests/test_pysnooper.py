@@ -2,27 +2,25 @@
 # This program is distributed under the MIT license.
 
 import io
-import re
-import abc
 
-from python_toolbox import caching
 from python_toolbox import sys_tools
 from python_toolbox import temp_file_tools
-from pysnooper.third_party import six
 
 import pysnooper
-
+from pysnooper.third_party import six
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
-                    ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
+                    ReturnEntry, ReturnValueEntry)
 
 
 def test_string_io():
     string_io = io.StringIO()
+
     @pysnooper.snoop(string_io)
     def my_function(foo):
         x = 7
         y = 8
         return y + x
+
     result = my_function('baba')
     assert result == 15
     output = string_io.getvalue()
@@ -41,6 +39,7 @@ def test_string_io():
         )
     )
 
+
 def test_variables():
 
     class Foo(object):
@@ -50,7 +49,7 @@ def test_variables():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(variables=('foo.x', 're'))
+    @pysnooper.snoop(variables=('foo.x', 'io'))
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -83,6 +82,7 @@ def test_variables():
             ReturnValueEntry('None')
         )
     )
+
 
 def test_depth():
     string_io = io.StringIO()
@@ -144,7 +144,6 @@ def test_depth():
 
 
 def test_method_and_prefix():
-
     class Baz(object):
         def __init__(self):
             self.x = 2
@@ -178,15 +177,17 @@ def test_method_and_prefix():
         prefix='ZZZ'
     )
 
-def test_file_output():
 
+def test_file_output():
     with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
+
         @pysnooper.snoop(str(path))
-        def my_function(foo):
+        def my_function(_foo):
             x = 7
             y = 8
             return y + x
+
         result = my_function('baba')
         assert result == 15
         with path.open() as output_file:
@@ -194,8 +195,8 @@ def test_file_output():
         assert_output(
             output,
             (
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
+                VariableEntry('_foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(_foo):'),
                 LineEntry('x = 7'),
                 VariableEntry('x', '7'),
                 LineEntry('y = 8'),
@@ -206,20 +207,23 @@ def test_file_output():
             )
         )
 
+
 def test_confusing_decorator_lines():
     string_io = io.StringIO()
 
     def empty_decorator(function):
         return function
+
     @empty_decorator
     @pysnooper.snoop(string_io,
-                     depth=2) # Multi-line decorator for extra confusion!
+                     depth=2)  # Multi-line decorator for extra confusion!
     @empty_decorator
     @empty_decorator
     def my_function(foo):
         x = lambda bar: 7
         y = 8
         return y + x(foo)
+
     result = my_function('baba')
     assert result == 15
     output = string_io.getvalue()
@@ -263,9 +267,10 @@ def test_lambda():
         )
     )
 
+
 def test_unavailable_source():
     with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder, \
-                                       sys_tools.TempSysPathAdder(str(folder)):
+            sys_tools.TempSysPathAdder(str(folder)):
         module_name = 'iaerojajsijf'
         python_file_path = folder / ('%s.py' % (module_name,))
         content = ('import pysnooper\n'
@@ -294,4 +299,3 @@ def test_unavailable_source():
                 ReturnValueEntry('7'),
             )
         )
-
