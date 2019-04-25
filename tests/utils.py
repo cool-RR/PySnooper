@@ -30,6 +30,7 @@ class _BaseEntry(pysnooper.pycompat.ABC):
     def check(self, s):
         pass
 
+
 class _BaseValueEntry(_BaseEntry):
     def __init__(self, prefix=''):
         _BaseEntry.__init__(self, prefix=prefix)
@@ -52,21 +53,20 @@ class _BaseValueEntry(_BaseEntry):
             return False
         _, preamble, content = match.groups()
         return (self._check_preamble(preamble) and
-                                                  self._check_content(content))
+                self._check_content(content))
 
     def __repr__(self):
         init_arguments = get_function_arguments(self.__init__,
                                                 exclude=('self',))
         attributes = {
             key: repr(getattr(self, key)) for key in init_arguments
-                                              if getattr(self, key) is not None
+            if getattr(self, key) is not None
         }
         return '%s(%s)' % (
             type(self).__name__,
             ', '.join('{key}={value}'.format(**locals()) for key, value
-                                                         in attributes.items())
+                      in attributes.items())
         )
-
 
 
 class VariableEntry(_BaseValueEntry):
@@ -97,7 +97,6 @@ class VariableEntry(_BaseValueEntry):
             return False
         stage = match.group('stage')
         return self._check_stage(stage)
-
 
     _content_pattern = re.compile(
         r"""^(?P<name>[^ ]+) = (?P<value>.+)$"""
@@ -133,6 +132,7 @@ class VariableEntry(_BaseValueEntry):
         else:
             return stage == self.stage
 
+
 class ReturnValueEntry(_BaseValueEntry):
     def __init__(self, value=None, value_regex=None, prefix=''):
         _BaseValueEntry.__init__(self, prefix=prefix)
@@ -150,7 +150,6 @@ class ReturnValueEntry(_BaseValueEntry):
     def _check_preamble(self, preamble):
         return bool(self._preamble_pattern.match(preamble))
 
-
     def _check_content(self, content):
         return self._check_value(content)
 
@@ -161,6 +160,7 @@ class ReturnValueEntry(_BaseValueEntry):
             return self.value_regex.match(value)
         else:
             return True
+
 
 class _BaseEventEntry(_BaseEntry):
     def __init__(self, source=None, source_regex=None, prefix=''):
@@ -178,7 +178,6 @@ class _BaseEventEntry(_BaseEntry):
         self.source = source
         self.source_regex = (None if source_regex is None else
                              re.compile(source_regex))
-
 
     @caching.CachedProperty
     def event_name(self):
@@ -201,21 +200,25 @@ class _BaseEventEntry(_BaseEntry):
                 self._check_source(source))
 
 
-
 class CallEntry(_BaseEventEntry):
     pass
+
 
 class LineEntry(_BaseEventEntry):
     pass
 
+
 class ReturnEntry(_BaseEventEntry):
     pass
+
 
 class ExceptionEntry(_BaseEventEntry):
     pass
 
+
 class OpcodeEntry(_BaseEventEntry):
     pass
+
 
 class OutputFailure(Exception):
     pass

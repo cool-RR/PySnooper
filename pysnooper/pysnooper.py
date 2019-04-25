@@ -2,12 +2,6 @@
 # This program is distributed under the MIT license.
 
 import sys
-import os
-import inspect
-import types
-import datetime as datetime_module
-import re
-import collections
 
 from .third_party import decorator
 
@@ -33,9 +27,8 @@ def get_write_function(output):
     return write
 
 
-
 def snoop(output=None, variables=(), depth=1, prefix=''):
-    '''
+    """
     Snoop on the function, writing everything it's doing to stderr.
 
     This is useful for debugging.
@@ -61,8 +54,9 @@ def snoop(output=None, variables=(), depth=1, prefix=''):
 
         @pysnooper.snoop(prefix='ZZZ ')
 
-    '''
+    """
     write = get_write_function(output)
+
     @decorator.decorator
     def decorate(function, *args, **kwargs):
         target_code_object = function.__code__
@@ -72,5 +66,3 @@ def snoop(output=None, variables=(), depth=1, prefix=''):
             return function(*args, **kwargs)
 
     return decorate
-
-
