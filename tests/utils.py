@@ -4,6 +4,7 @@
 import re
 import abc
 import inspect
+from pysnooper.third_party.six.moves import zip_longest
 
 from python_toolbox import caching
 
@@ -232,13 +233,18 @@ def assert_output(output, expected_entries, prefix=None):
             if not line.startswith(prefix):
                 raise OutputFailure(line)
 
-    for expected_entry, line in zip(expected_entries, lines):
-        if not expected_entry.check(line):
-            raise OutputFailure(line)
+    any_mismatch = False
+    result = ''
+    template = '\n{line!s:%s}   {expected_entry}  {arrow}' % max(map(len, lines))
+    for expected_entry, line in zip_longest(expected_entries, lines, fillvalue=""):
+        mismatch = not (expected_entry and expected_entry.check(line))
+        any_mismatch |= mismatch
+        arrow = '<===' * mismatch
+        result += template.format(**locals())
 
     if len(lines) != len(expected_entries):
-        raise OutputFailure(
-            'Output has {} lines, while we expect '
-            '{} lines.'.format(
+        result += '\nOutput has {} lines, while we expect {} lines.'.format(
                 len(lines), len(expected_entries))
-        )
+
+    if any_mismatch:
+        raise OutputFailure(result)
