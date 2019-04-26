@@ -120,7 +120,7 @@ class VariableEntry(_BaseValueEntry):
 
     def _check_value(self, value):
         if self.value is not None:
-            return value == str(self.value)
+            return value == self.value
         elif self.value_regex is not None:
             return self.value_regex.match(value)
         else:

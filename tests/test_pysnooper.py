@@ -54,7 +54,7 @@ def test_variables():
 
     @pysnooper.snoop(variables=(
             'foo.x',
-            'io.__name__', 
+            'io.__name__',
             'len(foo.__dict__["x"] * "abc")',
     ))
     def my_function():
@@ -71,22 +71,22 @@ def test_variables():
         output,
         (
             VariableEntry('Foo'),
-            VariableEntry('io.__name__', 'io'),
+            VariableEntry('io.__name__', "'io'"),
             CallEntry('def my_function():'),
             LineEntry('foo = Foo()'),
             VariableEntry('foo'),
             VariableEntry('foo.x', '2'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', 6),
+            VariableEntry('len(foo.__dict__["x"] * "abc")', '6'),
             LineEntry(),
             VariableEntry('i', '0'),
             LineEntry(),
             VariableEntry('foo.x', '4'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', 12),
+            VariableEntry('len(foo.__dict__["x"] * "abc")', '12'),
             LineEntry(),
             VariableEntry('i', '1'),
             LineEntry(),
             VariableEntry('foo.x', '16'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', 48),
+            VariableEntry('len(foo.__dict__["x"] * "abc")', '48'),
             LineEntry(),
             ReturnEntry(),
             ReturnValueEntry('None')
