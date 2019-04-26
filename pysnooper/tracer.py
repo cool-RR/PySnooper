@@ -27,9 +27,11 @@ def get_shortish_repr(item):
 def get_local_reprs(frame, variables=()):
     result = {key: get_shortish_repr(value) for key, value
                                                      in frame.f_locals.items()}
-    for variable, code in variables:
+    for variable in variables:
         try:
-            result[variable] = eval(code, frame.f_globals, frame.f_locals)
+            result[variable] = get_shortish_repr(
+                eval(variable, frame.f_globals, frame.f_locals)
+            )
         except Exception:
             pass
     return result
@@ -117,11 +119,8 @@ class Tracer:
         self._write = write
         self.truncate = truncate
         if isinstance(variables, six.string_types):
-            variables = [variables]
-        self.variables = [
-            (v, compile(v, target_code_object.co_filename, 'eval'))
-            for v in variables
-        ]
+            variables = (variables,)
+        self.variables = variables
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
         self.depth = depth
