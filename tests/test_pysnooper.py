@@ -2,6 +2,7 @@
 # This program is distributed under the MIT license.
 
 import io
+import textwrap
 
 from python_toolbox import sys_tools
 from python_toolbox import temp_file_tools
@@ -277,11 +278,12 @@ def test_unavailable_source():
             sys_tools.TempSysPathAdder(str(folder)):
         module_name = 'iaerojajsijf'
         python_file_path = folder / ('%s.py' % (module_name,))
-        content = (u'import pysnooper\n'
-                   '\n'
-                   '@pysnooper.snoop()\n'
-                   'def f(x):\n'
-                   '    return x\n')
+        content = textwrap.dedent(u'''
+            import pysnooper
+            @pysnooper.snoop()
+            def f(x):
+                return x
+        ''')
         with python_file_path.open('w') as python_file:
             python_file.write(content)
         module = __import__(module_name)
