@@ -3,7 +3,7 @@
 
 import sys
 
-from .third_party import decorator
+from .third_party import decorator, hue
 
 from . import utils
 from . import pycompat
@@ -32,7 +32,8 @@ def get_write_and_truncate_functions(output):
     return (write, truncate)
 
 
-def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
+
+def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False, color={"newish":"green","modified":"orange","def":"blue","return":"cyan"}):
     '''
     Snoop on the function, writing everything it's doing to stderr.
 
@@ -59,6 +60,18 @@ def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
 
         @pysnooper.snoop(prefix='ZZZ ')
 
+    Show output coloring, default color dict {"newish":"green","modified":"orange","def":"blue","return":"cyan"}::
+        
+        @pysnooper.snoop()
+
+    to disabled colorful output, just make color to None::
+
+        @pysnooper.snoop(color=None)
+    
+    or just change centain color::
+
+        @pysnooper.snoop(color={"newish":"red"})
+
     '''
     write, truncate = get_write_and_truncate_functions(output)
     if truncate is None and overwrite:
@@ -68,7 +81,7 @@ def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
         target_code_object = function.__code__
         tracer = Tracer(target_code_object=target_code_object, write=write,
                         truncate=truncate, variables=variables, depth=depth,
-                        prefix=prefix, overwrite=overwrite)
+                        prefix=prefix, overwrite=overwrite, color=color)
 
         def inner(function_, *args, **kwargs):
             with tracer:

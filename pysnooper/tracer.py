@@ -7,7 +7,7 @@ import collections
 import datetime as datetime_module
 import itertools
 
-from .third_party import six
+from .third_party import six, hue
 
 MAX_VARIABLE_LENGTH = 100
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
@@ -36,6 +36,10 @@ def get_local_reprs(frame, variables=()):
             pass
     return result
 
+def get_colorful_str(s,color):
+    color_func = getattr(hue,color)
+    s = color_func(s)
+    return s
 
 class UnavailableSource(object):
     def __getitem__(self, i):
@@ -113,8 +117,8 @@ def get_source_from_frame(frame):
 
 
 class Tracer:
-    def __init__(self, target_code_object, write, truncate, variables=(),
-                 depth=1, prefix='', overwrite=False):
+    def __init__(self, target_code_object, write, truncate,variables=(), depth=1,
+                 prefix='', overwrite=False, color=None):
         self.target_code_object = target_code_object
         self._write = write
         self.truncate = truncate
@@ -128,12 +132,18 @@ class Tracer:
         self.overwrite = overwrite
         self._did_overwrite = False
         assert self.depth >= 1
+        self.color = color
 
-    def write(self, s):
+    def write(self, s, variable_types=None):
         if self.overwrite and not self._did_overwrite:
             self.truncate()
             self._did_overwrite = True
-        s = u'{self.prefix}{s}\n'.format(**locals())
+
+        if variable_types is None or self.color is None:
+            s = u'{self.prefix}{s}\n'.format(**locals())
+        if variable_types is not None and self.color is not None:
+            s = get_colorful_str(s, self.color.get(variable_types,"purple"))        
+        
         self._write(s)
 
     def __enter__(self):
@@ -193,10 +203,10 @@ class Tracer:
                                                             'New var:....... ')
         for name, value_repr in sorted(newish_local_reprs.items()):
             self.write('{indent}{newish_string}{name} = {value_repr}'.format(
-                                                                   **locals()))
+                                                                   **locals()),'newish')
         for name, value_repr in sorted(modified_local_reprs.items()):
             self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
-                                                                   **locals()))
+                                                                   **locals()),"modified")
         #                                                                     #
         ### Finished newish and modified variables. ###########################
 
@@ -227,11 +237,11 @@ class Tracer:
         ### Finished dealing with misplaced function definition. ##############
 
         self.write('{indent}{now_string} {event:9} '
-                   '{line_no:4} {source_line}'.format(**locals()))
+                   '{line_no:4} {source_line}'.format(**locals()),"def")
 
         if event == 'return':
             return_value_repr = get_shortish_repr(arg)
             self.write('{indent}Return value:.. {return_value_repr}'.
-                                                            format(**locals()))
+                                                            format(**locals()),"return")
 
         return self.trace

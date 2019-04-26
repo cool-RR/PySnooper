@@ -91,6 +91,24 @@ Start all snoop lines with a prefix, to grep for them easily:
 @pysnooper.snoop(prefix='ZZZ ')
 ```
 
+Show output coloring, default color dict {"newish":"green","modified":"orange","def":"blue","return":"cyan"}::
+        
+```python
+@pysnooper.snoop()
+```
+
+to disabled colorful output, just make color to *None*:
+
+```python
+@pysnooper.snoop(color=None)
+``` 
+
+or just change centain color:
+
+```python
+@pysnooper.snoop(color={"newish":"red"})
+```
+
 # Installation #
 
 ```console
