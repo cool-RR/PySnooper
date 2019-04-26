@@ -114,7 +114,7 @@ List all environments `tox` would run:
 $ tox -lv
 ```
 
-If you want to run tests agains all target Python versions use [pyenv](
+If you want to run tests against all target Python versions use [pyenv](
 https://github.com/pyenv/pyenv) to install them. Otherwise, you can run
 only linters and the ones you have already installed on your machine:
 
@@ -123,7 +123,7 @@ only linters and the ones you have already installed on your machine:
 $ tox -e flake8,pylint,bandit,py27,py36
 ```
 
-Linters and tests should pass before you push your code. They will be run again on Travis CI.
+Tests should pass before you push your code. They will be run again on Travis CI.
 
 # License #
 
