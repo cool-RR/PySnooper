@@ -52,7 +52,11 @@ def test_variables():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(variables=('foo.x', 'io'))
+    @pysnooper.snoop(variables=(
+            'foo.x',
+            'io.__name__', 
+            'len(foo.__dict__["x"] * "abc")',
+    ))
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -66,20 +70,23 @@ def test_variables():
     assert_output(
         output,
         (
-            VariableEntry(),
-            VariableEntry(),
+            VariableEntry('Foo'),
+            VariableEntry('io.__name__', 'io'),
             CallEntry('def my_function():'),
             LineEntry('foo = Foo()'),
-            VariableEntry(),
-            VariableEntry(),
+            VariableEntry('foo'),
+            VariableEntry('foo.x', '2'),
+            VariableEntry('len(foo.__dict__["x"] * "abc")', 6),
             LineEntry(),
             VariableEntry('i', '0'),
             LineEntry(),
             VariableEntry('foo.x', '4'),
+            VariableEntry('len(foo.__dict__["x"] * "abc")', 12),
             LineEntry(),
             VariableEntry('i', '1'),
             LineEntry(),
             VariableEntry('foo.x', '16'),
+            VariableEntry('len(foo.__dict__["x"] * "abc")', 48),
             LineEntry(),
             ReturnEntry(),
             ReturnValueEntry('None')
