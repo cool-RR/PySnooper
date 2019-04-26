@@ -100,7 +100,7 @@ class VariableEntry(_BaseValueEntry):
         return self._check_stage(stage)
 
     _content_pattern = re.compile(
-        r"""^(?P<name>[^ ]+) = (?P<value>.+)$"""
+        r"""^(?P<name>.+?) = (?P<value>.+)$"""
     )
 
     def _check_content(self, content):
@@ -120,7 +120,7 @@ class VariableEntry(_BaseValueEntry):
 
     def _check_value(self, value):
         if self.value is not None:
-            return value == self.value
+            return value == str(self.value)
         elif self.value_regex is not None:
             return self.value_regex.match(value)
         else:
