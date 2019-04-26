@@ -94,6 +94,48 @@ def test_variables():
     )
 
 
+def test_single_variable_no_comma():
+
+    class Foo(object):
+        def __init__(self):
+            self.x = 2
+
+        def square(self):
+            self.x **= 2
+
+    @pysnooper.snoop(variables='foo')
+    def my_function():
+        foo = Foo()
+        for i in range(2):
+            foo.square()
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function()
+    assert result is None
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('Foo'),
+            CallEntry('def my_function():'),
+            LineEntry('foo = Foo()'),
+            VariableEntry('foo'),
+            LineEntry(),
+            VariableEntry('i', '0'),
+            LineEntry(),
+            LineEntry(),
+            VariableEntry('i', '1'),
+            LineEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('None')
+        )
+    )
+
+
+
+
 def test_depth():
     string_io = io.StringIO()
 
