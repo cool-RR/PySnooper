@@ -9,27 +9,18 @@ import itertools
 
 from .third_party import six
 
+from cheap_repr import cheap_repr
+
 MAX_VARIABLE_LENGTH = 100
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
-def get_shortish_repr(item):
-    try:
-        r = repr(item)
-    except Exception:
-        r = 'REPR FAILED'
-    r = r.replace('\r', '').replace('\n', '')
-    if len(r) > MAX_VARIABLE_LENGTH:
-        r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
-    return r
-
-
 def get_local_reprs(frame, variables=()):
-    result = {key: get_shortish_repr(value) for key, value
+    result = {key: cheap_repr(value) for key, value
                                                      in frame.f_locals.items()}
     for variable in variables:
         try:
-            result[variable] = get_shortish_repr(
+            result[variable] = cheap_repr(
                 eval(variable, frame.f_globals, frame.f_locals)
             )
         except Exception:
@@ -230,7 +221,7 @@ class Tracer:
                    '{line_no:4} {source_line}'.format(**locals()))
 
         if event == 'return':
-            return_value_repr = get_shortish_repr(arg)
+            return_value_repr = cheap_repr(arg)
             self.write('{indent}Return value:.. {return_value_repr}'.
                                                             format(**locals()))
 
