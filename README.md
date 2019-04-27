@@ -123,6 +123,18 @@ only linters and the ones you have already installed on your machine:
 $ tox -e flake8,pylint,bandit,py27,py36
 ```
 
+Or just install project in developer mode with test dependencies:
+
+``` bash
+$ pip install -e path/to/PySnooper[tests]
+```
+
+And run tests:
+
+``` bash
+$ pytest
+```
+
 Tests should pass before you push your code. They will be run again on Travis CI.
 
 # License #
