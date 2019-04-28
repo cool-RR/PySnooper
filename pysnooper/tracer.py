@@ -7,13 +7,16 @@ import collections
 import datetime as datetime_module
 import itertools
 try:
-    import repr as reprlib
-except ImportError:
     import reprlib
+except ImportError:
+    import repr as reprlib
 
 from .third_party import six
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
+
+repr_instance = reprlib.Repr()
+repr_instance.maxother = 100
 
 
 def get_shortish_repr(item):
