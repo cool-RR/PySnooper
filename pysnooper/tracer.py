@@ -7,7 +7,7 @@ import collections
 import datetime as datetime_module
 import itertools
 
-from .variables import Variable
+from .variables import CommonVariable, Exploded, BaseVariable
 from .third_party import six
 from .utils import get_shortish_repr, ensure_tuple
 
@@ -99,13 +99,16 @@ def get_source_from_frame(frame):
 
 class Tracer:
     def __init__(self, target_code_object, write, truncate, variables=(),
-                 depth=1, prefix='', overwrite=False):
+                 exploded_variables=(), depth=1, prefix='', overwrite=False):
         self.target_code_object = target_code_object
         self._write = write
         self.truncate = truncate
         self.variables = [
-            v if isinstance(v, Variable) else Variable(v)
+            v if isinstance(v, BaseVariable) else CommonVariable(v)
             for v in ensure_tuple(variables)
+         ] + [
+             v if isinstance(v, BaseVariable) else Exploded(v)
+             for v in ensure_tuple(exploded_variables)
         ]
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
