@@ -33,6 +33,7 @@ jobs:
   - { stage: lint, python: 3.7, env: TOXENV=pylint }
   - { stage: lint, python: 3.7, env: TOXENV=bandit }
   - { stage: lint, python: 3.7, env: TOXENV=readme }
+  - { stage: test, python: 3.7, env: TOXENV=cheap_repr }
 
   - stage: deploy
     install: skip
