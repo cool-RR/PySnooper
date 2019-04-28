@@ -39,7 +39,7 @@ def get_write_and_truncate_functions(output):
     return (write, truncate)
 
 
-def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
+def snoop(output=None, variables=(), exploded_variables=(), depth=1, prefix='', overwrite=False):
     '''
     Snoop on the function, writing everything it's doing to stderr.
 
@@ -75,7 +75,8 @@ def snoop(output=None, variables=(), depth=1, prefix='', overwrite=False):
         target_code_object = function.__code__
         tracer = Tracer(target_code_object=target_code_object, write=write,
                         truncate=truncate, variables=variables, depth=depth,
-                        prefix=prefix, overwrite=overwrite)
+                        prefix=prefix, overwrite=overwrite,
+                        exploded_variables=exploded_variables)
 
         def inner(function_, *args, **kwargs):
             with tracer:

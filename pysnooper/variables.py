@@ -4,7 +4,7 @@ from copy import deepcopy
 from .utils import get_shortish_repr, ensure_tuple
 
 
-class Variable(object):
+class BaseVariable(object):
     def __init__(self, source, exclude=()):
         self.source = source
         self.exclude = ensure_tuple(exclude)
@@ -15,6 +15,14 @@ class Variable(object):
             main_value = eval(self.code, frame.f_globals, frame.f_locals)
         except Exception:
             return ()
+        return self._items(main_value)
+
+    def _items(self, key):
+        raise NotImplementedError()
+
+
+class CommonVariable(BaseVariable):
+    def _items(self, main_value):
         result = [(self.source, get_shortish_repr(main_value))]
         for key in self._safe_keys(main_value):
             if key in self.exclude:
@@ -46,7 +54,7 @@ class Variable(object):
         raise NotImplementedError()
 
 
-class Attrs(Variable):
+class Attrs(CommonVariable):
     def _keys(self, main_value):
         return itertools.chain(
             getattr(main_value, '__dict__', ()),
@@ -60,7 +68,7 @@ class Attrs(Variable):
         return getattr(main_value, key)
 
 
-class Keys(Variable):
+class Keys(CommonVariable):
     def _keys(self, main_value):
         return main_value.keys()
 
@@ -82,3 +90,20 @@ class Indices(Keys):
         result = deepcopy(self)
         result._slice = item
         return result
+
+
+class Exploded(BaseVariable):
+    def _items(self, main_value):
+        typ = main_value.__class__
+
+        def has_method(name):
+            return callable(getattr(typ, name, None))
+
+        cls = Attrs
+        if has_method('__getitem__'):
+            if has_method('keys'):
+                cls = Keys
+            elif has_method('__len__'):
+                cls = Indices
+
+        return cls(self.source, self.exclude)._items(main_value)
