@@ -4,6 +4,5 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-cheap-repr==0.3.0
-future==0.17.1            # via cheap-repr
+cheap-repr==0.3.1
 qualname==0.1.0           # via cheap-repr
