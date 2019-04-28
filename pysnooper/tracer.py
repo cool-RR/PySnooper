@@ -13,18 +13,12 @@ except ImportError:
 
 from .third_party import six
 
-MAX_VARIABLE_LENGTH = 100
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
 def get_shortish_repr(item):
-    try:
-        r = reprlib.repr(item)
-    except Exception:
-        r = 'REPR FAILED'
+    r = reprlib.repr(item)
     r = r.replace('\r', '').replace('\n', '')
-    if len(r) > MAX_VARIABLE_LENGTH:
-        r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
     return r
 
 
