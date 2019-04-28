@@ -54,7 +54,7 @@ def get_local_reprs(frame, variables=()):
     for variable in variables:
         try:
             result[variable] = get_shortish_repr(
-                eval(variable, frame.f_globals, frame.f_locals)
+                eval(variable, (frame.f_globals or {}), frame.f_locals)
             )
         except Exception:
             pass
@@ -71,7 +71,7 @@ source_cache_by_file_name = {}
 
 
 def get_source_from_frame(frame):
-    module_name = frame.f_globals.get('__name__') or ''
+    module_name = (frame.f_globals or {}).get('__name__') or ''
     if module_name:
         try:
             return source_cache_by_module_name[module_name]
@@ -83,7 +83,7 @@ def get_source_from_frame(frame):
             return source_cache_by_file_name[file_name]
         except KeyError:
             pass
-    loader = frame.f_globals.get('__loader__')
+    loader = (frame.f_globals or {}).get('__loader__')
 
     source = None
     if hasattr(loader, 'get_source'):
