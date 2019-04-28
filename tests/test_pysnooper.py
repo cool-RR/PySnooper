@@ -134,6 +134,28 @@ def test_single_variable_no_comma():
     )
 
 
+def test_long_variable():
+    @pysnooper.snoop()
+    def my_function():
+        foo = list(range(1000))
+        return foo
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function()
+    assert result == list(range(1000))
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            CallEntry('def my_function():'),
+            LineEntry('foo = list(range(1000))'),
+            VariableEntry('foo', '[0, 1, 2, 3, 4, 5, ...]'),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('[0, 1, 2, 3, 4, 5, ...]')
+        )
+    )
 
 
 def test_depth():
