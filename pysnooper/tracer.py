@@ -15,12 +15,33 @@ from .third_party import six
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
-repr_instance = reprlib.Repr()
-repr_instance.maxother = 100
+
+class MyRepr(reprlib.Repr):
+    def __init__(self):
+        super(MyRepr, self).__init__()
+        self.maxother = 100
+
+    def repr(self, x):
+        try:
+            return super(MyRepr, self).repr(x)
+        except Exception as e:
+            return '<{} instance at {:#x} (__repr__ raised {})>'.format(
+                x.__class__.__name__, id(x), e.__class__.__name__)
+
+    def repr_instance(self, x, level):
+        s = reprlib.builtins.repr(x)
+        if len(s) > self.maxother:
+            i = max(0, (self.maxother - 3) // 2)
+            j = max(0, self.maxother - 3 - i)
+            s = s[:i] + '...' + s[len(s) - j:]
+        return s
+
+
+repr_instance = MyRepr()
 
 
 def get_shortish_repr(item):
-    r = reprlib.repr(item)
+    r = repr_instance.repr(item)
     r = r.replace('\r', '').replace('\n', '')
     return r
 

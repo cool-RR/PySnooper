@@ -158,6 +158,33 @@ def test_long_variable():
     )
 
 
+def test_repr_exception():
+    class Bad(object):
+        def __repr__(self):
+            1 / 0
+
+    @pysnooper.snoop()
+    def my_function():
+        bad = Bad()
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function()
+    assert result is None
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('Bad'),
+            CallEntry('def my_function():'),
+            LineEntry('bad = Bad()'),
+            VariableEntry('bad', value_regex=r'<Bad instance at 0x\w+ \(__repr__ raised ZeroDivisionError\)>'),
+            ReturnEntry(),
+            ReturnValueEntry('None')
+        )
+    )
+
+
 def test_depth():
     string_io = io.StringIO()
 
