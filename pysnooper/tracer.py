@@ -6,59 +6,19 @@ import re
 import collections
 import datetime as datetime_module
 import itertools
-try:
-    import reprlib
-    import builtins
-except ImportError:
-    import repr as reprlib
-    import __builtin__ as builtins
 
+from .variables import Variable
 from .third_party import six
-from . import utils
+from .utils import get_shortish_repr, ensure_tuple
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
-
-
-class Repr(reprlib.Repr, object):  # reprlib.Repr is old-style in Python 2
-    def __init__(self):
-        super(Repr, self).__init__()
-        self.maxother = 100
-
-    def repr(self, x):
-        try:
-            return super(Repr, self).repr(x)
-        except Exception as e:
-            return '<{} instance at {:#x} (__repr__ raised {})>'.format(
-                x.__class__.__name__, id(x), e.__class__.__name__)
-
-    def repr_instance(self, x, level):
-        s = builtins.repr(x)
-        if len(s) > self.maxother:
-            i = max(0, (self.maxother - 3) // 2)
-            j = max(0, self.maxother - 3 - i)
-            s = s[:i] + '...' + s[len(s) - j:]
-        return s
-
-
-repr_instance = Repr()
-
-
-def get_shortish_repr(item):
-    r = repr_instance.repr(item)
-    r = r.replace('\r', '').replace('\n', '')
-    return r
 
 
 def get_local_reprs(frame, variables=()):
     result = {key: get_shortish_repr(value) for key, value
                                                      in frame.f_locals.items()}
     for variable in variables:
-        try:
-            result[variable] = get_shortish_repr(
-                eval(variable, (frame.f_globals or {}), frame.f_locals)
-            )
-        except Exception:
-            pass
+        result.update(variable.items(frame))
     return result
 
 
@@ -143,9 +103,10 @@ class Tracer:
         self.target_code_object = target_code_object
         self._write = write
         self.truncate = truncate
-        if isinstance(variables, six.string_types):
-            variables = (variables,)
-        self.variables = variables
+        self.variables = [
+            v if isinstance(v, Variable) else Variable(v)
+            for v in ensure_tuple(variables)
+        ]
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
         self.depth = depth
