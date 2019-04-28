@@ -82,14 +82,3 @@ class Indices(Keys):
         result = deepcopy(self)
         result._slice = item
         return result
-
-
-class Enumerate(Variable):
-    def _keys(self, main_value):
-        return enumerate(main_value)
-
-    def _format_key(self, key):
-        return '<{}>'.format(key[0])
-
-    def _get_value(self, main_value, key):
-        return key[1]
