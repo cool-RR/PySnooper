@@ -26,9 +26,9 @@ class CommonVariable(BaseVariable):
     def _items(self, main_value):
         result = [(self.source, get_shortish_repr(main_value))]
         for key in self._safe_keys(main_value):
-            if key in self.exclude:
-                continue
             try:
+                if key in self.exclude:
+                    continue
                 value = self._get_value(main_value, key)
             except Exception:
                 continue
