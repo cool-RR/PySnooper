@@ -74,7 +74,7 @@ class Keys(CommonVariable):
         return main_value.keys()
 
     def _format_key(self, key):
-        return '[{!r}]'.format(key)
+        return '[{}]'.format(get_shortish_repr(key))
 
     def _get_value(self, main_value, key):
         return main_value[key]
