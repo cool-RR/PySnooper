@@ -1,4 +1,5 @@
 import itertools
+from collections import Mapping, Sequence
 from copy import deepcopy
 
 from .utils import get_shortish_repr, ensure_tuple
@@ -94,16 +95,11 @@ class Indices(Keys):
 
 class Exploded(BaseVariable):
     def _items(self, main_value):
-        typ = main_value.__class__
-
-        def has_method(name):
-            return callable(getattr(typ, name, None))
-
-        cls = Attrs
-        if has_method('__getitem__'):
-            if has_method('keys'):
-                cls = Keys
-            elif has_method('__len__'):
-                cls = Indices
+        if isinstance(main_value, Mapping):
+            cls = Keys
+        elif isinstance(main_value, Sequence):
+            cls = Indices
+        else:
+            cls = Attrs
 
         return cls(self.source, self.exclude)._items(main_value)
