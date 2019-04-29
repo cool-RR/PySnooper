@@ -33,6 +33,14 @@ jobs:
   - { stage: lint, python: 3.7, env: TOXENV=pylint }
   - { stage: lint, python: 3.7, env: TOXENV=bandit }
   - { stage: lint, python: 3.7, env: TOXENV=readme }
+  - { stage: test, python: 3.7, env: TOKENV=pysnooper }
+  - { stage: test, python: 3.6, env: TOKENV=pysnooper }
+  - { stage: test, python: 3.5, env: TOKENV=pysnooper }
+  - { stage: test, python: 3.4, env: TOKENV=pysnooper }
+  - { stage: test, python: 2.7, env: TOKENV=pysnooper }
+  - { stage: test, python: 3.8-ev, env: TOKENV=pysnooper }
+  - { stage: test, python: pypy2.7-6.0, env: TOKENV=pysnooper }
+  - { stage: test, python: pypy3.5, env: TOKENV=pysnooper }
 
   - stage: deploy
     install: skip
