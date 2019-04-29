@@ -22,6 +22,12 @@ setuptools.setup(
     url='https://github.com/cool-RR/PySnooper',
     packages=setuptools.find_packages(exclude=['tests']),
     install_requires=read_file('requirements.in'),
+    extras_require={
+        'tests': {
+            'pytest',
+            'python-toolbox',
+        },
+    },
     classifiers=[
         'Environment :: Console',
         'Intended Audience :: Developers',
