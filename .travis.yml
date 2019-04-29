@@ -38,7 +38,7 @@ jobs:
   - { stage: test, python: 3.5, env: TOKENV=pysnooper }
   - { stage: test, python: 3.4, env: TOKENV=pysnooper }
   - { stage: test, python: 2.7, env: TOKENV=pysnooper }
-  - { stage: test, python: 3.8-ev, env: TOKENV=pysnooper }
+  - { stage: test, python: 3.8-dev, env: TOKENV=pysnooper }
   - { stage: test, python: pypy2.7-6.0, env: TOKENV=pysnooper }
   - { stage: test, python: pypy3.5, env: TOKENV=pysnooper }
 
