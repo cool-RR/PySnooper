@@ -30,3 +30,9 @@ class WritableStream(ABC):
             return _check_methods(C, 'write')
         return NotImplemented
 
+
+file_reading_errors = (
+    IOError,
+    OSError,
+    ValueError # IronPython weirdness.
+)

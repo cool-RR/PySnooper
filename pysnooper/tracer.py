@@ -14,6 +14,7 @@ except ImportError:
     import __builtin__ as builtins
 
 from .third_party import six
+from . import utils
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
@@ -109,7 +110,7 @@ def get_source_from_frame(frame):
             try:
                 with open(file_name, 'rb') as fp:
                     source = fp.read().splitlines()
-            except (OSError, IOError):
+            except utils.file_reading_errors:
                 pass
     if source is None:
         source = UnavailableSource()
