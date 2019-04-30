@@ -13,7 +13,7 @@ class BaseVariable(object):
 
     def items(self, frame):
         try:
-            main_value = eval(self.code, frame.f_globals, frame.f_locals)
+            main_value = eval(self.code, frame.f_globals or {}, frame.f_locals)
         except Exception:
             return ()
         return self._items(main_value)
