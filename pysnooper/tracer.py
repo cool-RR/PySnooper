@@ -9,13 +9,14 @@ import itertools
 
 from .variables import CommonVariable, Exploded, BaseVariable
 from .third_party import six
-from .utils import get_shortish_repr, ensure_tuple
+from . import utils
+
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
 def get_local_reprs(frame, variables=()):
-    result = {key: get_shortish_repr(value) for key, value
+    result = {key: utils.get_shortish_repr(value) for key, value
                                                      in frame.f_locals.items()}
     for variable in variables:
         result.update(variable.items(frame))
@@ -105,10 +106,10 @@ class Tracer:
         self.truncate = truncate
         self.variables = [
             v if isinstance(v, BaseVariable) else CommonVariable(v)
-            for v in ensure_tuple(variables)
+            for v in utils.ensure_tuple(variables)
          ] + [
              v if isinstance(v, BaseVariable) else Exploded(v)
-             for v in ensure_tuple(exploded_variables)
+             for v in utils.ensure_tuple(exploded_variables)
         ]
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
@@ -219,7 +220,7 @@ class Tracer:
                    u'{line_no:4} {source_line}'.format(**locals()))
 
         if event == 'return':
-            return_value_repr = get_shortish_repr(arg)
+            return_value_repr = utils.get_shortish_repr(arg)
             self.write('{indent}Return value:.. {return_value_repr}'.
                                                             format(**locals()))
 

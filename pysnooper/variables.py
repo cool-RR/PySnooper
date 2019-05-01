@@ -2,13 +2,13 @@ import itertools
 from collections import Mapping, Sequence
 from copy import deepcopy
 
-from .utils import get_shortish_repr, ensure_tuple
+from . import utils
 
 
 class BaseVariable(object):
     def __init__(self, source, exclude=()):
         self.source = source
-        self.exclude = ensure_tuple(exclude)
+        self.exclude = utils.ensure_tuple(exclude)
         self.code = compile(source, '<variable>', 'eval')
 
     def items(self, frame):
@@ -24,7 +24,7 @@ class BaseVariable(object):
 
 class CommonVariable(BaseVariable):
     def _items(self, main_value):
-        result = [(self.source, get_shortish_repr(main_value))]
+        result = [(self.source, utils.get_shortish_repr(main_value))]
         for key in self._safe_keys(main_value):
             try:
                 if key in self.exclude:
@@ -34,7 +34,7 @@ class CommonVariable(BaseVariable):
                 continue
             result.append((
                 '({}){}'.format(self.source, self._format_key(key)),
-                get_shortish_repr(value)
+                utils.get_shortish_repr(value)
             ))
         return result
 
@@ -74,7 +74,7 @@ class Keys(CommonVariable):
         return main_value.keys()
 
     def _format_key(self, key):
-        return '[{}]'.format(get_shortish_repr(key))
+        return '[{}]'.format(utils.get_shortish_repr(key))
 
     def _get_value(self, main_value, key):
         return main_value[key]
