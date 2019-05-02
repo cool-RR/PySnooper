@@ -3,14 +3,13 @@
 
 import io
 import textwrap
+from types import SimpleNamespace
 
-from python_toolbox import sys_tools
-from python_toolbox import temp_file_tools
-from pysnooper.third_party import six
+from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
 import pysnooper
-from pysnooper.third_party import six
+from pysnooper.variables import Attrs, Keys, Indices
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
@@ -125,6 +124,95 @@ def test_variables():
             ReturnValueEntry('None')
         )
     )
+
+
+def test_exploded_variables():
+    @pysnooper.snoop(exploded_variables='_d _point lst'.split())
+    def my_function():
+        _d = {'a': 1, 'b': 2, 'c': 'ignore'}
+        _point = SimpleNamespace(x=3, y=4)
+        lst = [7, 8, 9]
+        lst.append(10)
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function()
+    assert result is None
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            CallEntry('def my_function():'),
+            LineEntry(),
+            VariableEntry("(_d)['a']", '1'),
+            VariableEntry("(_d)['b']", '2'),
+            VariableEntry("(_d)['c']", "'ignore'"),
+            VariableEntry('_d'),
+            LineEntry(),
+            VariableEntry('(_point).x', '3'),
+            VariableEntry('(_point).y', '4'),
+            VariableEntry('_point'),
+            LineEntry(),
+            VariableEntry('(lst)[0]', '7'),
+            VariableEntry('(lst)[1]', '8'),
+            VariableEntry('(lst)[2]', '9'),
+            VariableEntry('lst'),
+            LineEntry(),
+            VariableEntry('(lst)[3]', '10'),
+            VariableEntry('lst'),
+            ReturnEntry(),
+            ReturnValueEntry('None')
+        )
+    )
+
+
+def test_variables_classes():
+    class WithSlots(object):
+        __slots__ = ('x', 'y')
+
+        def __init__(self):
+            self.x = 3
+            self.y = 4
+
+    @pysnooper.snoop(variables=(
+            Keys('_d', exclude='c'),
+            Attrs('_d'),  # doesn't have attributes
+            Attrs('_s'),
+            Indices('_lst')[-3:],
+    ))
+    def my_function():
+        _d = {'a': 1, 'b': 2, 'c': 'ignore'}
+        _s = WithSlots()
+        _lst = list(range(1000))
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function()
+    assert result is None
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('WithSlots'),
+            CallEntry('def my_function():'),
+            LineEntry(),
+            VariableEntry("(_d)['a']", '1'),
+            VariableEntry("(_d)['b']", '2'),
+            VariableEntry('_d'),
+            LineEntry(),
+            VariableEntry('(_s).x', '3'),
+            VariableEntry('(_s).y', '4'),
+            VariableEntry('_s'),
+            LineEntry(),
+            VariableEntry('(_lst)[997]', '997'),
+            VariableEntry('(_lst)[998]', '998'),
+            VariableEntry('(_lst)[999]', '999'),
+            VariableEntry('_lst'),
+            ReturnEntry(),
+            ReturnValueEntry('None')
+        )
+    )
+
 
 
 def test_single_variable_no_comma():
