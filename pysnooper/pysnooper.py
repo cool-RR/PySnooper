@@ -27,6 +27,9 @@ def get_write_and_truncate_functions(output):
         def truncate():
             with open(output, 'w') as output_file:
                 pass
+    elif callable(output):
+        write = output
+        truncate = None
     else:
         assert isinstance(output, utils.WritableStream)
         def write(s):

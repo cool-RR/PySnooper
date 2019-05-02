@@ -43,6 +43,39 @@ def test_string_io():
     )
 
 
+
+def test_callable():
+    string_io = io.StringIO()
+
+    def write(msg):
+        string_io.write(msg)
+
+    @pysnooper.snoop(write)
+    def my_function(foo):
+        x = 7
+        y = 8
+        return y + x
+
+    result = my_function('baba')
+    assert result == 15
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_function(foo):'),
+            LineEntry('x = 7'),
+            VariableEntry('x', '7'),
+            LineEntry('y = 8'),
+            VariableEntry('y', '8'),
+            LineEntry('return y + x'),
+            ReturnEntry('return y + x'),
+            ReturnValueEntry('15'),
+        )
+    )
+
+
+
 def test_variables():
 
     class Foo(object):
