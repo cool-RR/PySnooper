@@ -251,8 +251,8 @@ class Tracer:
         #                                                                     #
         ### Finished dealing with misplaced function definition. ##############
 
-        self.write('{indent}{now_string} {event:9} '
-                   '{line_no:4} {source_line}'.format(**locals()))
+        self.write(u'{indent}{now_string} {event:9} '
+                   u'{line_no:4} {source_line}'.format(**locals()))
 
         if event == 'return':
             return_value_repr = get_shortish_repr(arg)
