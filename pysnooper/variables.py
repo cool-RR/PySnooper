@@ -21,7 +21,7 @@ class BaseVariable(ABC):
 
     @abstractmethod
     def _items(self, key):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class CommonVariable(BaseVariable):
@@ -51,10 +51,10 @@ class CommonVariable(BaseVariable):
         return ()
 
     def _format_key(self, key):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _get_value(self, main_value, key):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class Attrs(CommonVariable):
