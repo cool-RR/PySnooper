@@ -1,11 +1,12 @@
 import itertools
+from abc import ABC, abstractmethod
 from collections import Mapping, Sequence
 from copy import deepcopy
 
 from . import utils
 
 
-class BaseVariable(object):
+class BaseVariable(ABC):
     def __init__(self, source, exclude=()):
         self.source = source
         self.exclude = utils.ensure_tuple(exclude)
@@ -18,6 +19,7 @@ class BaseVariable(object):
             return ()
         return self._items(main_value)
 
+    @abstractmethod
     def _items(self, key):
         raise NotImplementedError()
 
