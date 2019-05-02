@@ -36,3 +36,9 @@ file_reading_errors = (
     OSError,
     ValueError # IronPython weirdness.
 )
+
+
+def shitcode(s):
+    return ''.join(
+        (c if (0 < ord(c) < 256) else '?') for c in s
+    )

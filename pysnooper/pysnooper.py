@@ -14,7 +14,11 @@ def get_write_and_truncate_functions(output):
     if output is None:
         def write(s):
             stderr = sys.stderr
-            stderr.write(s)
+            try:
+                stderr.write(s)
+            except UnicodeEncodeError:
+                 # God damn Python 2
+                stderr.write(utils.shitcode(s))
         truncate = None
     elif isinstance(output, (pycompat.PathLike, str)):
         def write(s):
