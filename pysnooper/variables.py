@@ -96,7 +96,7 @@ class Indices(Keys):
         return result
 
 
-class Exploded(BaseVariable):
+class Exploding(BaseVariable):
     def _items(self, main_value):
         if isinstance(main_value, Mapping):
             cls = Keys
