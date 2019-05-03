@@ -7,11 +7,22 @@ from . import utils
 from . import pycompat
 
 
+def needs_parens(source):
+    def code(s):
+        return compile(s, '<variable>', 'eval').co_code
+
+    return code('{}.x'.format(source)) != code('({}).x'.format(source))
+
+
 class BaseVariable(pycompat.ABC):
     def __init__(self, source, exclude=()):
         self.source = source
         self.exclude = utils.ensure_tuple(exclude)
         self.code = compile(source, '<variable>', 'eval')
+        if needs_parens(source):
+            self.unambiguous_source = '({})'.format(source)
+        else:
+            self.unambiguous_source = source
 
     def items(self, frame):
         try:
@@ -36,7 +47,7 @@ class CommonVariable(BaseVariable):
             except Exception:
                 continue
             result.append((
-                '({}){}'.format(self.source, self._format_key(key)),
+                '{}{}'.format(self.unambiguous_source, self._format_key(key)),
                 utils.get_shortish_repr(value)
             ))
         return result

@@ -9,6 +9,7 @@ from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
 import pysnooper
+from pysnooper.variables import needs_parens
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
@@ -132,7 +133,7 @@ def test_watch_explode():
             self.y = y
 
 
-    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst'))
+    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'))
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _point = Foo(x=3, y=4)
@@ -150,22 +151,24 @@ def test_watch_explode():
             VariableEntry('Foo'),
             CallEntry('def my_function():'),
             LineEntry(),
-            VariableEntry("(_d)['a']", '1'),
-            VariableEntry("(_d)['b']", '2'),
-            VariableEntry("(_d)['c']", "'ignore'"),
             VariableEntry('_d'),
+            VariableEntry("_d['a']", '1'),
+            VariableEntry("_d['b']", '2'),
+            VariableEntry("_d['c']", "'ignore'"),
             LineEntry(),
-            VariableEntry('(_point).x', '3'),
-            VariableEntry('(_point).y', '4'),
             VariableEntry('_point'),
+            VariableEntry('_point.x', '3'),
+            VariableEntry('_point.y', '4'),
             LineEntry(),
-            VariableEntry('(lst)[0]', '7'),
-            VariableEntry('(lst)[1]', '8'),
-            VariableEntry('(lst)[2]', '9'),
+            VariableEntry('(lst + [])[0]', '7'),
+            VariableEntry('(lst + [])[1]', '8'),
+            VariableEntry('(lst + [])[2]', '9'),
             VariableEntry('lst'),
+            VariableEntry('lst + []'),
             LineEntry(),
-            VariableEntry('(lst)[3]', '10'),
+            VariableEntry('(lst + [])[3]', '10'),
             VariableEntry('lst'),
+            VariableEntry('lst + []'),
             ReturnEntry(),
             ReturnValueEntry('None')
         )
@@ -202,18 +205,18 @@ def test_variables_classes():
             VariableEntry('WithSlots'),
             CallEntry('def my_function():'),
             LineEntry(),
-            VariableEntry("(_d)['a']", '1'),
-            VariableEntry("(_d)['b']", '2'),
             VariableEntry('_d'),
+            VariableEntry("_d['a']", '1'),
+            VariableEntry("_d['b']", '2'),
             LineEntry(),
-            VariableEntry('(_s).x', '3'),
-            VariableEntry('(_s).y', '4'),
             VariableEntry('_s'),
+            VariableEntry('_s.x', '3'),
+            VariableEntry('_s.y', '4'),
             LineEntry(),
-            VariableEntry('(_lst)[997]', '997'),
-            VariableEntry('(_lst)[998]', '998'),
-            VariableEntry('(_lst)[999]', '999'),
             VariableEntry('_lst'),
+            VariableEntry('_lst[997]', '997'),
+            VariableEntry('_lst[998]', '998'),
+            VariableEntry('_lst[999]', '999'),
             ReturnEntry(),
             ReturnValueEntry('None')
         )
@@ -613,3 +616,19 @@ def test_error_in_overwrite_argument():
                 y = 8
                 return y + x
 
+
+def test_needs_parens():
+    assert not needs_parens('x')
+    assert not needs_parens('x.y')
+    assert not needs_parens('x.y.z')
+    assert not needs_parens('x.y.z[0]')
+    assert not needs_parens('x.y.z[0]()')
+    assert not needs_parens('x.y.z[0]()(3, 4 * 5)')
+    assert not needs_parens('foo(x)')
+    assert not needs_parens('foo(x+y)')
+    assert not needs_parens('(x+y)')
+    assert not needs_parens('[x+1 for x in ()]')
+    assert needs_parens('x + y')
+    assert needs_parens('x * y')
+    assert needs_parens('x and y')
+    assert needs_parens('x if z else y')
