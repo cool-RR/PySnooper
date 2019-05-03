@@ -412,7 +412,7 @@ def test_file_output():
     with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
 
-        @pysnooper.snoop(str(path))
+        @pysnooper.snoop(path)
         def my_function(_foo):
             x = 7
             y = 8
