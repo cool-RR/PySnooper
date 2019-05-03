@@ -30,11 +30,18 @@ def get_write_and_truncate_functions(output):
     elif callable(output):
         write = output
         truncate = None
-    else:
-        assert isinstance(output, utils.WritableStream)
+    elif isinstance(output, utils.WritableStream):
         def write(s):
             output.write(s)
         truncate = None
+    elif hasattr(output, 'open'):
+        def write(s):
+            with output.open('a') as output_file:
+                output_file.write(s)
+
+        def truncate():
+            with output.open('w'):
+                pass
 
     return (write, truncate)
 
