@@ -81,6 +81,14 @@ See values of some variables that aren't local variables:
 @pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
 ```
 
+Expand values to see all their attributes or items of lists/dictionaries:
+
+```python
+@pysnooper.snoop(exploding_variables=('foo', 'self'))
+```
+
+(see [Advanced Usage](#advanced-usage) for more control)
+
 Show snoop lines for functions that your function calls:
 
 ```python
@@ -98,6 +106,24 @@ Start all snoop lines with a prefix, to grep for them easily:
 ```console
 $ pip install pysnooper
 ```
+
+# Advanced Usage #
+
+`exploding_variables` will automatically guess how to expand the expression passed to it based on its class. You can be more specific by using one of the following classes:
+
+```python
+import pysnooper
+
+@pysnooper.snoop(variables=(
+    pysnooper.Attrs('x'),    # attributes
+    pysnooper.Keys('y'),     # mapping (e.g. dict) items
+    pysnooper.Indices('z'),  # sequence (e.g. list/tuple) items
+))
+```
+
+Exclude specific keys/attributes/indices with the `exclude` parameter, e.g. `Attrs('x', exclude=('_foo', '_bar'))`.
+
+Add a slice after `Indices` to only see the values within that slice, e.g. `Indices('z')[-3:]`.
 
 # Contribute #
 

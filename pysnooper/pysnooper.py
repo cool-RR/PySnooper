@@ -58,6 +58,12 @@ def snoop(output=None, variables=(), exploded_variables=(), depth=1, prefix='', 
 
         @pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
 
+    Expand values to see all their attributes or items of lists/dictionaries:
+
+        @pysnooper.snoop(exploding_variables=('foo', 'self'))
+
+    (see Advanced Usage in the README for more control)
+
     Show snoop lines for functions that your function calls::
 
         @pysnooper.snoop(depth=2)
