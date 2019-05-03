@@ -3,6 +3,7 @@
 
 import sys
 
+from .third_party import six
 from .third_party import decorator
 
 from . import utils
@@ -22,26 +23,19 @@ def get_write_and_truncate_functions(output):
         truncate = None
     elif isinstance(output, (pycompat.PathLike, str)):
         def write(s):
-            with open(output, 'a') as output_file:
+            with open(six.text_type(output), 'a') as output_file:
                 output_file.write(s)
         def truncate():
-            with open(output, 'w') as output_file:
+            with open(six.text_type(output), 'w') as output_file:
                 pass
     elif callable(output):
         write = output
         truncate = None
-    elif isinstance(output, utils.WritableStream):
+    else:
+        assert isinstance(output, utils.WritableStream)
         def write(s):
             output.write(s)
         truncate = None
-    elif hasattr(output, 'open'):
-        def write(s):
-            with output.open('a') as output_file:
-                output_file.write(s)
-
-        def truncate():
-            with output.open('w'):
-                pass
 
     return (write, truncate)
 
