@@ -73,6 +73,8 @@ If stderr is not easily accessible for you, you can redirect the output to a fil
 @pysnooper.snoop('/my/log/file.log')
 ```
 
+You can also pass a stream or a callable instead, and they'll be used.
+
 See values of some variables that aren't local variables:
 
 ```python
