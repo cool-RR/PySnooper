@@ -84,7 +84,7 @@ See values of some expressions that aren't local variables:
 Expand values to see all their attributes or items of lists/dictionaries:
 
 ```python
-@pysnooper.snoop(exploding_variables=('foo', 'self'))
+@pysnooper.snoop(watch_explode=('foo', 'self'))
 ```
 
 (see [Advanced Usage](#advanced-usage) for more control)
@@ -109,7 +109,7 @@ $ pip install pysnooper
 
 # Advanced Usage #
 
-`exploding_variables` will automatically guess how to expand the expression passed to it based on its class. You can be more specific by using one of the following classes:
+`watch_explode` will automatically guess how to expand the expression passed to it based on its class. You can be more specific by using one of the following classes:
 
 ```python
 import pysnooper

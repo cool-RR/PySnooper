@@ -61,7 +61,7 @@ def snoop(output=None, watch=(), watch_explode=(), depth=1,
 
     Expand values to see all their attributes or items of lists/dictionaries:
 
-        @pysnooper.snoop(exploding_variables=('foo', 'self'))
+        @pysnooper.snoop(watch_explode=('foo', 'self'))
 
     (see Advanced Usage in the README for more control)
 
