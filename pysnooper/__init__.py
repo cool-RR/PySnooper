@@ -2,6 +2,7 @@
 # This program is distributed under the MIT license.
 
 from .pysnooper import snoop
+from .variables import Attrs, Exploded, Indices, Keys
 import collections
 
 __VersionInfo = collections.namedtuple('VersionInfo',

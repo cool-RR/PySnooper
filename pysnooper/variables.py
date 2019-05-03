@@ -1,12 +1,13 @@
 import itertools
-from abc import ABC, abstractmethod
+import abc
 from collections import Mapping, Sequence
 from copy import deepcopy
 
 from . import utils
+from . import pycompat
 
 
-class BaseVariable(ABC):
+class BaseVariable(pycompat.ABC):
     def __init__(self, source, exclude=()):
         self.source = source
         self.exclude = utils.ensure_tuple(exclude)
@@ -19,7 +20,7 @@ class BaseVariable(ABC):
             return ()
         return self._items(main_value)
 
-    @abstractmethod
+    @abc.abstractmethod
     def _items(self, key):
         raise NotImplementedError
 
