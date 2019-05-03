@@ -7,7 +7,7 @@ from . import utils
 from . import pycompat
 
 
-def needs_parens(source):
+def needs_parentheses(source):
     def code(s):
         return compile(s, '<variable>', 'eval').co_code
 
@@ -19,7 +19,7 @@ class BaseVariable(pycompat.ABC):
         self.source = source
         self.exclude = utils.ensure_tuple(exclude)
         self.code = compile(source, '<variable>', 'eval')
-        if needs_parens(source):
+        if needs_parentheses(source):
             self.unambiguous_source = '({})'.format(source)
         else:
             self.unambiguous_source = source

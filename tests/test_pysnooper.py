@@ -9,7 +9,7 @@ from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
 import pysnooper
-from pysnooper.variables import needs_parens
+from pysnooper.variables import needs_parentheses
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
@@ -617,18 +617,18 @@ def test_error_in_overwrite_argument():
                 return y + x
 
 
-def test_needs_parens():
-    assert not needs_parens('x')
-    assert not needs_parens('x.y')
-    assert not needs_parens('x.y.z')
-    assert not needs_parens('x.y.z[0]')
-    assert not needs_parens('x.y.z[0]()')
-    assert not needs_parens('x.y.z[0]()(3, 4 * 5)')
-    assert not needs_parens('foo(x)')
-    assert not needs_parens('foo(x+y)')
-    assert not needs_parens('(x+y)')
-    assert not needs_parens('[x+1 for x in ()]')
-    assert needs_parens('x + y')
-    assert needs_parens('x * y')
-    assert needs_parens('x and y')
-    assert needs_parens('x if z else y')
+def test_needs_parentheses():
+    assert not needs_parentheses('x')
+    assert not needs_parentheses('x.y')
+    assert not needs_parentheses('x.y.z')
+    assert not needs_parentheses('x.y.z[0]')
+    assert not needs_parentheses('x.y.z[0]()')
+    assert not needs_parentheses('x.y.z[0]()(3, 4 * 5)')
+    assert not needs_parentheses('foo(x)')
+    assert not needs_parentheses('foo(x+y)')
+    assert not needs_parentheses('(x+y)')
+    assert not needs_parentheses('[x+1 for x in ()]')
+    assert needs_parentheses('x + y')
+    assert needs_parentheses('x * y')
+    assert needs_parentheses('x and y')
+    assert needs_parentheses('x if z else y')
