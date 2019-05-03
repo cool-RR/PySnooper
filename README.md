@@ -114,7 +114,7 @@ $ pip install pysnooper
 ```python
 import pysnooper
 
-@pysnooper.snoop(variables=(
+@pysnooper.snoop(watch=(
     pysnooper.Attrs('x'),    # attributes
     pysnooper.Keys('y'),     # mapping (e.g. dict) items
     pysnooper.Indices('z'),  # sequence (e.g. list/tuple) items
