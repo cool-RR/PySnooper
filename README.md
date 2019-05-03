@@ -87,6 +87,13 @@ Expand values to see all their attributes or items of lists/dictionaries:
 @pysnooper.snoop(watch_explode=('foo', 'self'))
 ```
 
+This will output lines like:
+
+```
+New var:....... foo.baz = 8
+Modified var:.. foo[2] = 'whatever'
+```
+
 (see [Advanced Usage](#advanced-usage) for more control)
 
 Show snoop lines for functions that your function calls:
