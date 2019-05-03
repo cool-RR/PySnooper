@@ -3,13 +3,12 @@
 
 import io
 import textwrap
-from types import SimpleNamespace
+import types
 
 from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
 import pysnooper
-from pysnooper.variables import Attrs, Keys, Indices
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
@@ -127,10 +126,16 @@ def test_variables():
 
 
 def test_exploded_variables():
-    @pysnooper.snoop(exploded_variables='_d _point lst'.split())
+    class Foo:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+
+
+    @pysnooper.snoop(exploded_variables=('_d', '_point', 'lst'))
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
-        _point = SimpleNamespace(x=3, y=4)
+        _point = Foo(x=3, y=4)
         lst = [7, 8, 9]
         lst.append(10)
 
@@ -142,6 +147,7 @@ def test_exploded_variables():
     assert_output(
         output,
         (
+            VariableEntry('Foo'),
             CallEntry('def my_function():'),
             LineEntry(),
             VariableEntry("(_d)['a']", '1'),
@@ -175,10 +181,10 @@ def test_variables_classes():
             self.y = 4
 
     @pysnooper.snoop(variables=(
-            Keys('_d', exclude='c'),
-            Attrs('_d'),  # doesn't have attributes
-            Attrs('_s'),
-            Indices('_lst')[-3:],
+            pysnooper.Keys('_d', exclude='c'),
+            pysnooper.Attrs('_d'),  # doesn't have attributes
+            pysnooper.Attrs('_s'),
+            pysnooper.Indices('_lst')[-3:],
     ))
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
