@@ -19,7 +19,7 @@ script:
 stages:
 - lint
 - test
-- deploy
+#- deploy
 
 matrix:
   allow_failures:
@@ -29,19 +29,19 @@ matrix:
 
 jobs:
   include:
-  - { stage: lint, python: 3.7, env: TOXENV=flake8 }
-  - { stage: lint, python: 3.7, env: TOXENV=pylint }
-  - { stage: lint, python: 3.7, env: TOXENV=bandit }
+  #- { stage: lint, python: 3.7, env: TOXENV=flake8 }
+  #- { stage: lint, python: 3.7, env: TOXENV=pylint }
+  #- { stage: lint, python: 3.7, env: TOXENV=bandit }
   - { stage: lint, python: 3.7, env: TOXENV=readme }
 
-  - stage: deploy
-    install: skip
-    script: skip
-    deploy:
-      provider: pypi
-      distributions: sdist bdist_wheel
-      user: cool-RR
-      password:
-        secure: <your-pypi-password-here-encrypted-using-the-travis-cli>
-      on:
-        tags: true
+  #- stage: deploy
+  #  install: skip
+  #  script: skip
+  #  deploy:
+  #    provider: pypi
+  #    distributions: sdist bdist_wheel
+  #    user: cool-RR
+  #    password:
+  #      secure: <your-pypi-password-here-encrypted-using-the-travis-cli>
+  #    on:
+  #      tags: true
