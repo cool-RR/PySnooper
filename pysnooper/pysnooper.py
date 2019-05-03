@@ -39,7 +39,8 @@ def get_write_and_truncate_functions(output):
     return (write, truncate)
 
 
-def snoop(output=None, variables=(), exploded_variables=(), depth=1, prefix='', overwrite=False):
+def snoop(output=None, watch=(), watch_explode=(), depth=1,
+          prefix='', overwrite=False):
     '''
     Snoop on the function, writing everything it's doing to stderr.
 
@@ -54,9 +55,9 @@ def snoop(output=None, variables=(), exploded_variables=(), depth=1, prefix='', 
 
         @pysnooper.snoop('/my/log/file.log')
 
-    See values of some variables that aren't local variables::
+    See values of some expressions that aren't local variables::
 
-        @pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
+        @pysnooper.snoop(watch=('foo.bar', 'self.x["whatever"]'))
 
     Expand values to see all their attributes or items of lists/dictionaries:
 
@@ -79,10 +80,11 @@ def snoop(output=None, variables=(), exploded_variables=(), depth=1, prefix='', 
                         "content to file.")
     def decorate(function):
         target_code_object = function.__code__
-        tracer = Tracer(target_code_object=target_code_object, write=write,
-                        truncate=truncate, variables=variables, depth=depth,
-                        prefix=prefix, overwrite=overwrite,
-                        exploded_variables=exploded_variables)
+        tracer = Tracer(
+            target_code_object=target_code_object, write=write,
+            truncate=truncate, watch=watch, watch_explode=watch_explode,
+            depth=depth, prefix=prefix, overwrite=overwrite
+        )
 
         def inner(function_, *args, **kwargs):
             with tracer:

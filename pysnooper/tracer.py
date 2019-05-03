@@ -7,7 +7,7 @@ import collections
 import datetime as datetime_module
 import itertools
 
-from .variables import CommonVariable, Exploded, BaseVariable
+from .variables import CommonVariable, Exploding, BaseVariable
 from .third_party import six
 from . import utils
 
@@ -15,10 +15,10 @@ from . import utils
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
-def get_local_reprs(frame, variables=()):
+def get_local_reprs(frame, watch=()):
     result = {key: utils.get_shortish_repr(value) for key, value
                                                      in frame.f_locals.items()}
-    for variable in variables:
+    for variable in watch:
         result.update(variable.items(frame))
     return result
 
@@ -99,17 +99,17 @@ def get_source_from_frame(frame):
 
 
 class Tracer:
-    def __init__(self, target_code_object, write, truncate, variables=(),
-                 exploded_variables=(), depth=1, prefix='', overwrite=False):
+    def __init__(self, target_code_object, write, truncate, watch=(),
+                 watch_explode=(), depth=1, prefix='', overwrite=False):
         self.target_code_object = target_code_object
         self._write = write
         self.truncate = truncate
-        self.variables = [
+        self.watch = [
             v if isinstance(v, BaseVariable) else CommonVariable(v)
-            for v in utils.ensure_tuple(variables)
+            for v in utils.ensure_tuple(watch)
          ] + [
-             v if isinstance(v, BaseVariable) else Exploded(v)
-             for v in utils.ensure_tuple(exploded_variables)
+             v if isinstance(v, BaseVariable) else Exploding(v)
+             for v in utils.ensure_tuple(watch_explode)
         ]
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
@@ -168,7 +168,7 @@ class Tracer:
         self.frame_to_old_local_reprs[frame] = old_local_reprs = \
                                                self.frame_to_local_reprs[frame]
         self.frame_to_local_reprs[frame] = local_reprs = \
-                               get_local_reprs(frame, variables=self.variables)
+                                       get_local_reprs(frame, watch=self.watch)
 
         modified_local_reprs = {}
         newish_local_reprs = {}

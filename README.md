@@ -75,10 +75,10 @@ If stderr is not easily accessible for you, you can redirect the output to a fil
 
 You can also pass a stream or a callable instead, and they'll be used.
 
-See values of some variables that aren't local variables:
+See values of some expressions that aren't local variables:
 
 ```python
-@pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
+@pysnooper.snoop(watch=('foo.bar', 'self.x["whatever"]'))
 ```
 
 Expand values to see all their attributes or items of lists/dictionaries:

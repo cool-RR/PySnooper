@@ -74,7 +74,7 @@ def test_callable():
 
 
 
-def test_variables():
+def test_watch():
 
     class Foo(object):
         def __init__(self):
@@ -83,7 +83,7 @@ def test_variables():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(variables=(
+    @pysnooper.snoop(watch=(
             'foo.x',
             'io.__name__',
             'len(foo.__dict__["x"] * "abc")',
@@ -125,14 +125,14 @@ def test_variables():
     )
 
 
-def test_exploded_variables():
+def test_watch_explode():
     class Foo:
         def __init__(self, x, y):
             self.x = x
             self.y = y
 
 
-    @pysnooper.snoop(exploded_variables=('_d', '_point', 'lst'))
+    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst'))
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _point = Foo(x=3, y=4)
@@ -180,7 +180,7 @@ def test_variables_classes():
             self.x = 3
             self.y = 4
 
-    @pysnooper.snoop(variables=(
+    @pysnooper.snoop(watch=(
             pysnooper.Keys('_d', exclude='c'),
             pysnooper.Attrs('_d'),  # doesn't have attributes
             pysnooper.Attrs('_s'),
@@ -221,7 +221,7 @@ def test_variables_classes():
 
 
 
-def test_single_variable_no_comma():
+def test_single_watch_no_comma():
 
     class Foo(object):
         def __init__(self):
@@ -230,7 +230,7 @@ def test_single_variable_no_comma():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(variables='foo')
+    @pysnooper.snoop(watch='foo')
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -376,7 +376,7 @@ def test_method_and_prefix():
         def __init__(self):
             self.x = 2
 
-        @pysnooper.snoop(variables=('self.x',), prefix='ZZZ')
+        @pysnooper.snoop(watch=('self.x',), prefix='ZZZ')
         def square(self):
             foo = 7
             self.x **= 2
