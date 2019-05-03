@@ -3,13 +3,12 @@
 
 import io
 import textwrap
-import types
 
 from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
 import pysnooper
-from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
+from .utils import (assert_output, VariableEntry, CallEntry, LineEntry, assert_snoop,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
 
@@ -73,9 +72,7 @@ def test_callable():
     )
 
 
-
 def test_watch():
-
     class Foo(object):
         def __init__(self):
             self.x = 2
@@ -83,46 +80,39 @@ def test_watch():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(watch=(
-            'foo.x',
-            'io.__name__',
-            'len(foo.__dict__["x"] * "abc")',
-    ))
+    @assert_snoop(
+        (
+                VariableEntry('Foo'),
+                VariableEntry('io.__name__', "'io'"),
+                CallEntry('def my_function():'),
+                LineEntry('foo = Foo()'),
+                VariableEntry('foo'),
+                VariableEntry('foo.x', '2'),
+                VariableEntry('len(foo.__dict__["x"] * "abc")', '6'),
+                LineEntry(),
+                VariableEntry('i', '0'),
+                LineEntry(),
+                VariableEntry('foo.x', '4'),
+                VariableEntry('len(foo.__dict__["x"] * "abc")', '12'),
+                LineEntry(),
+                VariableEntry('i', '1'),
+                LineEntry(),
+                VariableEntry('foo.x', '16'),
+                VariableEntry('len(foo.__dict__["x"] * "abc")', '48'),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+        ),
+        watch=(
+                'foo.x',
+                'io.__name__',
+                'len(foo.__dict__["x"] * "abc")',
+        ),
+    )
     def my_function():
         foo = Foo()
         for i in range(2):
             foo.square()
-
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
-    assert result is None
-    output = output_capturer.string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('Foo'),
-            VariableEntry('io.__name__', "'io'"),
-            CallEntry('def my_function():'),
-            LineEntry('foo = Foo()'),
-            VariableEntry('foo'),
-            VariableEntry('foo.x', '2'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', '6'),
-            LineEntry(),
-            VariableEntry('i', '0'),
-            LineEntry(),
-            VariableEntry('foo.x', '4'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', '12'),
-            LineEntry(),
-            VariableEntry('i', '1'),
-            LineEntry(),
-            VariableEntry('foo.x', '16'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', '48'),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
-    )
 
 
 def test_watch_explode():
@@ -131,45 +121,37 @@ def test_watch_explode():
             self.x = x
             self.y = y
 
-
-    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst'))
+    @assert_snoop(
+        (
+                VariableEntry('Foo'),
+                CallEntry('def my_function():'),
+                LineEntry(),
+                VariableEntry("(_d)['a']", '1'),
+                VariableEntry("(_d)['b']", '2'),
+                VariableEntry("(_d)['c']", "'ignore'"),
+                VariableEntry('_d'),
+                LineEntry(),
+                VariableEntry('(_point).x', '3'),
+                VariableEntry('(_point).y', '4'),
+                VariableEntry('_point'),
+                LineEntry(),
+                VariableEntry('(lst)[0]', '7'),
+                VariableEntry('(lst)[1]', '8'),
+                VariableEntry('(lst)[2]', '9'),
+                VariableEntry('lst'),
+                LineEntry(),
+                VariableEntry('(lst)[3]', '10'),
+                VariableEntry('lst'),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+        ),
+        watch_explode=('_d', '_point', 'lst'),
+    )
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _point = Foo(x=3, y=4)
         lst = [7, 8, 9]
         lst.append(10)
-
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
-    assert result is None
-    output = output_capturer.string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('Foo'),
-            CallEntry('def my_function():'),
-            LineEntry(),
-            VariableEntry("(_d)['a']", '1'),
-            VariableEntry("(_d)['b']", '2'),
-            VariableEntry("(_d)['c']", "'ignore'"),
-            VariableEntry('_d'),
-            LineEntry(),
-            VariableEntry('(_point).x', '3'),
-            VariableEntry('(_point).y', '4'),
-            VariableEntry('_point'),
-            LineEntry(),
-            VariableEntry('(lst)[0]', '7'),
-            VariableEntry('(lst)[1]', '8'),
-            VariableEntry('(lst)[2]', '9'),
-            VariableEntry('lst'),
-            LineEntry(),
-            VariableEntry('(lst)[3]', '10'),
-            VariableEntry('lst'),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
-    )
 
 
 def test_variables_classes():
@@ -180,49 +162,40 @@ def test_variables_classes():
             self.x = 3
             self.y = 4
 
-    @pysnooper.snoop(watch=(
-            pysnooper.Keys('_d', exclude='c'),
-            pysnooper.Attrs('_d'),  # doesn't have attributes
-            pysnooper.Attrs('_s'),
-            pysnooper.Indices('_lst')[-3:],
-    ))
+    @assert_snoop(
+        (
+                VariableEntry('WithSlots'),
+                CallEntry('def my_function():'),
+                LineEntry(),
+                VariableEntry("(_d)['a']", '1'),
+                VariableEntry("(_d)['b']", '2'),
+                VariableEntry('_d'),
+                LineEntry(),
+                VariableEntry('(_s).x', '3'),
+                VariableEntry('(_s).y', '4'),
+                VariableEntry('_s'),
+                LineEntry(),
+                VariableEntry('(_lst)[997]', '997'),
+                VariableEntry('(_lst)[998]', '998'),
+                VariableEntry('(_lst)[999]', '999'),
+                VariableEntry('_lst'),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+        ),
+        watch=(
+                pysnooper.Keys('_d', exclude='c'),
+                pysnooper.Attrs('_d'),  # doesn't have attributes
+                pysnooper.Attrs('_s'),
+                pysnooper.Indices('_lst')[-3:],
+        ),
+    )
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _s = WithSlots()
         _lst = list(range(1000))
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
-    assert result is None
-    output = output_capturer.string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('WithSlots'),
-            CallEntry('def my_function():'),
-            LineEntry(),
-            VariableEntry("(_d)['a']", '1'),
-            VariableEntry("(_d)['b']", '2'),
-            VariableEntry('_d'),
-            LineEntry(),
-            VariableEntry('(_s).x', '3'),
-            VariableEntry('(_s).y', '4'),
-            VariableEntry('_s'),
-            LineEntry(),
-            VariableEntry('(_lst)[997]', '997'),
-            VariableEntry('(_lst)[998]', '998'),
-            VariableEntry('(_lst)[999]', '999'),
-            VariableEntry('_lst'),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
-    )
-
-
 
 def test_single_watch_no_comma():
-
     class Foo(object):
         def __init__(self):
             self.x = 2
@@ -230,59 +203,45 @@ def test_single_watch_no_comma():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(watch='foo')
+    @assert_snoop(
+        (
+                VariableEntry('Foo'),
+                CallEntry('def my_function():'),
+                LineEntry('foo = Foo()'),
+                VariableEntry('foo'),
+                LineEntry(),
+                VariableEntry('i', '0'),
+                LineEntry(),
+                LineEntry(),
+                VariableEntry('i', '1'),
+                LineEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+        ),
+        watch='foo',
+    )
     def my_function():
         foo = Foo()
         for i in range(2):
             foo.square()
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
-    assert result is None
-    output = output_capturer.string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('Foo'),
-            CallEntry('def my_function():'),
-            LineEntry('foo = Foo()'),
-            VariableEntry('foo'),
-            LineEntry(),
-            VariableEntry('i', '0'),
-            LineEntry(),
-            LineEntry(),
-            VariableEntry('i', '1'),
-            LineEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
-    )
-
 
 def test_long_variable():
-    @pysnooper.snoop()
+    @assert_snoop(
+        (
+                CallEntry('def my_function():'),
+                LineEntry('foo = list(range(1000))'),
+                VariableEntry('foo', '[0, 1, 2, 3, 4, 5, ...]'),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('[0, 1, 2, 3, 4, 5, ...]')
+        ),
+        result=list(range(1000)),
+    )
     def my_function():
         foo = list(range(1000))
         return foo
-
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
-    assert result == list(range(1000))
-    output = output_capturer.string_io.getvalue()
-    assert_output(
-        output,
-        (
-            CallEntry('def my_function():'),
-            LineEntry('foo = list(range(1000))'),
-            VariableEntry('foo', '[0, 1, 2, 3, 4, 5, ...]'),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('[0, 1, 2, 3, 4, 5, ...]')
-        )
-    )
 
 
 def test_repr_exception():
@@ -290,31 +249,21 @@ def test_repr_exception():
         def __repr__(self):
             1 / 0
 
-    @pysnooper.snoop()
+    @assert_snoop(
+        (
+                VariableEntry('Bad'),
+                CallEntry('def my_function():'),
+                LineEntry('bad = Bad()'),
+                VariableEntry('bad', value_regex=r'<Bad instance at 0x\w+ \(__repr__ raised ZeroDivisionError\)>'),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+        )
+    )
     def my_function():
         bad = Bad()
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
-    assert result is None
-    output = output_capturer.string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('Bad'),
-            CallEntry('def my_function():'),
-            LineEntry('bad = Bad()'),
-            VariableEntry('bad', value_regex=r'<Bad instance at 0x\w+ \(__repr__ raised ZeroDivisionError\)>'),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
-    )
-
 
 def test_depth():
-    string_io = io.StringIO()
-
     def f4(x4):
         result4 = x4 * 2
         return result4
@@ -327,48 +276,47 @@ def test_depth():
         result2 = f3(x2)
         return result2
 
-    @pysnooper.snoop(string_io, depth=3)
-    def f1(x1):
+    @assert_snoop(
+        (
+                VariableEntry(),
+                CallEntry('def f1():'),
+                LineEntry(),
+
+                VariableEntry(),
+                LineEntry(),
+
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry('def f2(x2):'),
+                LineEntry(),
+
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry('def f3(x3):'),
+                LineEntry(),
+
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
+
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
+
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
+        ),
+        result=20,
+        depth=3,
+    )
+    def f1():
+        x1 = 10
         result1 = f2(x1)
         return result1
-
-    result = f1(10)
-    assert result == 20
-    output = string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f1(x1):'),
-            LineEntry(),
-
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f2(x2):'),
-            LineEntry(),
-
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f3(x3):'),
-            LineEntry(),
-
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
-
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
-
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
-        )
-    )
 
 
 def test_method_and_prefix():

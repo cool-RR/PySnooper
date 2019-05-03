@@ -6,7 +6,7 @@ import abc
 import inspect
 from pysnooper.third_party.six.moves import zip_longest
 
-from python_toolbox import caching
+from python_toolbox import caching, sys_tools
 
 import pysnooper.pycompat
 
@@ -226,13 +226,12 @@ class OutputFailure(Exception):
     pass
 
 
-def assert_output(output, expected_entries, prefix=None):
+def assert_output(output, expected_entries, prefix=''):
     lines = tuple(filter(None, output.split('\n')))
 
-    if prefix is not None:
-        for line in lines:
-            if not line.startswith(prefix):
-                raise OutputFailure(line)
+    for line in lines:
+        if not line.startswith(prefix):
+            raise OutputFailure(line)
 
     any_mismatch = False
     result = ''
@@ -249,3 +248,17 @@ def assert_output(output, expected_entries, prefix=None):
 
     if any_mismatch:
         raise OutputFailure(result)
+
+
+def assert_snoop(expected_entries, result=None, prefix='', **kwargs):
+    def decorator(func):
+        func = pysnooper.snoop(prefix=prefix, **kwargs)(func)
+
+        with sys_tools.OutputCapturer(stdout=False,
+                                      stderr=True) as output_capturer:
+            func_result = func()
+        assert result == func_result
+        output = output_capturer.string_io.getvalue()
+        assert_output(output, expected_entries, prefix=prefix)
+
+    return decorator
