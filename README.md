@@ -90,8 +90,8 @@ Expand values to see all their attributes or items of lists/dictionaries:
 This will output lines like:
 
 ```
-New var:....... foo.baz = 8
 Modified var:.. foo[2] = 'whatever'
+New var:....... self.baz = 8
 ```
 
 (see [Advanced Usage](#advanced-usage) for more control)
