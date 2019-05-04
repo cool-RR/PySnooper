@@ -8,8 +8,8 @@ import datetime as datetime_module
 import itertools
 
 from .variables import CommonVariable, Exploding, BaseVariable
-from .third_party import six
-from . import utils
+from .third_party import six, decorator
+from . import utils, pycompat
 
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
@@ -99,11 +99,80 @@ def get_source_from_frame(frame):
 
 
 class Tracer:
-    def __init__(self, target_code_object, write, truncate, watch=(),
-                 watch_explode=(), depth=1, prefix='', overwrite=False):
-        self.target_code_object = target_code_object
+    def __init__(
+            self,
+            output=None,
+            watch=(),
+            watch_explode=(),
+            depth=1,
+            prefix='',
+            overwrite=False,
+    ):
+        '''
+        Snoop on the function, writing everything it's doing to stderr.
+
+        This is useful for debugging.
+
+        When you decorate a function with `@pysnooper.snoop()`, you'll get a log of
+        every line that ran in the function and a play-by-play of every local
+        variable that changed.
+
+        If stderr is not easily accessible for you, you can redirect the output to
+        a file::
+
+            @pysnooper.snoop('/my/log/file.log')
+
+        See values of some expressions that aren't local variables::
+
+            @pysnooper.snoop(watch=('foo.bar', 'self.x["whatever"]'))
+
+        Expand values to see all their attributes or items of lists/dictionaries:
+
+            @pysnooper.snoop(watch_explode=('foo', 'self'))
+
+        (see Advanced Usage in the README for more control)
+
+        Show snoop lines for functions that your function calls::
+
+            @pysnooper.snoop(depth=2)
+
+        Start all snoop lines with a prefix, to grep for them easily::
+
+            @pysnooper.snoop(prefix='ZZZ ')
+
+        '''
+        self.truncate = None
+        if output is None:
+            def write(s):
+                stderr = sys.stderr
+                try:
+                    stderr.write(s)
+                except UnicodeEncodeError:
+                    # God damn Python 2
+                    stderr.write(utils.shitcode(s))
+        elif isinstance(output, (pycompat.PathLike, str)):
+            def write(s):
+                with open(six.text_type(output), 'a') as output_file:
+                    output_file.write(s)
+
+            def truncate():
+                with open(six.text_type(output), 'w'):
+                    pass
+
+            self.truncate = truncate
+        elif callable(output):
+            write = output
+        else:
+            assert isinstance(output, utils.WritableStream)
+
+            def write(s):
+                output.write(s)
+
+        if self.truncate is None and overwrite:
+            raise Exception("`overwrite=True` can only be used when writing "
+                            "content to file.")
+            
         self._write = write
-        self.truncate = truncate
         self.watch = [
             v if isinstance(v, BaseVariable) else CommonVariable(v)
             for v in utils.ensure_tuple(watch)
@@ -118,6 +187,15 @@ class Tracer:
         self.overwrite = overwrite
         self._did_overwrite = False
         assert self.depth >= 1
+
+    def __call__(self, function):
+        self.target_code_object = function.__code__
+
+        def inner(function_, *args, **kwargs):
+            with self:
+                return function(*args, **kwargs)
+
+        return decorator.decorate(function, inner)
 
     def write(self, s):
         if self.overwrite and not self._did_overwrite:
