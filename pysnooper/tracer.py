@@ -242,20 +242,20 @@ class Tracer:
                 # We did the most common and quickest check above, because the
                 # trace function runs so incredibly often, therefore it's
                 # crucial to hyper-optimize it for the common case.
-                return self.trace
+                return None
             elif self._is_internal_frame(frame):
-                return self.trace
+                return None
             else:
                 _frame_candidate = frame
                 for i in range(1, self.depth):
                     _frame_candidate = _frame_candidate.f_back
                     if _frame_candidate is None:
-                        return self.trace
+                        return None
                     elif self._should_trace_frame(_frame_candidate):
                         indent = ' ' * 4 * i
                         break
                 else:
-                    return self.trace
+                    return None
         else:
             indent = ''
         #                                                                     #
