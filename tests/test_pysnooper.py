@@ -632,3 +632,180 @@ def test_needs_parentheses():
     assert needs_parentheses('x * y')
     assert needs_parentheses('x and y')
     assert needs_parentheses('x if z else y')
+
+
+def test_with_block():
+    # Testing that a single Tracer can handle many mixed uses
+    snoop = pysnooper.snoop()
+
+    def foo(x):
+        if x == 0:
+            bar1(x)
+            qux()
+            return
+
+        with snoop:
+            # There should be line entries for these three lines,
+            # no line entries for anything else in this function,
+            # but calls to all bar functions should be traced
+            foo(x - 1)
+            bar2(x)
+            qux()
+        int(4)
+        bar3(9)
+        return x
+
+    @snoop
+    def bar1(_x):
+        qux()
+
+    @snoop
+    def bar2(_x):
+        qux()
+
+    @snoop
+    def bar3(_x):
+        qux()
+
+    def qux():
+        return 9  # not traced, mustn't show up
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = foo(2)
+    assert result == 2
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            # In first with
+            VariableEntry('bar1'),
+            VariableEntry('bar2'),
+            VariableEntry('bar3'),
+            VariableEntry('foo'),
+            VariableEntry('qux'),
+            VariableEntry('snoop'),
+            VariableEntry('x', '2'),
+            LineEntry('foo(x - 1)'),
+
+            # In with in recursive call
+            VariableEntry('bar1'),
+            VariableEntry('bar2'),
+            VariableEntry('bar3'),
+            VariableEntry('foo'),
+            VariableEntry('qux'),
+            VariableEntry('snoop'),
+            VariableEntry('x', '1'),
+            LineEntry('foo(x - 1)'),
+
+            # Call to bar1 from if block outside with
+            VariableEntry('_x', '0'),
+            VariableEntry('qux'),
+            CallEntry('def bar1(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+
+            # In with in recursive call
+            LineEntry('bar2(x)'),
+
+            # Call to bar2 from within with
+            VariableEntry('_x', '1'),
+            VariableEntry('qux'),
+            CallEntry('def bar2(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+
+            # In with in recursive call
+            LineEntry('qux()'),
+
+            # Call to bar3 from after with
+            VariableEntry('_x', '9'),
+            VariableEntry('qux'),
+            CallEntry('def bar3(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+
+            # -- Similar to previous few sections,
+            # -- but from first call to foo
+
+            # In with in first call
+            LineEntry('bar2(x)'),
+
+            # Call to bar2 from within with
+            VariableEntry('_x', '2'),
+            VariableEntry('qux'),
+            CallEntry('def bar2(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+
+            # In with in first call
+            LineEntry('qux()'),
+
+            # Call to bar3 from after with
+            VariableEntry('_x', '9'),
+            VariableEntry('qux'),
+            CallEntry('def bar3(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+        ),
+    )
+
+
+def test_with_block_depth():
+    string_io = io.StringIO()
+
+    def f4(x4):
+        result4 = x4 * 2
+        return result4
+
+    def f3(x3):
+        result3 = f4(x3)
+        return result3
+
+    def f2(x2):
+        result2 = f3(x2)
+        return result2
+
+    def f1(x1):
+        str(3)
+        with pysnooper.snoop(string_io, depth=3):
+            result1 = f2(x1)
+        return result1
+
+    result = f1(10)
+    assert result == 20
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry(),
+            VariableEntry(),
+            VariableEntry(),
+            LineEntry('result1 = f2(x1)'),
+
+            VariableEntry(),
+            VariableEntry(),
+            CallEntry('def f2(x2):'),
+            LineEntry(),
+
+            VariableEntry(),
+            VariableEntry(),
+            CallEntry('def f3(x3):'),
+            LineEntry(),
+
+            VariableEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('20'),
+
+            VariableEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('20'),
+        )
+    )
