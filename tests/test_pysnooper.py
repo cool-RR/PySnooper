@@ -3,14 +3,13 @@
 
 import io
 import textwrap
+import types
 
-from python_toolbox import sys_tools
-from python_toolbox import temp_file_tools
-from pysnooper.third_party import six
+from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
 import pysnooper
-from pysnooper.third_party import six
+from pysnooper.variables import needs_parentheses
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
@@ -43,7 +42,40 @@ def test_string_io():
     )
 
 
-def test_variables():
+
+def test_callable():
+    string_io = io.StringIO()
+
+    def write(msg):
+        string_io.write(msg)
+
+    @pysnooper.snoop(write)
+    def my_function(foo):
+        x = 7
+        y = 8
+        return y + x
+
+    result = my_function('baba')
+    assert result == 15
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_function(foo):'),
+            LineEntry('x = 7'),
+            VariableEntry('x', '7'),
+            LineEntry('y = 8'),
+            VariableEntry('y', '8'),
+            LineEntry('return y + x'),
+            ReturnEntry('return y + x'),
+            ReturnValueEntry('15'),
+        )
+    )
+
+
+
+def test_watch():
 
     class Foo(object):
         def __init__(self):
@@ -52,7 +84,7 @@ def test_variables():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(variables=(
+    @pysnooper.snoop(watch=(
             'foo.x',
             'io.__name__',
             'len(foo.__dict__["x"] * "abc")',
@@ -94,7 +126,105 @@ def test_variables():
     )
 
 
-def test_single_variable_no_comma():
+def test_watch_explode():
+    class Foo:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+
+
+    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'))
+    def my_function():
+        _d = {'a': 1, 'b': 2, 'c': 'ignore'}
+        _point = Foo(x=3, y=4)
+        lst = [7, 8, 9]
+        lst.append(10)
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function()
+    assert result is None
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('Foo'),
+            CallEntry('def my_function():'),
+            LineEntry(),
+            VariableEntry('_d'),
+            VariableEntry("_d['a']", '1'),
+            VariableEntry("_d['b']", '2'),
+            VariableEntry("_d['c']", "'ignore'"),
+            LineEntry(),
+            VariableEntry('_point'),
+            VariableEntry('_point.x', '3'),
+            VariableEntry('_point.y', '4'),
+            LineEntry(),
+            VariableEntry('(lst + [])[0]', '7'),
+            VariableEntry('(lst + [])[1]', '8'),
+            VariableEntry('(lst + [])[2]', '9'),
+            VariableEntry('lst'),
+            VariableEntry('lst + []'),
+            LineEntry(),
+            VariableEntry('(lst + [])[3]', '10'),
+            VariableEntry('lst'),
+            VariableEntry('lst + []'),
+            ReturnEntry(),
+            ReturnValueEntry('None')
+        )
+    )
+
+
+def test_variables_classes():
+    class WithSlots(object):
+        __slots__ = ('x', 'y')
+
+        def __init__(self):
+            self.x = 3
+            self.y = 4
+
+    @pysnooper.snoop(watch=(
+            pysnooper.Keys('_d', exclude='c'),
+            pysnooper.Attrs('_d'),  # doesn't have attributes
+            pysnooper.Attrs('_s'),
+            pysnooper.Indices('_lst')[-3:],
+    ))
+    def my_function():
+        _d = {'a': 1, 'b': 2, 'c': 'ignore'}
+        _s = WithSlots()
+        _lst = list(range(1000))
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function()
+    assert result is None
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('WithSlots'),
+            CallEntry('def my_function():'),
+            LineEntry(),
+            VariableEntry('_d'),
+            VariableEntry("_d['a']", '1'),
+            VariableEntry("_d['b']", '2'),
+            LineEntry(),
+            VariableEntry('_s'),
+            VariableEntry('_s.x', '3'),
+            VariableEntry('_s.y', '4'),
+            LineEntry(),
+            VariableEntry('_lst'),
+            VariableEntry('_lst[997]', '997'),
+            VariableEntry('_lst[998]', '998'),
+            VariableEntry('_lst[999]', '999'),
+            ReturnEntry(),
+            ReturnValueEntry('None')
+        )
+    )
+
+
+
+def test_single_watch_no_comma():
 
     class Foo(object):
         def __init__(self):
@@ -103,7 +233,7 @@ def test_single_variable_no_comma():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(variables='foo')
+    @pysnooper.snoop(watch='foo')
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -249,7 +379,7 @@ def test_method_and_prefix():
         def __init__(self):
             self.x = 2
 
-        @pysnooper.snoop(variables=('self.x',), prefix='ZZZ')
+        @pysnooper.snoop(watch=('self.x',), prefix='ZZZ')
         def square(self):
             foo = 7
             self.x **= 2
@@ -285,7 +415,7 @@ def test_file_output():
     with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
 
-        @pysnooper.snoop(str(path))
+        @pysnooper.snoop(path)
         def my_function(_foo):
             x = 7
             y = 8
@@ -486,3 +616,19 @@ def test_error_in_overwrite_argument():
                 y = 8
                 return y + x
 
+
+def test_needs_parentheses():
+    assert not needs_parentheses('x')
+    assert not needs_parentheses('x.y')
+    assert not needs_parentheses('x.y.z')
+    assert not needs_parentheses('x.y.z[0]')
+    assert not needs_parentheses('x.y.z[0]()')
+    assert not needs_parentheses('x.y.z[0]()(3, 4 * 5)')
+    assert not needs_parentheses('foo(x)')
+    assert not needs_parentheses('foo(x+y)')
+    assert not needs_parentheses('(x+y)')
+    assert not needs_parentheses('[x+1 for x in ()]')
+    assert needs_parentheses('x + y')
+    assert needs_parentheses('x * y')
+    assert needs_parentheses('x and y')
+    assert needs_parentheses('x if z else y')

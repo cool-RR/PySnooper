@@ -31,6 +31,20 @@ class _BaseEntry(pysnooper.pycompat.ABC):
     def check(self, s):
         pass
 
+    def __repr__(self):
+        init_arguments = get_function_arguments(self.__init__,
+                                                exclude=('self',))
+        attributes = {
+            key: repr(getattr(self, key)) for key in init_arguments
+                                              if getattr(self, key) is not None
+        }
+        return '%s(%s)' % (
+            type(self).__name__,
+            ', '.join('{key}={value}'.format(**locals()) for key, value
+                                                         in attributes.items())
+        )
+
+
 
 class _BaseValueEntry(_BaseEntry):
     def __init__(self, prefix=''):
@@ -55,19 +69,6 @@ class _BaseValueEntry(_BaseEntry):
         _, preamble, content = match.groups()
         return (self._check_preamble(preamble) and
                                                   self._check_content(content))
-
-    def __repr__(self):
-        init_arguments = get_function_arguments(self.__init__,
-                                                exclude=('self',))
-        attributes = {
-            key: repr(getattr(self, key)) for key in init_arguments
-                                              if getattr(self, key) is not None
-        }
-        return '%s(%s)' % (
-            type(self).__name__,
-            ', '.join('{key}={value}'.format(**locals()) for key, value
-                                                         in attributes.items())
-        )
 
 
 class VariableEntry(_BaseValueEntry):

@@ -6,59 +6,20 @@ import re
 import collections
 import datetime as datetime_module
 import itertools
-try:
-    import reprlib
-    import builtins
-except ImportError:
-    import repr as reprlib
-    import __builtin__ as builtins
 
+from .variables import CommonVariable, Exploding, BaseVariable
 from .third_party import six
 from . import utils
+
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
-class Repr(reprlib.Repr, object):  # reprlib.Repr is old-style in Python 2
-    def __init__(self):
-        super(Repr, self).__init__()
-        self.maxother = 100
-
-    def repr(self, x):
-        try:
-            return super(Repr, self).repr(x)
-        except Exception as e:
-            return '<{} instance at {:#x} (__repr__ raised {})>'.format(
-                x.__class__.__name__, id(x), e.__class__.__name__)
-
-    def repr_instance(self, x, level):
-        s = builtins.repr(x)
-        if len(s) > self.maxother:
-            i = max(0, (self.maxother - 3) // 2)
-            j = max(0, self.maxother - 3 - i)
-            s = s[:i] + '...' + s[len(s) - j:]
-        return s
-
-
-repr_instance = Repr()
-
-
-def get_shortish_repr(item):
-    r = repr_instance.repr(item)
-    r = r.replace('\r', '').replace('\n', '')
-    return r
-
-
-def get_local_reprs(frame, variables=()):
-    result = {key: get_shortish_repr(value) for key, value
+def get_local_reprs(frame, watch=()):
+    result = {key: utils.get_shortish_repr(value) for key, value
                                                      in frame.f_locals.items()}
-    for variable in variables:
-        try:
-            result[variable] = get_shortish_repr(
-                eval(variable, (frame.f_globals or {}), frame.f_locals)
-            )
-        except Exception:
-            pass
+    for variable in watch:
+        result.update(variable.items(frame))
     return result
 
 
@@ -138,14 +99,18 @@ def get_source_from_frame(frame):
 
 
 class Tracer:
-    def __init__(self, target_code_object, write, truncate, variables=(),
-                 depth=1, prefix='', overwrite=False):
+    def __init__(self, target_code_object, write, truncate, watch=(),
+                 watch_explode=(), depth=1, prefix='', overwrite=False):
         self.target_code_object = target_code_object
         self._write = write
         self.truncate = truncate
-        if isinstance(variables, six.string_types):
-            variables = (variables,)
-        self.variables = variables
+        self.watch = [
+            v if isinstance(v, BaseVariable) else CommonVariable(v)
+            for v in utils.ensure_tuple(watch)
+         ] + [
+             v if isinstance(v, BaseVariable) else Exploding(v)
+             for v in utils.ensure_tuple(watch_explode)
+        ]
         self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
         self.depth = depth
@@ -203,7 +168,7 @@ class Tracer:
         self.frame_to_old_local_reprs[frame] = old_local_reprs = \
                                                self.frame_to_local_reprs[frame]
         self.frame_to_local_reprs[frame] = local_reprs = \
-                               get_local_reprs(frame, variables=self.variables)
+                                       get_local_reprs(frame, watch=self.watch)
 
         modified_local_reprs = {}
         newish_local_reprs = {}
@@ -257,7 +222,7 @@ class Tracer:
                    u'{line_no:4} {source_line}'.format(**locals()))
 
         if event == 'return':
-            return_value_repr = get_shortish_repr(arg)
+            return_value_repr = utils.get_shortish_repr(arg)
             self.write('{indent}Return value:.. {return_value_repr}'.
                                                             format(**locals()))
 

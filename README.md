@@ -73,11 +73,28 @@ If stderr is not easily accessible for you, you can redirect the output to a fil
 @pysnooper.snoop('/my/log/file.log')
 ```
 
-See values of some variables that aren't local variables:
+You can also pass a stream or a callable instead, and they'll be used.
+
+See values of some expressions that aren't local variables:
 
 ```python
-@pysnooper.snoop(variables=('foo.bar', 'self.whatever'))
+@pysnooper.snoop(watch=('foo.bar', 'self.x["whatever"]'))
 ```
+
+Expand values to see all their attributes or items of lists/dictionaries:
+
+```python
+@pysnooper.snoop(watch_explode=('foo', 'self'))
+```
+
+This will output lines like:
+
+```
+Modified var:.. foo[2] = 'whatever'
+New var:....... self.baz = 8
+```
+
+(see [Advanced Usage](#advanced-usage) for more control)
 
 Show snoop lines for functions that your function calls:
 
@@ -96,6 +113,24 @@ Start all snoop lines with a prefix, to grep for them easily:
 ```console
 $ pip install pysnooper
 ```
+
+# Advanced Usage #
+
+`watch_explode` will automatically guess how to expand the expression passed to it based on its class. You can be more specific by using one of the following classes:
+
+```python
+import pysnooper
+
+@pysnooper.snoop(watch=(
+    pysnooper.Attrs('x'),    # attributes
+    pysnooper.Keys('y'),     # mapping (e.g. dict) items
+    pysnooper.Indices('z'),  # sequence (e.g. list/tuple) items
+))
+```
+
+Exclude specific keys/attributes/indices with the `exclude` parameter, e.g. `Attrs('x', exclude=('_foo', '_bar'))`.
+
+Add a slice after `Indices` to only see the values within that slice, e.g. `Indices('z')[-3:]`.
 
 # Contribute #
 
