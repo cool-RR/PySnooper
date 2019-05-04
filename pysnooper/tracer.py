@@ -190,12 +190,13 @@ class Tracer:
         self.overwrite = overwrite
         self._did_overwrite = False
         assert self.depth >= 1
-        self.target_code_object = None
+        self.target_codes = set()
+        self.target_frames = set()
 
     def __call__(self, function):
-        self.target_code_object = function.__code__
+        self.target_codes.add(function.__code__)
 
-        def inner(function_, *args, **kwargs):
+        def inner(_, *args, **kwargs):
             with self:
                 return function(*args, **kwargs)
 
@@ -209,16 +210,24 @@ class Tracer:
         self._write(s)
 
     def __enter__(self):
-        if not self.target_code_object:
-            calling_frame = inspect.currentframe().f_back
-            self.target_code_object = calling_frame.f_code
+        calling_frame = inspect.currentframe().f_back
+        if not self._is_internal_frame(calling_frame):
             calling_frame.f_trace = self.trace
+            self.target_frames.add(calling_frame)
 
         self.original_trace_function = sys.gettrace()
         sys.settrace(self.trace)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         sys.settrace(self.original_trace_function)
+        calling_frame = inspect.currentframe().f_back
+        self.target_frames.discard(calling_frame)
+
+    def _should_trace_frame(self, frame):
+        return frame.f_code in self.target_codes or frame in self.target_frames
+
+    def _is_internal_frame(self, frame):
+        return frame.f_code.co_filename == __file__
 
     def trace(self, frame, event, arg):
 
@@ -228,11 +237,13 @@ class Tracer:
         # or the user asked to go a few levels deeper and we're within that
         # number of levels deeper.
 
-        if frame.f_code is not self.target_code_object:
+        if not self._should_trace_frame(frame):
             if self.depth == 1:
                 # We did the most common and quickest check above, because the
                 # trace function runs so incredibly often, therefore it's
                 # crucial to hyper-optimize it for the common case.
+                return self.trace
+            elif self._is_internal_frame(frame):
                 return self.trace
             else:
                 _frame_candidate = frame
@@ -240,7 +251,7 @@ class Tracer:
                     _frame_candidate = _frame_candidate.f_back
                     if _frame_candidate is None:
                         return self.trace
-                    elif _frame_candidate.f_code is self.target_code_object:
+                    elif self._should_trace_frame(_frame_candidate):
                         indent = ' ' * 4 * i
                         break
                 else:
