@@ -1,6 +1,7 @@
 # Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
+import inspect
 import sys
 import re
 import collections
@@ -187,6 +188,7 @@ class Tracer:
         self.overwrite = overwrite
         self._did_overwrite = False
         assert self.depth >= 1
+        self.target_code_object = None
 
     def __call__(self, function):
         self.target_code_object = function.__code__
@@ -205,6 +207,11 @@ class Tracer:
         self._write(s)
 
     def __enter__(self):
+        if not self.target_code_object:
+            calling_frame = inspect.currentframe().f_back
+            self.target_code_object = calling_frame.f_code
+            calling_frame.f_trace = self.trace
+
         self.original_trace_function = sys.gettrace()
         sys.settrace(self.trace)
 
