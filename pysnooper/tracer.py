@@ -247,6 +247,8 @@ class Tracer:
                     # Found the def line!
                     line_no = candidate_line_no
                     source_line = candidate_source_line
+                    file_name = (frame.f_code.co_filename if self.depth>=2 else '')
+                    self.write('In file:.. {file_name}'.format(**locals()))
                     break
         #                                                                     #
         ### Finished dealing with misplaced function definition. ##############
