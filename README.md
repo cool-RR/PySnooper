@@ -65,6 +65,41 @@ Modified var:.. bits = [1, 1, 0]
 Return value:.. [1, 1, 0]
 ```
 
+Or if you don't want to trace an entire function, you can wrap the relevant part in a `with` block:
+
+```python
+import pysnooper
+import random
+
+def foo():
+    lst = []
+    for i in range(10):
+        lst.append(random.randrange(1, 1000))
+
+    with pysnooper.snoop():
+        lower = min(lst)
+        upper = max(lst)
+        mid = (lower + upper) / 2
+        print(lower, mid, upper)
+
+foo()
+```
+
+which outputs something like:
+
+```
+New var:....... i = 9
+New var:....... lst = [681, 267, 74, 832, 284, 678, ...]
+09:37:35.881721 line        10         lower = min(lst)
+New var:....... lower = 74
+09:37:35.882137 line        11         upper = max(lst)
+New var:....... upper = 832
+09:37:35.882304 line        12         mid = (lower + upper) / 2
+74 453.0 832
+New var:....... mid = 453.0
+09:37:35.882486 line        13         print(lower, mid, upper)
+```
+
 # Features #
 
 If stderr is not easily accessible for you, you can redirect the output to a file:
