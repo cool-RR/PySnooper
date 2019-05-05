@@ -223,9 +223,6 @@ class Tracer:
         calling_frame = inspect.currentframe().f_back
         self.target_frames.discard(calling_frame)
 
-    def _should_trace_frame(self, frame):
-        return frame.f_code in self.target_codes or frame in self.target_frames
-
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == __file__
 
@@ -237,7 +234,7 @@ class Tracer:
         # or the user asked to go a few levels deeper and we're within that
         # number of levels deeper.
 
-        if not self._should_trace_frame(frame):
+        if not (frame.f_code in self.target_codes or frame in self.target_frames):
             if self.depth == 1:
                 # We did the most common and quickest check above, because the
                 # trace function runs so incredibly often, therefore it's
@@ -251,7 +248,7 @@ class Tracer:
                     _frame_candidate = _frame_candidate.f_back
                     if _frame_candidate is None:
                         return None
-                    elif self._should_trace_frame(_frame_candidate):
+                    elif _frame_candidate.f_code in self.target_codes or _frame_candidate in self.target_frames:
                         indent = ' ' * 4 * i
                         break
                 else:
