@@ -142,7 +142,8 @@ class Tracer:
 
         This is useful for debugging.
 
-        When you decorate a function with `@pysnooper.snoop()`, you'll get a log of
+        When you decorate a function with `@pysnooper.snoop()`
+        or wrap a block of code in `with pysnooper.snoop():`, you'll get a log of
         every line that ran in the function and a play-by-play of every local
         variable that changed.
 
