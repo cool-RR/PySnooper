@@ -85,7 +85,7 @@ def get_shortish_repr(item):
 
 
 def ensure_tuple(x):
-    if isinstance(x, six.string_types):
+    if not isinstance(x, (list, set, tuple)):
         x = (x,)
     return tuple(x)
 

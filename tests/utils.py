@@ -29,6 +29,14 @@ class CollectingTracer(Tracer):
     formatter_class = CollectingFormatter
 
 
+class NoTimeFormatter(DefaultFormatter):
+    datetime_format = 'insert_the_time_here'
+
+
+class NoTimeTracer(Tracer):
+    formatter_class = NoTimeFormatter
+
+
 class _BaseEntry(pysnooper.pycompat.ABC):
     @abc.abstractmethod
     def check(self, s):

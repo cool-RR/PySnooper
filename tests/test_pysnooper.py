@@ -4,7 +4,7 @@
 import io
 import textwrap
 
-from python_toolbox import temp_file_tools
+from python_toolbox import temp_file_tools, sys_tools
 import pytest
 
 import pysnooper
@@ -12,7 +12,7 @@ from pysnooper.variables import needs_parentheses
 
 from .utils import (CollectingTracer, assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
-
+from . import sample
 
 def test_string_io():
     string_io = io.StringIO()
@@ -679,3 +679,15 @@ def test_with_block_depth():
             ReturnValueEntry('20'),
         )
     )
+
+
+def test_sample():
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        sample.foo(5)
+    output = output_capturer.string_io.getvalue()
+    try:
+        assert output.strip() == sample.__doc__.strip()
+    except AssertionError:
+        print('\n' + output)  # to copy paste into docstring
+        raise  # show pytest diff (may need -vv flag to see in full)
