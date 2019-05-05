@@ -212,12 +212,20 @@ class Tracer:
                     # Found the def line!
                     line_no = candidate_line_no
                     source_line = candidate_source_line
-                    file_name = (frame.f_code.co_filename if self.depth>=2 else '')
-                    self.write('In file:.. {file_name}'.format(**locals()))
                     break
         #                                                                     #
         ### Finished dealing with misplaced function definition. ##############
 
+        ### Printing the filename if depth>=2 #################################
+        #                                                                     #
+        source_line = get_source_from_frame(frame)[line_no - 1]
+        if event == 'call' and source_line.lstrip().startswith('def'):
+            file_name = frame.f_code.co_filename
+            self.write('In file:.. {file_name}'.format(**locals())if self.depth>=2 else '')
+
+        #                                                                      # 
+        #### Finished printing the filename ####################################    
+        
         self.write(u'{indent}{now_string} {event:9} '
                    u'{line_no:4} {source_line}'.format(**locals()))
 
