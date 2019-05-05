@@ -3,44 +3,23 @@
 
 import io
 import textwrap
-import types
 
-from python_toolbox import sys_tools, temp_file_tools
+from python_toolbox import temp_file_tools
 import pytest
 
 import pysnooper
 from pysnooper.variables import needs_parentheses
-from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
+
+from .utils import (CollectingTracer, assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
 
 def test_string_io():
     string_io = io.StringIO()
-
-    @pysnooper.snoop(string_io)
-    def my_function(foo):
-        x = 7
-        y = 8
-        return y + x
-
-    result = my_function('baba')
-    assert result == 15
-    output = string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
-    )
-
+    tracer = pysnooper.snoop(string_io)
+    contents = u'stuff'
+    tracer.write(contents)
+    assert string_io.getvalue() == contents
 
 
 def test_callable():
@@ -49,30 +28,11 @@ def test_callable():
     def write(msg):
         string_io.write(msg)
 
-    @pysnooper.snoop(write)
-    def my_function(foo):
-        x = 7
-        y = 8
-        return y + x
-
-    result = my_function('baba')
-    assert result == 15
-    output = string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
-    )
-
+    string_io = io.StringIO()
+    tracer = pysnooper.snoop(write)
+    contents = u'stuff'
+    tracer.write(contents)
+    assert string_io.getvalue() == contents
 
 
 def test_watch():
@@ -84,23 +44,22 @@ def test_watch():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(watch=(
+    tracer = CollectingTracer(watch=(
             'foo.x',
             'io.__name__',
             'len(foo.__dict__["x"] * "abc")',
     ))
+
+    @tracer
     def my_function():
         foo = Foo()
         for i in range(2):
             foo.square()
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
+    result = my_function()
     assert result is None
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry('Foo'),
             VariableEntry('io.__name__', "'io'"),
@@ -132,21 +91,19 @@ def test_watch_explode():
             self.x = x
             self.y = y
 
+    tracer = CollectingTracer(watch_explode=('_d', '_point', 'lst + []'))
 
-    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'))
+    @tracer
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _point = Foo(x=3, y=4)
         lst = [7, 8, 9]
         lst.append(10)
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
+    result = my_function()
     assert result is None
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry('Foo'),
             CallEntry('def my_function():'),
@@ -183,24 +140,23 @@ def test_variables_classes():
             self.x = 3
             self.y = 4
 
-    @pysnooper.snoop(watch=(
+    tracer = CollectingTracer(watch=(
             pysnooper.Keys('_d', exclude='c'),
             pysnooper.Attrs('_d'),  # doesn't have attributes
             pysnooper.Attrs('_s'),
             pysnooper.Indices('_lst')[-3:],
     ))
+
+    @tracer
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _s = WithSlots()
         _lst = list(range(1000))
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
+    result = my_function()
     assert result is None
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry('WithSlots'),
             CallEntry('def my_function():'),
@@ -233,19 +189,18 @@ def test_single_watch_no_comma():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(watch='foo')
+    tracer = CollectingTracer(watch='foo')
+
+    @tracer
     def my_function():
         foo = Foo()
         for i in range(2):
             foo.square()
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
+    result = my_function()
     assert result is None
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry('Foo'),
             CallEntry('def my_function():'),
@@ -265,18 +220,17 @@ def test_single_watch_no_comma():
 
 
 def test_long_variable():
-    @pysnooper.snoop()
+    tracer = CollectingTracer()
+
+    @tracer
     def my_function():
         foo = list(range(1000))
         return foo
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
+    result = my_function()
     assert result == list(range(1000))
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             CallEntry('def my_function():'),
             LineEntry('foo = list(range(1000))'),
@@ -293,17 +247,16 @@ def test_repr_exception():
         def __repr__(self):
             1 / 0
 
-    @pysnooper.snoop()
+    tracer = CollectingTracer()
+
+    @tracer
     def my_function():
         bad = Bad()
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = my_function()
+    result = my_function()
     assert result is None
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry('Bad'),
             CallEntry('def my_function():'),
@@ -316,8 +269,6 @@ def test_repr_exception():
 
 
 def test_depth():
-    string_io = io.StringIO()
-
     def f4(x4):
         result4 = x4 * 2
         return result4
@@ -330,16 +281,17 @@ def test_depth():
         result2 = f3(x2)
         return result2
 
-    @pysnooper.snoop(string_io, depth=3)
+    tracer = CollectingTracer(depth=3)
+
+    @tracer
     def f1(x1):
         result1 = f2(x1)
         return result1
 
     result = f1(10)
     assert result == 20
-    output = string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry(),
             VariableEntry(),
@@ -375,11 +327,13 @@ def test_depth():
 
 
 def test_method_and_prefix():
+    tracer = CollectingTracer(watch=('self.x',))
+
     class Baz(object):
         def __init__(self):
             self.x = 2
 
-        @pysnooper.snoop(watch=('self.x',), prefix='ZZZ')
+        @tracer
         def square(self):
             foo = 7
             self.x **= 2
@@ -387,27 +341,23 @@ def test_method_and_prefix():
 
     baz = Baz()
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = baz.square()
+    result = baz.square()
     assert result is baz
     assert result.x == 4
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
-            VariableEntry('self', prefix='ZZZ'),
-            VariableEntry('self.x', '2', prefix='ZZZ'),
-            CallEntry('def square(self):', prefix='ZZZ'),
-            LineEntry('foo = 7', prefix='ZZZ'),
-            VariableEntry('foo', '7', prefix='ZZZ'),
-            LineEntry('self.x **= 2', prefix='ZZZ'),
-            VariableEntry('self.x', '4', prefix='ZZZ'),
-            LineEntry(prefix='ZZZ'),
-            ReturnEntry(prefix='ZZZ'),
-            ReturnValueEntry(prefix='ZZZ'),
+            VariableEntry('self'),
+            VariableEntry('self.x', '2'),
+            CallEntry('def square(self):'),
+            LineEntry('foo = 7'),
+            VariableEntry('foo', '7'),
+            LineEntry('self.x **= 2'),
+            VariableEntry('self.x', '4'),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(),
         ),
-        prefix='ZZZ'
     )
 
 
@@ -415,41 +365,23 @@ def test_file_output():
     with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
 
-        @pysnooper.snoop(path)
-        def my_function(_foo):
-            x = 7
-            y = 8
-            return y + x
-
-        result = my_function('baba')
-        assert result == 15
+        tracer = pysnooper.snoop(path)
+        contents = u'stuff'
+        tracer.write(contents)
         with path.open() as output_file:
             output = output_file.read()
-        assert_output(
-            output,
-            (
-                VariableEntry('_foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(_foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
-        )
+        assert output == contents
 
 
 def test_confusing_decorator_lines():
-    string_io = io.StringIO()
+    tracer = CollectingTracer(depth=2)
 
     def empty_decorator(function):
         return function
 
     @empty_decorator
-    @pysnooper.snoop(string_io,
-                     depth=2)  # Multi-line decorator for extra confusion!
+    # Gaps for extra confusion!
+    @tracer
     @empty_decorator
     @empty_decorator
     def my_function(foo):
@@ -459,9 +391,8 @@ def test_confusing_decorator_lines():
 
     result = my_function('baba')
     assert result == 15
-    output = string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry('foo', value_regex="u?'baba'"),
             CallEntry('def my_function(foo):'),
@@ -484,53 +415,43 @@ def test_confusing_decorator_lines():
 
 
 def test_lambda():
-    string_io = io.StringIO()
-    my_function = pysnooper.snoop(string_io)(lambda x: x ** 2)
+    tracer = CollectingTracer()
+    my_function = tracer(lambda x: x ** 2)
     result = my_function(7)
     assert result == 49
-    output = string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry('x', '7'),
-            CallEntry(source_regex='^my_function = pysnooper.*'),
-            LineEntry(source_regex='^my_function = pysnooper.*'),
-            ReturnEntry(source_regex='^my_function = pysnooper.*'),
+            CallEntry(source='my_function = tracer(lambda x: x ** 2)'),
+            LineEntry(source='my_function = tracer(lambda x: x ** 2)'),
+            ReturnEntry(source='my_function = tracer(lambda x: x ** 2)'),
             ReturnValueEntry('49'),
         )
     )
 
 
 def test_unavailable_source():
-    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder, \
-            sys_tools.TempSysPathAdder(str(folder)):
-        module_name = 'iaerojajsijf'
-        python_file_path = folder / ('%s.py' % (module_name,))
-        content = textwrap.dedent(u'''
-            import pysnooper
-            @pysnooper.snoop()
-            def f(x):
-                return x
-        ''')
-        with python_file_path.open('w') as python_file:
-            python_file.write(content)
-        module = __import__(module_name)
-        python_file_path.unlink()
-        with sys_tools.OutputCapturer(stdout=False,
-                                      stderr=True) as output_capturer:
-            result = getattr(module, 'f')(7)
-        assert result == 7
-        output = output_capturer.output
-        assert_output(
-            output,
-            (
-                VariableEntry(stage='starting'),
-                CallEntry('SOURCE IS UNAVAILABLE'),
-                LineEntry('SOURCE IS UNAVAILABLE'),
-                ReturnEntry('SOURCE IS UNAVAILABLE'),
-                ReturnValueEntry('7'),
-            )
+    tracer = CollectingTracer()
+    globs = {'tracer': tracer}
+    content = textwrap.dedent(u'''
+        @tracer
+        def f(x):
+            return x
+    ''')
+    exec(content, globs)
+    result = globs['f'](7)
+    assert result == 7
+    assert_output(
+        tracer,
+        (
+            VariableEntry(stage='starting'),
+            CallEntry('SOURCE IS UNAVAILABLE'),
+            LineEntry('SOURCE IS UNAVAILABLE'),
+            ReturnEntry('SOURCE IS UNAVAILABLE'),
+            ReturnValueEntry('7'),
         )
+    )
 
 
 def test_no_overwrite_by_default():
@@ -538,31 +459,11 @@ def test_no_overwrite_by_default():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
-        @pysnooper.snoop(str(path))
-        def my_function(foo):
-            x = 7
-            y = 8
-            return y + x
-        result = my_function('baba')
-        assert result == 15
+        tracer = CollectingTracer(str(path))
+        tracer.write(u' doo be doo')
         with path.open() as output_file:
             output = output_file.read()
-        assert output.startswith('lala')
-        shortened_output = output[4:]
-        assert_output(
-            shortened_output,
-            (
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
-        )
+        assert output == u'lala doo be doo'
 
 
 def test_overwrite():
@@ -570,41 +471,14 @@ def test_overwrite():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
-        @pysnooper.snoop(str(path), overwrite=True)
-        def my_function(foo):
-            x = 7
-            y = 8
-            return y + x
-        result = my_function('baba')
-        result = my_function('baba')
-        assert result == 15
+
+        tracer = pysnooper.snoop(str(path), overwrite=True)
+        tracer.write(u'doo be')
+        tracer.write(u' doo')
+
         with path.open() as output_file:
             output = output_file.read()
-        assert 'lala' not in output
-        assert_output(
-            output,
-            (
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
-        )
+        assert output == u'doo be doo'
 
 
 def test_error_in_overwrite_argument():
@@ -636,7 +510,7 @@ def test_needs_parentheses():
 
 def test_with_block():
     # Testing that a single Tracer can handle many mixed uses
-    snoop = pysnooper.snoop()
+    snoop = CollectingTracer()
 
     def foo(x):
         if x == 0:
@@ -670,13 +544,10 @@ def test_with_block():
     def qux():
         return 9  # not traced, mustn't show up
 
-    with sys_tools.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
-        result = foo(2)
+    result = foo(2)
     assert result == 2
-    output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
+        snoop,
         (
             # In first with
             VariableEntry('bar1'),
@@ -757,7 +628,7 @@ def test_with_block():
 
 
 def test_with_block_depth():
-    string_io = io.StringIO()
+    tracer = CollectingTracer(depth=3)
 
     def f4(x4):
         result4 = x4 * 2
@@ -773,15 +644,14 @@ def test_with_block_depth():
 
     def f1(x1):
         str(3)
-        with pysnooper.snoop(string_io, depth=3):
+        with tracer:
             result1 = f2(x1)
         return result1
 
     result = f1(10)
     assert result == 20
-    output = string_io.getvalue()
     assert_output(
-        output,
+        tracer,
         (
             VariableEntry(),
             VariableEntry(),

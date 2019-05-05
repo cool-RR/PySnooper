@@ -1,131 +1,106 @@
 # Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
-import re
 import abc
-import inspect
-from pysnooper.third_party.six.moves import zip_longest
-
-from python_toolbox import caching
+import re
 
 import pysnooper.pycompat
+from pysnooper import formatting
+from pysnooper.formatting import DefaultFormatter
+from pysnooper.third_party.six.moves import zip_longest
+from pysnooper.tracer import Tracer
+from pysnooper.utils import get_shortish_repr
+from python_toolbox import caching
 
 
-def get_function_arguments(function, exclude=()):
-    try:
-        getfullargspec = inspect.getfullargspec
-    except AttributeError:
-        result = inspect.getargspec(function).args
-    else:
-        result = getfullargspec(function).args
-    for exclude_item in exclude:
-        result.remove(exclude_item)
-    return result
+class CollectingFormatter(object):
+    def __init__(self, *_, **__):
+        self.entries = []
+
+    def format(self, event):
+        self.entries.extend(event.entries)
+        for entry in self.entries:
+            if isinstance(entry, formatting.ReturnValueEntry):
+                entry.value_repr = get_shortish_repr(entry.value)
+        return ''
+
+
+class CollectingTracer(Tracer):
+    formatter_class = CollectingFormatter
 
 
 class _BaseEntry(pysnooper.pycompat.ABC):
-    def __init__(self, prefix=''):
-        self.prefix = prefix
-
     @abc.abstractmethod
     def check(self, s):
         pass
 
     def __repr__(self):
-        init_arguments = get_function_arguments(self.__init__,
-                                                exclude=('self',))
-        attributes = {
-            key: repr(getattr(self, key)) for key in init_arguments
-                                              if getattr(self, key) is not None
-        }
-        return '%s(%s)' % (
-            type(self).__name__,
-            ', '.join('{key}={value}'.format(**locals()) for key, value
-                                                         in attributes.items())
+        items = []
+        for key, value in self.__dict__.items():
+            suffix = '_checker'
+            if key.endswith(suffix):
+                key = key[:-len(suffix)]
+                if value.blank():
+                    continue
+            else:
+                if value is None:
+                    continue
+
+            items.append('{}={!r}'.format(key, value))
+
+        return '{}({})'.format(
+            self.__class__.__name__,
+            ', '.join(items),
         )
 
 
+class PartChecker(object):
+    def __init__(self, value, regex):
+        assert (value is None) or (regex is None)
+        self.value = value
+        self.regex = regex
+
+    def check(self, value):
+        if self.value is not None:
+            return value == self.value
+        elif self.regex is not None:
+            return re.match(self.regex, value)
+        else:
+            return True
+
+    def blank(self):
+        return self.value is None and self.regex is None
+    
+    def __repr__(self):
+        if self.value is not None:
+            return repr(self.value)
+        elif self.regex is not None:
+            return 're({})'.format(repr(self.value))
+        else:
+            return '*'
 
 class _BaseValueEntry(_BaseEntry):
-    def __init__(self, prefix=''):
-        _BaseEntry.__init__(self, prefix=prefix)
-        self.line_pattern = re.compile(
-            r"""^%s(?P<indent>(?: {4})*)(?P<preamble>[^:]*):"""
-            r"""\.{2,7} (?P<content>.*)$""" % (re.escape(self.prefix),)
-        )
+    def __init__(self, value=None, value_regex=None):
+        self.value_checker = PartChecker(value, value_regex)
 
-    @abc.abstractmethod
-    def _check_preamble(self, preamble):
-        pass
-
-    @abc.abstractmethod
-    def _check_content(self, preamble):
-        pass
-
-    def check(self, s):
-        match = self.line_pattern.match(s)
-        if not match:
-            return False
-        _, preamble, content = match.groups()
-        return (self._check_preamble(preamble) and
-                                                  self._check_content(content))
+    def check(self, other):
+        return self.__class__.__name__ == other.__class__.__name__ and \
+               self.value_checker.check(other.value_repr)
 
 
 class VariableEntry(_BaseValueEntry):
-    def __init__(self, name=None, value=None, stage=None, prefix='',
-                 name_regex=None, value_regex=None, ):
-        _BaseValueEntry.__init__(self, prefix=prefix)
-        if name is not None:
-            assert name_regex is None
-        if value is not None:
-            assert value_regex is None
+    def __init__(self, name=None, value=None, stage=None, name_regex=None, value_regex=None):
+        _BaseValueEntry.__init__(self, value, value_regex)
         assert stage in (None, 'starting', 'new', 'modified')
-
-        self.name = name
-        self.value = value
+        self.name_checker = PartChecker(name, name_regex)
         self.stage = stage
-        self.name_regex = (None if name_regex is None else
-                           re.compile(name_regex))
-        self.value_regex = (None if value_regex is None else
-                            re.compile(value_regex))
 
-    _preamble_pattern = re.compile(
-        r"""^(?P<stage>New|Modified|Starting) var$"""
-    )
-
-    def _check_preamble(self, preamble):
-        match = self._preamble_pattern.match(preamble)
-        if not match:
-            return False
-        stage = match.group('stage')
-        return self._check_stage(stage)
-
-    _content_pattern = re.compile(
-        r"""^(?P<name>.+?) = (?P<value>.+)$"""
-    )
-
-    def _check_content(self, content):
-        match = self._content_pattern.match(content)
-        if not match:
-            return False
-        name, value = match.groups()
-        return self._check_name(name) and self._check_value(value)
-
-    def _check_name(self, name):
-        if self.name is not None:
-            return name == self.name
-        elif self.name_regex is not None:
-            return self.name_regex.match(name)
-        else:
-            return True
-
-    def _check_value(self, value):
-        if self.value is not None:
-            return value == self.value
-        elif self.value_regex is not None:
-            return self.value_regex.match(value)
-        else:
-            return True
+    def check(self, other):
+        return (
+                _BaseValueEntry.check(self, other)
+                and self.name_checker.check(other.name)
+                and self._check_stage(other.type)
+        )
 
     def _check_stage(self, stage):
         stage = stage.lower()
@@ -136,70 +111,23 @@ class VariableEntry(_BaseValueEntry):
 
 
 class ReturnValueEntry(_BaseValueEntry):
-    def __init__(self, value=None, value_regex=None, prefix=''):
-        _BaseValueEntry.__init__(self, prefix=prefix)
-        if value is not None:
-            assert value_regex is None
-
-        self.value = value
-        self.value_regex = (None if value_regex is None else
-                            re.compile(value_regex))
-
-    _preamble_pattern = re.compile(
-        r"""^Return value$"""
-    )
-
-    def _check_preamble(self, preamble):
-        return bool(self._preamble_pattern.match(preamble))
-
-    def _check_content(self, content):
-        return self._check_value(content)
-
-    def _check_value(self, value):
-        if self.value is not None:
-            return value == self.value
-        elif self.value_regex is not None:
-            return self.value_regex.match(value)
-        else:
-            return True
+    pass
 
 
 class _BaseEventEntry(_BaseEntry):
-    def __init__(self, source=None, source_regex=None, prefix=''):
-        _BaseEntry.__init__(self, prefix=prefix)
+    def __init__(self, source=None, source_regex=None):
+        _BaseEntry.__init__(self)
         if type(self) is _BaseEventEntry:
             raise TypeError
-        if source is not None:
-            assert source_regex is None
-        self.line_pattern = re.compile(
-            r"""^%s(?P<indent>(?: {4})*)[0-9:.]{15} """
-            r"""(?P<event_name>[a-z_]*) +(?P<line_number>[0-9]*) """
-            r"""+(?P<source>.*)$""" % (re.escape(self.prefix,))
-        )
-
-        self.source = source
-        self.source_regex = (None if source_regex is None else
-                             re.compile(source_regex))
+        self.source_checker = PartChecker(source, source_regex)
 
     @caching.CachedProperty
     def event_name(self):
         return re.match('^[A-Z][a-z_]*', type(self).__name__).group(0).lower()
 
-    def _check_source(self, source):
-        if self.source is not None:
-            return source == self.source
-        elif self.source_regex is not None:
-            return self.source_regex.match(source)
-        else:
-            return True
-
-    def check(self, s):
-        match = self.line_pattern.match(s)
-        if not match:
-            return False
-        _, event_name, _, source = match.groups()
-        return (event_name == self.event_name and
-                self._check_source(source))
+    def check(self, other):
+        return (getattr(other, 'event', '') == self.event_name
+                and self.source_checker.check(other.source_line.strip()))
 
 
 class CallEntry(_BaseEventEntry):
@@ -226,19 +154,15 @@ class OutputFailure(Exception):
     pass
 
 
-def assert_output(output, expected_entries, prefix=None):
-    lines = tuple(filter(None, output.split('\n')))
-
-    if prefix is not None:
-        for line in lines:
-            if not line.startswith(prefix):
-                raise OutputFailure(line)
-
+def assert_output(tracer, expected_entries):
+    entries = tracer.formatter.entries
+    formatter = DefaultFormatter('')
+    lines = [formatter.format_entry(entry, None) for entry in entries]
     any_mismatch = False
     result = ''
     template = '\n{line!s:%s}   {expected_entry}  {arrow}' % max(map(len, lines))
-    for expected_entry, line in zip_longest(expected_entries, lines, fillvalue=""):
-        mismatch = not (expected_entry and expected_entry.check(line))
+    for expected_entry, entry, line in zip_longest(expected_entries, entries, lines, fillvalue=""):
+        mismatch = not (expected_entry and entry and expected_entry.check(entry))
         any_mismatch |= mismatch
         arrow = '<===' * mismatch
         result += template.format(**locals())

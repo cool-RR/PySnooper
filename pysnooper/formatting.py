@@ -72,12 +72,15 @@ class DefaultFormatter(object):
             (
                     self.prefix
                     + indent
-                    + getattr(self, 'format_' + entry.__class__.__name__
-                              )(entry, event)
+                    + self.format_entry(entry, event)
                     + u'\n'
             )
             for entry in event.entries
         ])
+
+    def format_entry(self, entry, event):
+        method = getattr(self, 'format_' + entry.__class__.__name__)
+        return method(entry, event)
 
     def format_Event(self, entry, _event):
         return u'{now_string} {event:9} {line_no:4} {source_line}'.format(
