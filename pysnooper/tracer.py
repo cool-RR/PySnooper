@@ -225,7 +225,7 @@ class Tracer:
         self.target_frames.discard(calling_frame)
 
     def _is_internal_frame(self, frame):
-        return frame.f_code.co_filename == __file__
+        return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
 
     def trace(self, frame, event, arg):
 
