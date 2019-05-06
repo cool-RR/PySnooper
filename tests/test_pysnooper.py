@@ -687,7 +687,7 @@ def test_sample():
         sample.foo(5)
     output = output_capturer.string_io.getvalue()
     try:
-        assert output.strip() == sample.__doc__.strip()
+        assert output.strip() == sample.expected_output.strip()
     except AssertionError:
         print('\n' + output)  # to copy paste into docstring
         raise  # show pytest diff (may need -vv flag to see in full)
