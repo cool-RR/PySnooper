@@ -3,6 +3,7 @@
 
 import io
 import textwrap
+import threading
 import types
 
 from python_toolbox import sys_tools, temp_file_tools
@@ -41,6 +42,114 @@ def test_string_io():
         )
     )
 
+
+def test_thread_info():
+
+    @pysnooper.snoop(thread_info=True)
+    def my_function(foo):
+        x = 7
+        y = 8
+        return y + x
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        result = my_function('baba')
+    assert result == 15
+    output = output_capturer.string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_function(foo):'),
+            LineEntry('x = 7'),
+            VariableEntry('x', '7'),
+            LineEntry('y = 8'),
+            VariableEntry('y', '8'),
+            LineEntry('return y + x'),
+            ReturnEntry('return y + x'),
+            ReturnValueEntry('15'),
+        )
+    )
+
+
+def test_multi_thread_info():
+
+    @pysnooper.snoop(thread_info=True)
+    def my_function(foo):
+        x = 7
+        y = 8
+        return y + x
+
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        my_function('baba')
+        t1 = threading.Thread(target=my_function, name="test123",args=['bubu'])
+        t1.start()
+        t1.join()
+        t1 = threading.Thread(target=my_function, name="bibi",args=['bibi'])
+        t1.start()
+        t1.join()
+    output = output_capturer.string_io.getvalue()
+    calls = [line for line in output.split("\n") if "call" in line]
+    main_thread = calls[0]
+    assert len(main_thread) == len(calls[1])
+    assert len(main_thread) == len(calls[2])
+    main_thread_call_str = main_thread.find("call")
+    assert main_thread_call_str == calls[1].find("call")
+    assert main_thread_call_str == calls[2].find("call")
+    thread_info_regex = '([0-9]+-{name}+[ ]+)'
+    assert_output(
+        output,
+        (
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_function(foo):',
+                      thread_info_regex=thread_info_regex.format(
+                          name="MainThread")),
+            LineEntry('x = 7',
+                      thread_info_regex=thread_info_regex.format(
+                          name="MainThread")),
+            VariableEntry('x', '7'),
+            LineEntry('y = 8',
+                      thread_info_regex=thread_info_regex.format(
+                          name="MainThread")),
+            VariableEntry('y', '8'),
+            LineEntry('return y + x',
+                      thread_info_regex=thread_info_regex.format(
+                          name="MainThread")),
+            ReturnEntry('return y + x'),
+            ReturnValueEntry('15'),
+            VariableEntry('foo', value_regex="u?'bubu'"),
+            CallEntry('def my_function(foo):',
+                      thread_info_regex=thread_info_regex.format(
+                          name="test123")),
+            LineEntry('x = 7',
+                      thread_info_regex=thread_info_regex.format(
+                          name="test123")),
+            VariableEntry('x', '7'),
+            LineEntry('y = 8',
+                      thread_info_regex=thread_info_regex.format(
+                          name="test123")),
+            VariableEntry('y', '8'),
+            LineEntry('return y + x',
+                      thread_info_regex=thread_info_regex.format(
+                          name="test123")),
+            ReturnEntry('return y + x'),
+            ReturnValueEntry('15'),
+            VariableEntry('foo', value_regex="u?'bibi'"),
+            CallEntry('def my_function(foo):',
+                      thread_info_regex=thread_info_regex.format(name='bibi')),
+            LineEntry('x = 7',
+                      thread_info_regex=thread_info_regex.format(name='bibi')),
+            VariableEntry('x', '7'),
+            LineEntry('y = 8',
+                      thread_info_regex=thread_info_regex.format(name='bibi')),
+            VariableEntry('y', '8'),
+            LineEntry('return y + x',
+                      thread_info_regex=thread_info_regex.format(name='bibi')),
+            ReturnEntry('return y + x'),
+            ReturnValueEntry('15'),
+        )
+    )
 
 
 def test_callable():

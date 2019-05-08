@@ -143,6 +143,12 @@ Start all snoop lines with a prefix, to grep for them easily:
 @pysnooper.snoop(prefix='ZZZ ')
 ```
 
+On multi-threaded apps identify which thread are snooped in output::
+
+```python
+@pysnooper.snoop(thread_info=True)
+```
+
 # Installation #
 
 You can install **PySnooper** by:

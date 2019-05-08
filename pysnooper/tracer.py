@@ -129,6 +129,7 @@ class Tracer:
             depth=1,
             prefix='',
             overwrite=False,
+            thread_info=False,
     ):
         '''
         Snoop on the function, writing everything it's doing to stderr.
@@ -163,6 +164,9 @@ class Tracer:
 
             @pysnooper.snoop(prefix='ZZZ ')
 
+        On multi-threaded apps identify which thread are snooped in output::
+
+            @pysnooper.snoop(thread_info=True)
         '''
         self._write, self.truncate = get_write_and_truncate_functions(output)
 
@@ -183,6 +187,8 @@ class Tracer:
         self.prefix = prefix
         self.overwrite = overwrite
         self._did_overwrite = False
+        self.thread_info = thread_info
+        self.thread_info_padding = 0
         assert self.depth >= 1
         self.target_codes = set()
         self.target_frames = set()
@@ -222,6 +228,13 @@ class Tracer:
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
+
+    def set_thread_info_padding(self, thread_info):
+        current_thread_len = len(thread_info)
+        self.thread_info_padding = max(self.thread_info_padding,
+                                       current_thread_len)
+        return thread_info.ljust(self.thread_info_padding)
+
 
     def trace(self, frame, event, arg):
 
@@ -285,6 +298,12 @@ class Tracer:
         now_string = datetime_module.datetime.now().time().isoformat()
         line_no = frame.f_lineno
         source_line = get_source_from_frame(frame)[line_no - 1]
+        thread_info = ""
+        if self.thread_info:
+            current_thread = threading.current_thread()
+            thread_info = "{ident}-{name} ".format(
+                ident=current_thread.ident, name=current_thread.getName())
+        thread_info = self.set_thread_info_padding(thread_info)
 
         ### Dealing with misplaced function definition: #######################
         #                                                                     #
@@ -308,7 +327,7 @@ class Tracer:
         #                                                                     #
         ### Finished dealing with misplaced function definition. ##############
 
-        self.write(u'{indent}{now_string} {event:9} '
+        self.write(u'{indent}{now_string} {thread_info}{event:9} '
                    u'{line_no:4} {source_line}'.format(**locals()))
 
         if event == 'return':
