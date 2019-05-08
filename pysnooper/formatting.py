@@ -109,25 +109,20 @@ class UnavailableSource(object):
         return u'SOURCE IS UNAVAILABLE'
 
 
-source_cache_by_module_name = {}
-source_cache_by_file_name = {}
+source_cache = {}
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
 def get_source_from_frame(frame):
-    module_name = (frame.f_globals or {}).get('__name__') or ''
-    if module_name:
-        try:
-            return source_cache_by_module_name[module_name]
-        except KeyError:
-            pass
+    globs = frame.f_globals or {}
+    module_name = globs.get('__name__')
     file_name = frame.f_code.co_filename
-    if file_name:
-        try:
-            return source_cache_by_file_name[file_name]
-        except KeyError:
-            pass
-    loader = (frame.f_globals or {}).get('__loader__')
+    cache_key = (module_name, file_name)
+    try:
+        return source_cache[cache_key]
+    except KeyError:
+        pass
+    loader = globs.get('__loader__')
 
     source = None
     if hasattr(loader, 'get_source'):
@@ -173,8 +168,5 @@ def get_source_from_frame(frame):
         source = [six.text_type(sline, encoding, 'replace') for sline in
                   source]
 
-    if module_name:
-        source_cache_by_module_name[module_name] = source
-    if file_name:
-        source_cache_by_file_name[file_name] = source
+    source_cache[cache_key] = source
     return source
