@@ -73,7 +73,7 @@ class _BaseValueEntry(_BaseEntry):
 
 class VariableEntry(_BaseValueEntry):
     def __init__(self, name=None, value=None, stage=None, prefix='',
-                 name_regex=None, value_regex=None, ):
+                 name_regex=None, value_regex=None):
         _BaseValueEntry.__init__(self, prefix=prefix)
         if name is not None:
             assert name_regex is None
@@ -165,7 +165,8 @@ class ReturnValueEntry(_BaseValueEntry):
 
 
 class _BaseEventEntry(_BaseEntry):
-    def __init__(self, source=None, source_regex=None, prefix=''):
+    def __init__(self, source=None, source_regex=None, thread_info=None,
+                 thread_info_regex=None, prefix=''):
         _BaseEntry.__init__(self, prefix=prefix)
         if type(self) is _BaseEventEntry:
             raise TypeError
@@ -173,6 +174,7 @@ class _BaseEventEntry(_BaseEntry):
             assert source_regex is None
         self.line_pattern = re.compile(
             r"""^%s(?P<indent>(?: {4})*)[0-9:.]{15} """
+            r"""(?P<thread_info>[0-9]+-[0-9A-Za-z_-]+[ ]+)?"""
             r"""(?P<event_name>[a-z_]*) +(?P<line_number>[0-9]*) """
             r"""+(?P<source>.*)$""" % (re.escape(self.prefix,))
         )
@@ -180,6 +182,9 @@ class _BaseEventEntry(_BaseEntry):
         self.source = source
         self.source_regex = (None if source_regex is None else
                              re.compile(source_regex))
+        self.thread_info = thread_info
+        self.thread_info_regex = (None if thread_info_regex is None else
+                             re.compile(thread_info_regex))
 
     @caching.CachedProperty
     def event_name(self):
@@ -193,13 +198,22 @@ class _BaseEventEntry(_BaseEntry):
         else:
             return True
 
+    def _check_thread_info(self, thread_info):
+        if self.thread_info is not None:
+            return thread_info == self.thread_info
+        elif self.thread_info_regex is not None:
+            return self.thread_info_regex.match(thread_info)
+        else:
+            return True
+
     def check(self, s):
         match = self.line_pattern.match(s)
         if not match:
             return False
-        _, event_name, _, source = match.groups()
+        _, thread_info, event_name, _, source = match.groups()
         return (event_name == self.event_name and
-                self._check_source(source))
+                self._check_source(source) and
+                self._check_thread_info(thread_info))
 
 
 class CallEntry(_BaseEventEntry):
