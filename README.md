@@ -145,8 +145,16 @@ Start all snoop lines with a prefix, to grep for them easily:
 
 # Installation #
 
+You can install **PySnooper** by:
+
+* pip:
 ```console
 $ pip install pysnooper
+```
+
+* conda with conda-forge channel:
+```console
+$ conda install -c conda-forge pysnooper
 ```
 
 # Advanced Usage #
