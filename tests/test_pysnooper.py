@@ -280,10 +280,10 @@ def test_long_variable():
         (
             CallEntry('def my_function():'),
             LineEntry('foo = list(range(1000))'),
-            VariableEntry('foo', '[0, 1, 2, 3, 4, 5, ...]'),
+            VariableEntry('foo', value_regex=r'''^\[0, 1, 2, .*\.\.\.$'''),
             LineEntry(),
             ReturnEntry(),
-            ReturnValueEntry('[0, 1, 2, 3, 4, 5, ...]')
+            ReturnValueEntry(value_regex=r'''^\[0, 1, 2, .*\.\.\.$''')
         )
     )
 
@@ -308,7 +308,7 @@ def test_repr_exception():
             VariableEntry('Bad'),
             CallEntry('def my_function():'),
             LineEntry('bad = Bad()'),
-            VariableEntry('bad', value_regex=r'<Bad instance at 0x\w+ \(__repr__ raised ZeroDivisionError\)>'),
+            VariableEntry('bad', value='REPR FAILED'),
             ReturnEntry(),
             ReturnValueEntry('None')
         )

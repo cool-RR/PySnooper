@@ -6,13 +6,7 @@ import abc
 from .pycompat import ABC
 from .third_party import six
 
-try:
-    import reprlib
-    import builtins
-except ImportError:
-    import repr as reprlib
-    import __builtin__ as builtins
-
+MAX_VARIABLE_LENGTH = 100
 
 def _check_methods(C, *methods):
     mro = C.__mro__
@@ -54,34 +48,25 @@ def shitcode(s):
     )
 
 
-class Repr(reprlib.Repr, object):  # reprlib.Repr is old-style in Python 2
-    def __init__(self):
-        super(Repr, self).__init__()
-        self.maxother = 100
-
-    def repr(self, x):
-        try:
-            return super(Repr, self).repr(x)
-        except Exception as e:
-            return '<{} instance at {:#x} (__repr__ raised {})>'.format(
-                x.__class__.__name__, id(x), e.__class__.__name__)
-
-    def repr_instance(self, x, level):
-        s = builtins.repr(x)
-        if len(s) > self.maxother:
-            i = max(0, (self.maxother - 3) // 2)
-            j = max(0, self.maxother - 3 - i)
-            s = s[:i] + '...' + s[len(s) - j:]
-        return s
-
-
-repr_instance = Repr()
-
-
 def get_shortish_repr(item):
-    r = repr_instance.repr(item)
+    try:
+        r = repr(item)
+    except Exception:
+        r = 'REPR FAILED'
     r = r.replace('\r', '').replace('\n', '')
+    if len(r) > MAX_VARIABLE_LENGTH:
+        r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
     return r
+
+
+
+
+
+
+
+
+
+
 
 
 def ensure_tuple(x):
