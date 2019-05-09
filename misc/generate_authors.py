@@ -17,6 +17,7 @@ You probably want to run it this way:
 
 
 import subprocess
+import sys
 
 
 def drop_recurrences(iterable):
@@ -44,7 +45,8 @@ def iterate_authors_by_chronological_order():
 
 def print_authors():
     for author in iterate_authors_by_chronological_order():
-        print(author)
+        sys.stdout.buffer.write(author.encode())
+        sys.stdout.buffer.write(b'\n')
 
 
 if __name__ == '__main__':
