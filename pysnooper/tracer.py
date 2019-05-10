@@ -181,7 +181,6 @@ class Tracer:
              v if isinstance(v, BaseVariable) else Exploding(v)
              for v in utils.ensure_tuple(watch_explode)
         ]
-        self.frame_to_old_local_reprs = collections.defaultdict(lambda: {})
         self.frame_to_local_reprs = collections.defaultdict(lambda: {})
         self.depth = depth
         self.prefix = prefix
@@ -225,6 +224,7 @@ class Tracer:
         sys.settrace(stack.pop())
         calling_frame = inspect.currentframe().f_back
         self.target_frames.discard(calling_frame)
+        self.frame_to_local_reprs.pop(calling_frame, None)
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
@@ -270,8 +270,7 @@ class Tracer:
 
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
-        self.frame_to_old_local_reprs[frame] = old_local_reprs = \
-                                               self.frame_to_local_reprs[frame]
+        old_local_reprs = self.frame_to_local_reprs[frame]
         self.frame_to_local_reprs[frame] = local_reprs = \
                                        get_local_reprs(frame, watch=self.watch)
 
@@ -334,5 +333,6 @@ class Tracer:
             return_value_repr = utils.get_shortish_repr(arg)
             self.write('{indent}Return value:.. {return_value_repr}'.
                                                             format(**locals()))
+            del self.frame_to_local_reprs[frame]
 
         return self.trace
