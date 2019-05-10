@@ -6,6 +6,7 @@ import textwrap
 import threading
 import types
 
+from pysnooper.utils import truncate
 from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
@@ -384,15 +385,16 @@ def test_long_variable():
         result = my_function()
     assert result == list(range(1000))
     output = output_capturer.string_io.getvalue()
+    regex = r'^\[0, 1, 2, .*\.\.\..*, 997, 998, 999\]$'
     assert_output(
         output,
         (
             CallEntry('def my_function():'),
             LineEntry('foo = list(range(1000))'),
-            VariableEntry('foo', value_regex=r'''^\[0, 1, 2, .*\.\.\.$'''),
+            VariableEntry('foo', value_regex=regex),
             LineEntry(),
             ReturnEntry(),
-            ReturnValueEntry(value_regex=r'''^\[0, 1, 2, .*\.\.\.$''')
+            ReturnValueEntry(value_regex=regex)
         )
     )
 
@@ -918,3 +920,15 @@ def test_with_block_depth():
             ReturnValueEntry('20'),
         )
     )
+
+
+def test_truncate():
+    max_length = 20
+    for i in range(max_length * 2):
+        string = i * 'a'
+        truncated = truncate(string, max_length)
+        if len(string) <= max_length:
+            assert string == truncated
+        else:
+            assert truncated == 'aaaaaaaa...aaaaaaaaa'
+            assert len(truncated) == max_length

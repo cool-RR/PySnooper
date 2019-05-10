@@ -54,10 +54,16 @@ def get_shortish_repr(item):
     except Exception:
         r = 'REPR FAILED'
     r = r.replace('\r', '').replace('\n', '')
-    if len(r) > MAX_VARIABLE_LENGTH:
-        r = '{truncated_r}...'.format(truncated_r=r[:MAX_VARIABLE_LENGTH])
+    r = truncate(r, MAX_VARIABLE_LENGTH)
     return r
 
+
+def truncate(string, max_length):
+    if len(string) > max_length:
+        left = (max_length - 3) // 2
+        right = max_length - 3 - left
+        string = u'{}...{}'.format(string[:left], string[-right:])
+    return string
 
 
 def ensure_tuple(x):
