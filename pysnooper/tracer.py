@@ -21,8 +21,11 @@ ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
 def get_local_reprs(frame, watch=()):
-    result = {key: utils.get_shortish_repr(value) for key, value
-                                                     in frame.f_locals.items()}
+    result = collections.OrderedDict(
+        (key, utils.get_shortish_repr(frame.f_locals[key]))
+        for key in frame.f_code.co_varnames if key in frame.f_locals
+    )
+
     for variable in watch:
         result.update(variable.items(frame))
     return result
@@ -187,7 +190,7 @@ class Tracer:
              v if isinstance(v, BaseVariable) else Exploding(v)
              for v in utils.ensure_tuple(watch_explode)
         ]
-        self.frame_to_local_reprs = collections.defaultdict(lambda: {})
+        self.frame_to_local_reprs = collections.OrderedDict()
         self.depth = depth
         self.prefix = prefix
         self.overwrite = overwrite
@@ -280,12 +283,12 @@ class Tracer:
 
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
-        old_local_reprs = self.frame_to_local_reprs[frame]
+        old_local_reprs = self.frame_to_local_reprs.get(frame, {})
         self.frame_to_local_reprs[frame] = local_reprs = \
                                        get_local_reprs(frame, watch=self.watch)
 
-        modified_local_reprs = {}
-        newish_local_reprs = {}
+        modified_local_reprs = collections.OrderedDict()
+        newish_local_reprs = collections.OrderedDict()
 
         for key, value in local_reprs.items():
             if key not in old_local_reprs:
@@ -295,10 +298,10 @@ class Tracer:
 
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
-        for name, value_repr in sorted(newish_local_reprs.items()):
+        for name, value_repr in newish_local_reprs.items():
             self.write('{indent}{newish_string}{name} = {value_repr}'.format(
                                                                    **locals()))
-        for name, value_repr in sorted(modified_local_reprs.items()):
+        for name, value_repr in modified_local_reprs.items():
             self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
                                                                    **locals()))
         #                                                                     #
