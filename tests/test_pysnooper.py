@@ -270,10 +270,10 @@ def test_watch_explode():
             VariableEntry('_point.x', '3'),
             VariableEntry('_point.y', '4'),
             LineEntry(),
+            VariableEntry('lst'),
             VariableEntry('(lst + [])[0]', '7'),
             VariableEntry('(lst + [])[1]', '8'),
             VariableEntry('(lst + [])[2]', '9'),
-            VariableEntry('lst'),
             VariableEntry('lst + []'),
             LineEntry(),
             VariableEntry('(lst + [])[3]', '10'),
@@ -790,23 +790,23 @@ def test_with_block():
         output,
         (
             # In first with
+            VariableEntry('x', '2'),
             VariableEntry('bar1'),
             VariableEntry('bar2'),
             VariableEntry('bar3'),
             VariableEntry('foo'),
             VariableEntry('qux'),
             VariableEntry('snoop'),
-            VariableEntry('x', '2'),
             LineEntry('foo(x - 1)'),
 
             # In with in recursive call
+            VariableEntry('x', '1'),
             VariableEntry('bar1'),
             VariableEntry('bar2'),
             VariableEntry('bar3'),
             VariableEntry('foo'),
             VariableEntry('qux'),
             VariableEntry('snoop'),
-            VariableEntry('x', '1'),
             LineEntry('foo(x - 1)'),
 
             # Call to bar1 from if block outside with

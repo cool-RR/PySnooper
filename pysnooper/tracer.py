@@ -26,8 +26,11 @@ def get_local_reprs(frame, watch=()):
         for key in frame.f_code.co_varnames if key in frame.f_locals
     )
 
+    result.update(sorted((key, utils.get_shortish_repr(frame.f_locals[key]))
+                  for key in set(frame.f_locals) - set(frame.f_code.co_varnames)))
+
     for variable in watch:
-        result.update(variable.items(frame))
+        result.update(sorted(variable.items(frame)))
     return result
 
 
