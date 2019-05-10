@@ -7,6 +7,7 @@ import re
 import collections
 import datetime as datetime_module
 import itertools
+import threading
 
 from .variables import CommonVariable, Exploding, BaseVariable
 from .third_party import six, decorator
@@ -185,6 +186,7 @@ class Tracer:
         assert self.depth >= 1
         self.target_codes = set()
         self.target_frames = set()
+        self.thread_local = threading.local()
 
     def __call__(self, function):
         self.target_codes.add(function.__code__)
@@ -208,11 +210,13 @@ class Tracer:
             calling_frame.f_trace = self.trace
             self.target_frames.add(calling_frame)
 
-        self.original_trace_function = sys.gettrace()
+        stack = self.thread_local.__dict__.setdefault('original_trace_functions', [])
+        stack.append(sys.gettrace())
         sys.settrace(self.trace)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        sys.settrace(self.original_trace_function)
+        stack = self.thread_local.original_trace_functions
+        sys.settrace(stack.pop())
         calling_frame = inspect.currentframe().f_back
         self.target_frames.discard(calling_frame)
 
