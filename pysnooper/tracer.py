@@ -121,6 +121,9 @@ def get_write_and_truncate_functions(output):
     return write, truncate
 
 
+thread_global = threading.local()
+
+
 class Tracer:
     def __init__(
             self,
@@ -246,7 +249,6 @@ class Tracer:
         # or the user asked to go a few levels deeper and we're within that
         # number of levels deeper.
 
-        depth = 0
         if not (frame.f_code in self.target_codes or frame in self.target_frames):
             if self.depth == 1:
                 # We did the most common and quickest check above, because the
@@ -257,7 +259,7 @@ class Tracer:
                 return None
             else:
                 _frame_candidate = frame
-                for depth in range(1, self.depth):
+                for i in range(1, self.depth):
                     _frame_candidate = _frame_candidate.f_back
                     if _frame_candidate is None:
                         return None
@@ -266,9 +268,10 @@ class Tracer:
                 else:
                     return None
 
-        stack = self.thread_local.original_trace_functions
-        depth += len(stack) - 1
-        indent = ' ' * 4 * depth
+        thread_global.__dict__.setdefault('depth', -1)
+        if event == 'call':
+            thread_global.depth += 1
+        indent = ' ' * 4 * thread_global.depth
 
         #                                                                     #
         ### Finished checking whether we should trace this line. ##############
@@ -339,5 +342,6 @@ class Tracer:
             self.write('{indent}Return value:.. {return_value_repr}'.
                                                             format(**locals()))
             del self.frame_to_local_reprs[frame]
+            thread_global.depth -= 1
 
         return self.trace
