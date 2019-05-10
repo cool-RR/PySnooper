@@ -1,6 +1,7 @@
 # Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
 
+import functools
 import inspect
 import sys
 import re
@@ -10,7 +11,7 @@ import itertools
 import threading
 
 from .variables import CommonVariable, Exploding, BaseVariable
-from .third_party import six, decorator
+from .third_party import six
 from . import utils, pycompat
 
 
@@ -196,11 +197,12 @@ class Tracer:
     def __call__(self, function):
         self.target_codes.add(function.__code__)
 
-        def inner(_, *args, **kwargs):
+        @functools.wraps(function)
+        def inner(*args, **kwargs):
             with self:
                 return function(*args, **kwargs)
 
-        return decorator.decorate(function, inner)
+        return inner
 
     def write(self, s):
         if self.overwrite and not self._did_overwrite:
