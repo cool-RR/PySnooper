@@ -290,23 +290,19 @@ class Tracer:
         self.frame_to_local_reprs[frame] = local_reprs = \
                                        get_local_reprs(frame, watch=self.watch)
 
-        modified_local_reprs = collections.OrderedDict()
-        newish_local_reprs = collections.OrderedDict()
-
-        for key, value in local_reprs.items():
-            if key not in old_local_reprs:
-                newish_local_reprs[key] = value
-            elif old_local_reprs[key] != value:
-                modified_local_reprs[key] = value
-
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
-        for name, value_repr in newish_local_reprs.items():
-            self.write('{indent}{newish_string}{name} = {value_repr}'.format(
+
+        for name, value_repr in local_reprs.items():
+            if name not in old_local_reprs:
+                self.write('{indent}{newish_string}{name} = {value_repr}'.format(
+                                                                       **locals()))
+
+        for name, value_repr in local_reprs.items():
+            if name in old_local_reprs and old_local_reprs[name] != value_repr:
+                self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
                                                                    **locals()))
-        for name, value_repr in modified_local_reprs.items():
-            self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
-                                                                   **locals()))
+
         #                                                                     #
         ### Finished newish and modified variables. ###########################
 
