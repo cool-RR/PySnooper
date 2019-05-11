@@ -6,7 +6,7 @@ import abc
 import inspect
 from pysnooper.third_party.six.moves import zip_longest
 
-from python_toolbox import caching
+from python_toolbox import caching, sys_tools
 
 import pysnooper.pycompat
 
@@ -263,3 +263,26 @@ def assert_output(output, expected_entries, prefix=None):
 
     if any_mismatch:
         raise OutputFailure(result)
+
+
+def assert_sample_output(module):
+    with sys_tools.OutputCapturer(stdout=False,
+                                  stderr=True) as output_capturer:
+        module.main()
+        
+    time = '21:10:42.298924'
+    time_pattern = re.sub(r'\d', r'\\d', time)
+
+    def normalise(out):
+        return re.sub(time_pattern, time, out).strip()
+
+    output = output_capturer.string_io.getvalue()
+
+    try:
+        assert (
+                normalise(output) ==
+                normalise(module.expected_output)
+        )
+    except AssertionError:
+        print('\n\nActual Output:\n\n' + output)  # to copy paste into expected_output
+        raise  # show pytest diff (may need -vv flag to see in full)
