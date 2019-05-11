@@ -8,8 +8,8 @@ def foo():
 def bar():
     try:
         foo()
-    except Exception as e:
-        str(e)
+    except Exception:
+        str(1)
         raise
 
 
@@ -35,9 +35,8 @@ expected_output = '''
         Call ended by exception
     12:18:08.018494 exception   10         foo()
     TypeError: bad
-    12:18:08.018545 line        11     except Exception as e:
-    New var:....... e = TypeError('bad',)
-    12:18:08.018597 line        12         str(e)
+    12:26:33.942623 line        11     except Exception:
+    12:26:33.942674 line        12         str(1)
     12:18:08.018655 line        13         raise
     Call ended by exception
 12:18:08.018718 exception   19         bar()
