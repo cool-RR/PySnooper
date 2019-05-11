@@ -149,6 +149,9 @@ On multi-threaded apps identify which thread are snooped in output::
 @pysnooper.snoop(thread_info=True)
 ```
 
+PySnooper supports decorating generators.
+
+
 # Installation #
 
 You can install **PySnooper** by:

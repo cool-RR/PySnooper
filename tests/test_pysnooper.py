@@ -5,6 +5,7 @@ import io
 import textwrap
 import threading
 import types
+import sys
 
 from pysnooper.utils import truncate
 from python_toolbox import sys_tools, temp_file_tools
@@ -1047,3 +1048,86 @@ def test_indentation():
 def test_exception():
     from .samples import exception
     assert_sample_output(exception)
+
+
+def test_generator():
+    string_io = io.StringIO()
+    original_tracer = sys.gettrace()
+    original_tracer_active = lambda: (sys.gettrace() is original_tracer)
+
+
+    @pysnooper.snoop(string_io)
+    def f(x1):
+        assert not original_tracer_active()
+        x2 = (yield x1)
+        assert not original_tracer_active()
+        x3 = 'foo'
+        assert not original_tracer_active()
+        x4 = (yield 2)
+        assert not original_tracer_active()
+        return
+
+
+    assert original_tracer_active()
+    generator = f(0)
+    assert original_tracer_active()
+    first_item = next(generator)
+    assert original_tracer_active()
+    assert first_item == 0
+    second_item = generator.send('blabla')
+    assert original_tracer_active()
+    assert second_item == 2
+    with pytest.raises(StopIteration) as exc_info:
+        generator.send('looloo')
+    assert original_tracer_active()
+
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('x1', '0'),
+            VariableEntry(),
+            CallEntry(),
+            LineEntry(),
+            VariableEntry(),
+            VariableEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('0'),
+
+            # Pause and resume:
+
+            VariableEntry('x1', '0'),
+            VariableEntry(),
+            VariableEntry(),
+            VariableEntry(),
+            CallEntry(),
+            VariableEntry('x2', "'blabla'"),
+            LineEntry(),
+            LineEntry(),
+            VariableEntry('x3', "'foo'"),
+            LineEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('2'),
+
+            # Pause and resume:
+
+            VariableEntry('x1', '0'),
+            VariableEntry(),
+            VariableEntry(),
+            VariableEntry(),
+            VariableEntry(),
+            VariableEntry(),
+            CallEntry(),
+            VariableEntry('x4', "'looloo'"),
+            LineEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(None),
+
+        )
+    )
+
+
+
