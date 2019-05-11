@@ -986,6 +986,10 @@ def test_var_order():
     string_io = io.StringIO()
 
     def f(one, two, three, four):
+        five = None
+        six = None
+        seven = None
+
         five, six, seven = 5, 6, 7
 
     with pysnooper.snoop(string_io, depth=2):
@@ -1005,6 +1009,12 @@ def test_var_order():
             VariableEntry("four", "4"),
 
             CallEntry('def f(one, two, three, four):'),
+            LineEntry(),
+            VariableEntry("five"),
+            LineEntry(),
+            VariableEntry("six"),
+            LineEntry(),
+            VariableEntry("seven"),
             LineEntry(),
             VariableEntry("five", "5"),
             VariableEntry("six", "6"),
