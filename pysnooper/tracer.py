@@ -4,6 +4,7 @@
 import functools
 import inspect
 import opcode
+import os
 import sys
 import re
 import collections
@@ -392,3 +393,28 @@ class Tracer:
                        format(**locals()))
 
         return self.trace
+
+
+def log(*args):
+    trace = sys.gettrace()
+    tracer = getattr(trace, '__self__', None)
+    if not isinstance(tracer, Tracer):
+        return  # pysnooper is not active
+
+    frame = inspect.currentframe().f_back
+
+    filename = os.path.basename(frame.f_code.co_filename)
+    if filename.endswith('.pyc'):
+        filename = filename[:-1]
+
+    function_name = frame.f_code.co_name
+    line_no = frame.f_lineno
+
+    for arg in args:
+        tracer.write('Log from {filename} - {function_name} - {line_no}: {arg}'
+                     .format(**locals()))
+    
+    if len(args) == 1:
+        return args[0]
+    else:
+        return args

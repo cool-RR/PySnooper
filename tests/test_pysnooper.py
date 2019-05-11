@@ -1050,6 +1050,11 @@ def test_exception():
     assert_sample_output(exception)
 
 
+def test_log():
+    from .samples import log
+    assert_sample_output(log)
+
+
 def test_generator():
     string_io = io.StringIO()
     original_tracer = sys.gettrace()

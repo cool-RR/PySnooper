@@ -17,7 +17,7 @@ changed in the decorated function.
 For more information, see https://github.com/cool-RR/PySnooper
 '''
 
-from .tracer import Tracer as snoop
+from .tracer import Tracer as snoop, log
 from .variables import Attrs, Exploding, Indices, Keys
 import collections
 
