@@ -168,6 +168,7 @@ class Tracer:
     On multi-threaded apps identify which thread are snooped in output::
 
         @pysnooper.snoop(thread_info=True)
+
     '''
     def __init__(
             self,
