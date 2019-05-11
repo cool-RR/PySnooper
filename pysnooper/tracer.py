@@ -3,12 +3,14 @@
 
 import functools
 import inspect
+import opcode
 import sys
 import re
 import collections
 import datetime as datetime_module
 import itertools
 import threading
+import traceback
 
 from .variables import CommonVariable, Exploding, BaseVariable
 from .third_party import six
@@ -334,14 +336,36 @@ class Tracer:
         #                                                                     #
         ### Finished dealing with misplaced function definition. ##############
 
-        self.write(u'{indent}{now_string} {thread_info}{event:9} '
-                   u'{line_no:4} {source_line}'.format(**locals()))
+        # If a call ends due to an exception, we still get a 'return' event
+        # with arg = None. This seems to be the only way to tell the difference
+        # https://stackoverflow.com/a/12800909/2482744
+        ended_by_exception = (
+                event == 'return'
+                and arg is None
+                and (opcode.opname[frame.f_code.co_code[frame.f_lasti]]
+                     not in ('RETURN_VALUE', 'YIELD_VALUE'))
+        )
+
+        if ended_by_exception:
+            self.write('{indent}Call ended by exception'.
+                       format(**locals()))
+        else:
+            self.write(u'{indent}{now_string} {thread_info}{event:9} '
+                       u'{line_no:4} {source_line}'.format(**locals()))
 
         if event == 'return':
-            return_value_repr = utils.get_shortish_repr(arg)
-            self.write('{indent}Return value:.. {return_value_repr}'.
-                                                            format(**locals()))
             del self.frame_to_local_reprs[frame]
             thread_global.depth -= 1
+
+            if not ended_by_exception:
+                return_value_repr = utils.get_shortish_repr(arg)
+                self.write('{indent}Return value:.. {return_value_repr}'.
+                           format(**locals()))
+
+        if event == 'exception':
+            exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
+            exception = utils.truncate(exception, utils.MAX_EXCEPTION_LENGTH)
+            self.write('{indent}{exception}'.
+                       format(**locals()))
 
         return self.trace

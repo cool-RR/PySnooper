@@ -7,6 +7,7 @@ from .pycompat import ABC
 from .third_party import six
 
 MAX_VARIABLE_LENGTH = 100
+MAX_EXCEPTION_LENGTH = 200
 
 def _check_methods(C, *methods):
     mro = C.__mro__
