@@ -938,3 +938,8 @@ def test_indentation():
     from .samples import indentation, recursion
     assert_sample_output(indentation)
     assert_sample_output(recursion)
+
+
+def test_exception():
+    from .samples import exception
+    assert_sample_output(exception)
