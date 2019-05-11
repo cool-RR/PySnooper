@@ -4,7 +4,6 @@
 import io
 import textwrap
 import threading
-import types
 import sys
 
 from pysnooper.utils import truncate
@@ -19,30 +18,10 @@ from .utils import (assert_output, assert_sample_output, VariableEntry, CallEntr
 
 def test_string_io():
     string_io = io.StringIO()
-
-    @pysnooper.snoop(string_io)
-    def my_function(foo):
-        x = 7
-        y = 8
-        return y + x
-
-    result = my_function('baba')
-    assert result == 15
-    output = string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
-    )
+    tracer = pysnooper.snoop(string_io)
+    contents = u'stuff'
+    tracer._write(contents)
+    assert string_io.getvalue() == contents
 
 
 def test_thread_info():
@@ -160,29 +139,11 @@ def test_callable():
     def write(msg):
         string_io.write(msg)
 
-    @pysnooper.snoop(write)
-    def my_function(foo):
-        x = 7
-        y = 8
-        return y + x
-
-    result = my_function('baba')
-    assert result == 15
-    output = string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
-    )
+    string_io = io.StringIO()
+    tracer = pysnooper.snoop(write)
+    contents = u'stuff'
+    tracer._write(contents)
+    assert string_io.getvalue() == contents
 
 
 
@@ -527,30 +488,12 @@ def test_file_output():
     with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
 
-        @pysnooper.snoop(path)
-        def my_function(_foo):
-            x = 7
-            y = 8
-            return y + x
-
-        result = my_function('baba')
-        assert result == 15
+        tracer = pysnooper.snoop(path)
+        contents = u'stuff'
+        tracer._write(contents)
         with path.open() as output_file:
             output = output_file.read()
-        assert_output(
-            output,
-            (
-                VariableEntry('_foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(_foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
-        )
+        assert output == contents
 
 
 def test_confusing_decorator_lines():
@@ -650,31 +593,11 @@ def test_no_overwrite_by_default():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
-        @pysnooper.snoop(str(path))
-        def my_function(foo):
-            x = 7
-            y = 8
-            return y + x
-        result = my_function('baba')
-        assert result == 15
+        tracer = pysnooper.snoop(str(path))
+        tracer._write(u' doo be doo')
         with path.open() as output_file:
             output = output_file.read()
-        assert output.startswith('lala')
-        shortened_output = output[4:]
-        assert_output(
-            shortened_output,
-            (
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
-        )
+        assert output == u'lala doo be doo'
 
 
 def test_overwrite():
@@ -682,41 +605,14 @@ def test_overwrite():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
-        @pysnooper.snoop(str(path), overwrite=True)
-        def my_function(foo):
-            x = 7
-            y = 8
-            return y + x
-        result = my_function('baba')
-        result = my_function('baba')
-        assert result == 15
+
+        tracer = pysnooper.snoop(str(path), overwrite=True)
+        tracer._write(u'doo be')
+        tracer._write(u' doo')
+
         with path.open() as output_file:
             output = output_file.read()
-        assert 'lala' not in output
-        assert_output(
-            output,
-            (
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
-        )
+        assert output == u'doo be doo'
 
 
 def test_error_in_overwrite_argument():
