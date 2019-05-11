@@ -4,6 +4,7 @@
 
 import abc
 import os
+import inspect
 
 if hasattr(abc, 'ABC'):
     ABC = abc.ABC
@@ -35,3 +36,9 @@ else:
                 (hasattr(subclass, 'open') and
                  'path' in subclass.__name__.lower())
             )
+
+
+try:
+    iscoroutinefunction = inspect.iscoroutinefunction
+except AttributeError:
+    iscoroutinefunction = lambda whatever: False # Lolz
