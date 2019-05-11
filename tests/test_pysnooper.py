@@ -276,8 +276,8 @@ def test_watch_explode():
             VariableEntry('(lst + [])[2]', '9'),
             VariableEntry('lst + []'),
             LineEntry(),
-            VariableEntry('(lst + [])[3]', '10'),
             VariableEntry('lst'),
+            VariableEntry('(lst + [])[3]', '10'),
             VariableEntry('lst + []'),
             ReturnEntry(),
             ReturnValueEntry('None')
