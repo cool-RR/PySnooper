@@ -921,6 +921,67 @@ def test_with_block_depth():
         )
     )
 
+def test_cellvars():
+    string_io = io.StringIO()
+
+    def f2(a):
+        def f3(a):
+            x = 0
+            x += 1
+            def f4(a):
+                y = x
+                return 42
+            return f4(a)
+        return f3(a)
+
+    def f1(a):
+        with pysnooper.snoop(string_io, depth=4):
+            result1 = f2(a)
+        return result1
+
+    result = f1(42)
+    assert result == 42
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry(),
+            VariableEntry(),
+            VariableEntry(),
+            LineEntry('result1 = f2(a)'),
+
+            VariableEntry(),
+            CallEntry('def f2(a):'),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+
+            VariableEntry("a"),
+            CallEntry('def f3(a):'),
+            LineEntry(),
+            VariableEntry("x"),
+            LineEntry(),
+            VariableEntry("x"),
+            LineEntry(),
+            VariableEntry(),
+
+            LineEntry(),
+            VariableEntry(),
+            VariableEntry("x"),
+            CallEntry('def f4(a):'),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+
+            ReturnEntry(),
+            ReturnValueEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(),
+        )
+    )
+
 
 def test_truncate():
     max_length = 20
