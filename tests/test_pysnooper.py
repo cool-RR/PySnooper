@@ -982,6 +982,39 @@ def test_cellvars():
         )
     )
 
+def test_var_order():
+    string_io = io.StringIO()
+
+    def f(one, two, three, four):
+        five, six, seven = 5, 6, 7
+
+    with pysnooper.snoop(string_io, depth=2):
+        result = f(1, 2, 3, 4)
+
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry(),
+            VariableEntry(),
+
+            LineEntry('result = f(1, 2, 3, 4)'),
+            VariableEntry("one", "1"),
+            VariableEntry("two", "2"),
+            VariableEntry("three", "3"),
+            VariableEntry("four", "4"),
+
+            CallEntry('def f(one, two, three, four):'),
+            LineEntry(),
+            VariableEntry("five", "5"),
+            VariableEntry("six", "6"),
+            VariableEntry("seven", "7"),
+            ReturnEntry(),
+            ReturnValueEntry(),
+        )
+    )
+
+
 
 def test_truncate():
     max_length = 20
