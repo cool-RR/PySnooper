@@ -193,7 +193,7 @@ class Tracer:
              v if isinstance(v, BaseVariable) else Exploding(v)
              for v in utils.ensure_tuple(watch_explode)
         ]
-        self.frame_to_local_reprs = collections.OrderedDict()
+        self.frame_to_local_reprs = {}
         self.depth = depth
         self.prefix = prefix
         self.overwrite = overwrite
