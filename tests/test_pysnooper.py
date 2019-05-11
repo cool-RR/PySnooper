@@ -12,6 +12,7 @@ import pytest
 
 import pysnooper
 from pysnooper.variables import needs_parentheses
+from tests.utils import assert_sample_output
 from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
@@ -932,3 +933,9 @@ def test_truncate():
         else:
             assert truncated == 'aaaaaaaa...aaaaaaaaa'
             assert len(truncated) == max_length
+
+
+def test_indentation():
+    from .samples import indentation, recursion
+    assert_sample_output(indentation)
+    assert_sample_output(recursion)
