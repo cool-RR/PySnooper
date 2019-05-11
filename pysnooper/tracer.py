@@ -132,6 +132,43 @@ thread_global = threading.local()
 
 
 class Tracer:
+    '''
+    Snoop on the function, writing everything it's doing to stderr.
+
+    This is useful for debugging.
+
+    When you decorate a function with `@pysnooper.snoop()`
+    or wrap a block of code in `with pysnooper.snoop():`, you'll get a log of
+    every line that ran in the function and a play-by-play of every local
+    variable that changed.
+
+    If stderr is not easily accessible for you, you can redirect the output to
+    a file::
+
+        @pysnooper.snoop('/my/log/file.log')
+
+    See values of some expressions that aren't local variables::
+
+        @pysnooper.snoop(watch=('foo.bar', 'self.x["whatever"]'))
+
+    Expand values to see all their attributes or items of lists/dictionaries:
+
+        @pysnooper.snoop(watch_explode=('foo', 'self'))
+
+    (see Advanced Usage in the README for more control)
+
+    Show snoop lines for functions that your function calls::
+
+        @pysnooper.snoop(depth=2)
+
+    Start all snoop lines with a prefix, to grep for them easily::
+
+        @pysnooper.snoop(prefix='ZZZ ')
+
+    On multi-threaded apps identify which thread are snooped in output::
+
+        @pysnooper.snoop(thread_info=True)
+    '''
     def __init__(
             self,
             output=None,
@@ -142,49 +179,12 @@ class Tracer:
             overwrite=False,
             thread_info=False,
     ):
-        '''
-        Snoop on the function, writing everything it's doing to stderr.
-
-        This is useful for debugging.
-
-        When you decorate a function with `@pysnooper.snoop()`
-        or wrap a block of code in `with pysnooper.snoop():`, you'll get a log of
-        every line that ran in the function and a play-by-play of every local
-        variable that changed.
-
-        If stderr is not easily accessible for you, you can redirect the output to
-        a file::
-
-            @pysnooper.snoop('/my/log/file.log')
-
-        See values of some expressions that aren't local variables::
-
-            @pysnooper.snoop(watch=('foo.bar', 'self.x["whatever"]'))
-
-        Expand values to see all their attributes or items of lists/dictionaries:
-
-            @pysnooper.snoop(watch_explode=('foo', 'self'))
-
-        (see Advanced Usage in the README for more control)
-
-        Show snoop lines for functions that your function calls::
-
-            @pysnooper.snoop(depth=2)
-
-        Start all snoop lines with a prefix, to grep for them easily::
-
-            @pysnooper.snoop(prefix='ZZZ ')
-
-        On multi-threaded apps identify which thread are snooped in output::
-
-            @pysnooper.snoop(thread_info=True)
-        '''
         self._write, self.truncate = get_write_and_truncate_functions(output)
 
         if self.truncate is None and overwrite:
             raise Exception("`overwrite=True` can only be used when writing "
                             "content to file.")
-            
+
         self.watch = [
             v if isinstance(v, BaseVariable) else CommonVariable(v)
             for v in utils.ensure_tuple(watch)
