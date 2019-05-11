@@ -19,17 +19,12 @@ ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
 def get_local_reprs(frame, watch=()):
-    result_items = [(key, utils.get_shortish_repr(value)) for key, value
-                                                     in frame.f_locals.items()]
+    result_items = [(key, utils.get_shortish_repr(value)) for key, value in frame.f_locals.items()]
 
     vars_order = frame.f_code.co_varnames + frame.f_code.co_cellvars + frame.f_code.co_freevars
-    result_items.sort(
-        key=lambda key_value: (
-            (vars_order.index(key_value[0]) if key_value[0] in vars_order else float("inf")),
-            key_value[0]
-        )
-    )
+    vars_order += tuple(frame.f_locals.keys())
 
+    result_items.sort(key=lambda key_value: vars_order.index(key_value[0]))
     result = collections.OrderedDict(result_items)
 
     for variable in watch:
