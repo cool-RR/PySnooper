@@ -339,10 +339,13 @@ class Tracer:
         # If a call ends due to an exception, we still get a 'return' event
         # with arg = None. This seems to be the only way to tell the difference
         # https://stackoverflow.com/a/12800909/2482744
+        code_byte = frame.f_code.co_code[frame.f_lasti]
+        if not isinstance(code_byte, int):
+            code_byte = ord(code_byte)
         ended_by_exception = (
                 event == 'return'
                 and arg is None
-                and (opcode.opname[frame.f_code.co_code[frame.f_lasti]]
+                and (opcode.opname[code_byte]
                      not in ('RETURN_VALUE', 'YIELD_VALUE'))
         )
 
