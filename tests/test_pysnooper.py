@@ -1050,6 +1050,11 @@ def test_exception():
     assert_sample_output(exception)
 
 
+def test_with_no_parentheses():
+    from .samples import with_no_parentheses
+    assert_sample_output(with_no_parentheses)
+
+
 def test_generator():
     string_io = io.StringIO()
     original_tracer = sys.gettrace()

@@ -130,8 +130,21 @@ def get_write_and_truncate_functions(output):
 
 thread_global = threading.local()
 
+class TracerMeta(type):
+    def __new__(mcs, *args, **kwargs):
+        result = super(TracerMeta, mcs).__new__(mcs, *args, **kwargs)
+        result.default = result()
+        return result
 
-class Tracer:
+    def __enter__(self):
+        return self.default.__enter__(context=1)
+
+    def __exit__(self, *args):
+        return self.default.__exit__(*args, context=1)
+
+
+@six.add_metaclass(TracerMeta)
+class Tracer(object):
     '''
     Snoop on the function, writing everything it's doing to stderr.
 
@@ -243,8 +256,8 @@ class Tracer:
         s = u'{self.prefix}{s}\n'.format(**locals())
         self._write(s)
 
-    def __enter__(self):
-        calling_frame = inspect.currentframe().f_back
+    def __enter__(self, context=0):
+        calling_frame = sys._getframe(context + 1)
         if not self._is_internal_frame(calling_frame):
             calling_frame.f_trace = self.trace
             self.target_frames.add(calling_frame)
@@ -253,10 +266,10 @@ class Tracer:
         stack.append(sys.gettrace())
         sys.settrace(self.trace)
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback, context=0):
         stack = self.thread_local.original_trace_functions
         sys.settrace(stack.pop())
-        calling_frame = inspect.currentframe().f_back
+        calling_frame = sys._getframe(context + 1)
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
 
