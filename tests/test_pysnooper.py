@@ -12,8 +12,7 @@ import pytest
 
 import pysnooper
 from pysnooper.variables import needs_parentheses
-from tests.utils import assert_sample_output
-from .utils import (assert_output, VariableEntry, CallEntry, LineEntry,
+from .utils import (assert_output, assert_sample_output, VariableEntry, CallEntry, LineEntry,
                     ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
 
 
