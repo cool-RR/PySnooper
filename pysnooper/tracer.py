@@ -288,9 +288,7 @@ class Tracer:
             if name not in old_local_reprs:
                 self.write('{indent}{newish_string}{name} = {value_repr}'.format(
                                                                        **locals()))
-
-        for name, value_repr in local_reprs.items():
-            if name in old_local_reprs and old_local_reprs[name] != value_repr:
+            elif old_local_reprs[name] != value_repr:
                 self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
                                                                    **locals()))
 
