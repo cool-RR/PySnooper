@@ -13,7 +13,6 @@ import threading
 import traceback
 
 from .variables import CommonVariable, Exploding, BaseVariable
-from .third_party import six
 from . import utils, pycompat
 
 
@@ -93,7 +92,7 @@ def get_source_from_frame(frame):
             if match:
                 encoding = match.group(1).decode('ascii')
                 break
-        source = [six.text_type(sline, encoding, 'replace') for sline in
+        source = [utils.text_type(sline, encoding, 'replace') for sline in
                   source]
 
     source_cache[cache_key] = source
@@ -127,7 +126,7 @@ def get_write_function(output, overwrite):
 
 class FileWriter(object):
     def __init__(self, path, overwrite):
-        self.path = six.text_type(path)
+        self.path = utils.text_type(path)
         self.overwrite = overwrite
 
     def write(self, s):
