@@ -4,7 +4,11 @@
 import re
 import abc
 import inspect
-from pysnooper.third_party.six.moves import zip_longest
+
+try:
+    from itertools import zip_longest
+except ImportError:
+    from itertools import izip_longest as zip_longest
 
 from python_toolbox import caching, sys_tools
 

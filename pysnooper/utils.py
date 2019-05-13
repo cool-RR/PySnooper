@@ -3,8 +3,19 @@
 
 import abc
 
+import sys
 from .pycompat import ABC
-from .third_party import six
+
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    string_types = str,
+    text_type = str
+else:
+    string_types = basestring,
+    text_type = unicode
+
 
 MAX_VARIABLE_LENGTH = 100
 MAX_EXCEPTION_LENGTH = 200
@@ -68,7 +79,7 @@ def truncate(string, max_length):
 
 
 def ensure_tuple(x):
-    if isinstance(x, six.string_types):
+    if isinstance(x, string_types):
         x = (x,)
     return tuple(x)
 
