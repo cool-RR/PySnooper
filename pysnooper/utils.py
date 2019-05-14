@@ -4,18 +4,7 @@
 import abc
 
 import sys
-from .pycompat import ABC
-
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    string_types = str,
-    text_type = str
-else:
-    string_types = basestring,
-    text_type = unicode
-
+from .pycompat import ABC, string_types
 
 MAX_VARIABLE_LENGTH = 100
 MAX_EXCEPTION_LENGTH = 200

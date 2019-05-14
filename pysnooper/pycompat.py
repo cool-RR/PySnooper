@@ -5,6 +5,7 @@
 import abc
 import os
 import inspect
+import sys
 
 if hasattr(abc, 'ABC'):
     ABC = abc.ABC
@@ -42,3 +43,12 @@ try:
     iscoroutinefunction = inspect.iscoroutinefunction
 except AttributeError:
     iscoroutinefunction = lambda whatever: False # Lolz
+
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    string_types = str,
+    text_type = str
+else:
+    string_types = basestring,
+    text_type = unicode
