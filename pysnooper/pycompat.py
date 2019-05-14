@@ -7,6 +7,8 @@ import os
 import inspect
 import sys
 
+PY3 = (sys.version_info[0] == 3)
+
 if hasattr(abc, 'ABC'):
     ABC = abc.ABC
 else:
@@ -44,11 +46,10 @@ try:
 except AttributeError:
     iscoroutinefunction = lambda whatever: False # Lolz
 
-PY3 = sys.version_info[0] == 3
 
 if PY3:
-    string_types = str,
+    string_types = (str,)
     text_type = str
 else:
-    string_types = basestring,
+    string_types = (basestring,)
     text_type = unicode
