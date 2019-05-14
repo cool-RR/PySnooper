@@ -791,23 +791,9 @@ def test_with_block():
         output,
         (
             # In first with
-            VariableEntry('x', '2'),
-            VariableEntry('bar1'),
-            VariableEntry('bar2'),
-            VariableEntry('bar3'),
-            VariableEntry('foo'),
-            VariableEntry('qux'),
-            VariableEntry('snoop'),
             LineEntry('foo(x - 1)'),
 
             # In with in recursive call
-            VariableEntry('x', '1'),
-            VariableEntry('bar1'),
-            VariableEntry('bar2'),
-            VariableEntry('bar3'),
-            VariableEntry('foo'),
-            VariableEntry('qux'),
-            VariableEntry('snoop'),
             LineEntry('foo(x - 1)'),
 
             # Call to bar1 from if block outside with
@@ -895,9 +881,6 @@ def test_with_block_depth():
     assert_output(
         output,
         (
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
             LineEntry('result1 = f2(x1)'),
 
             VariableEntry(),
@@ -946,9 +929,6 @@ def test_cellvars():
     assert_output(
         output,
         (
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
             LineEntry('result1 = f2(a)'),
 
             VariableEntry(),
@@ -1000,9 +980,6 @@ def test_var_order():
     assert_output(
         output,
         (
-            VariableEntry(),
-            VariableEntry(),
-
             LineEntry('result = f(1, 2, 3, 4)'),
             VariableEntry("one", "1"),
             VariableEntry("two", "2"),

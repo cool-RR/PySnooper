@@ -247,6 +247,8 @@ class Tracer:
             calling_frame.f_trace = self.trace
             self.target_frames.add(calling_frame)
 
+        self.frame_to_local_reprs[calling_frame] = get_local_reprs(calling_frame)
+
         stack = self.thread_local.__dict__.setdefault('original_trace_functions', [])
         stack.append(sys.gettrace())
         sys.settrace(self.trace)
@@ -269,7 +271,6 @@ class Tracer:
 
 
     def trace(self, frame, event, arg):
-
         ### Checking whether we should trace this line: #######################
         #                                                                     #
         # We should trace this line either if it's in the decorated function,
