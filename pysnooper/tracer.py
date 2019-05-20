@@ -14,6 +14,8 @@ import traceback
 
 from .variables import CommonVariable, Exploding, BaseVariable
 from . import utils, pycompat
+if pycompat.PY2:
+    from io import open
 
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
@@ -84,7 +86,7 @@ def get_source_from_frame(frame):
     # apply tokenize.detect_encoding to decode the source into a
     # string, then we should do that ourselves.
     if isinstance(source[0], bytes):
-        encoding = 'ascii'
+        encoding = 'utf-8'
         for line in source[:2]:
             # File coding may be specified. Match pattern from PEP-263
             # (https://www.python.org/dev/peps/pep-0263/)
@@ -130,7 +132,8 @@ class FileWriter(object):
         self.overwrite = overwrite
 
     def write(self, s):
-        with open(self.path, 'w' if self.overwrite else 'a') as output_file:
+        with open(self.path, 'w' if self.overwrite else 'a',
+                  encoding='utf-8') as output_file:
             output_file.write(s)
         self.overwrite = False
 

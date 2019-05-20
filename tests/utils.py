@@ -254,7 +254,7 @@ def assert_output(output, expected_entries, prefix=None):
 
     any_mismatch = False
     result = ''
-    template = '\n{line!s:%s}   {expected_entry}  {arrow}' % max(map(len, lines))
+    template = u'\n{line!s:%s}   {expected_entry}  {arrow}' % max(map(len, lines))
     for expected_entry, line in zip_longest(expected_entries, lines, fillvalue=""):
         mismatch = not (expected_entry and expected_entry.check(line))
         any_mismatch |= mismatch
@@ -273,7 +273,7 @@ def assert_sample_output(module):
     with sys_tools.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         module.main()
-        
+
     time = '21:10:42.298924'
     time_pattern = re.sub(r'\d', r'\\d', time)
 
