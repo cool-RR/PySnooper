@@ -13,8 +13,9 @@ import pytest
 
 import pysnooper
 from pysnooper.variables import needs_parentheses
-from .utils import (assert_output, assert_sample_output, VariableEntry, CallEntry, LineEntry,
-                    ReturnEntry, OpcodeEntry, ReturnValueEntry, ExceptionEntry)
+from .utils import (assert_output, assert_sample_output, VariableEntry,
+                    CallEntry, LineEntry, ReturnEntry, OpcodeEntry,
+                    ReturnValueEntry, ExceptionEntry)
 
 
 def test_string_io():
