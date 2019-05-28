@@ -21,11 +21,11 @@ if pycompat.PY2:
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
-def get_local_reprs(frame, watch=()):
+def get_local_reprs(frame, watch=(), custom_repr=()):
     code = frame.f_code
     vars_order = code.co_varnames + code.co_cellvars + code.co_freevars + tuple(frame.f_locals.keys())
 
-    result_items = [(key, utils.get_shortish_repr(value)) for key, value in frame.f_locals.items()]
+    result_items = [(key, utils.get_shortish_repr(value, custom_repr=custom_repr)) for key, value in frame.f_locals.items()]
     result_items.sort(key=lambda key_value: vars_order.index(key_value[0]))
     result = collections.OrderedDict(result_items)
 
@@ -189,6 +189,7 @@ class Tracer:
             prefix='',
             overwrite=False,
             thread_info=False,
+            custom_repr=(),
     ):
         self._write = get_write_function(output, overwrite)
 
@@ -208,6 +209,7 @@ class Tracer:
         self.target_codes = set()
         self.target_frames = set()
         self.thread_local = threading.local()
+        self.custom_repr = custom_repr
 
     def __call__(self, function):
         self.target_codes.add(function.__code__)
@@ -310,7 +312,7 @@ class Tracer:
         #                                                                     #
         old_local_reprs = self.frame_to_local_reprs.get(frame, {})
         self.frame_to_local_reprs[frame] = local_reprs = \
-                                       get_local_reprs(frame, watch=self.watch)
+                                       get_local_reprs(frame, watch=self.watch, custom_repr=self.custom_repr)
 
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
@@ -383,7 +385,7 @@ class Tracer:
             thread_global.depth -= 1
 
             if not ended_by_exception:
-                return_value_repr = utils.get_shortish_repr(arg)
+                return_value_repr = utils.get_shortish_repr(arg, custom_repr=self.custom_repr)
                 self.write('{indent}Return value:.. {return_value_repr}'.
                            format(**locals()))
 
