@@ -143,7 +143,7 @@ Start all snoop lines with a prefix, to grep for them easily:
 @pysnooper.snoop(prefix='ZZZ ')
 ```
 
-On multi-threaded apps identify which thread are snooped in output::
+On multi-threaded apps identify which thread are snooped in output:
 
 ```python
 @pysnooper.snoop(thread_info=True)
@@ -151,6 +151,24 @@ On multi-threaded apps identify which thread are snooped in output::
 
 PySnooper supports decorating generators.
 
+You can also customize the repr of an object:
+
+```python
+def large(l):
+    return isinstance(l, list) and len(l) > 5
+
+def print_list_size(l):
+    return 'list(size={})'.format(len(l))
+
+@pysnooper.snoop(custom_repr=((large, print_list_size),))
+def sum_to_x(x):
+    l = list(range(x))
+    return sum(l)
+
+sum_to_x(10000)
+```
+
+You will get `l = list(size=10000)` for the list
 
 # Installation #
 

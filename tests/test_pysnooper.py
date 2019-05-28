@@ -1131,4 +1131,32 @@ def test_generator():
     )
 
 
+def test_custom_repr():
+    string_io = io.StringIO()
 
+    def large(l):
+        return isinstance(l, list) and len(l) > 5
+
+    def print_list_size(l):
+        return 'list(size={})'.format(len(l))
+
+    @pysnooper.snoop(string_io, custom_repr=((large, print_list_size),))
+    def sum_to_x(x):
+        l = list(range(x))
+        return sum(l)
+
+    result = sum_to_x(10000)
+
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            VariableEntry('x', '10000'),
+            CallEntry(),
+            LineEntry(),
+            VariableEntry('l', 'list(size=10000)'),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry('49995000'),
+        )
+    )
