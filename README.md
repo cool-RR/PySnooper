@@ -173,6 +173,7 @@ sum_to_x(10000)
 ```
 
 You will get `l = list(size=10000)` for the list, and `a = ndarray(shape=(10, 10), dtype=float64)` for the ndarray.
+The `custom_repr` are matched in order, if one condition matches, no further conditions will be checked.
 
 # Installation #
 
