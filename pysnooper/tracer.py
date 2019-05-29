@@ -179,6 +179,10 @@ class Tracer:
 
         @pysnooper.snoop(thread_info=True)
 
+    Customize how values are represented as strings::
+
+        @pysnooper.snoop(custom_repr=((type1, custom_repr_func1), (condition2, custom_repr_func2), ...))
+
     '''
     def __init__(
             self,
