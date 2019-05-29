@@ -26,7 +26,6 @@ setuptools.setup(
         'tests': {
             'pytest',
             'python-toolbox',
-            'numpy',
         },
     },
     classifiers=[
