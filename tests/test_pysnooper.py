@@ -6,7 +6,6 @@ import textwrap
 import threading
 import types
 import sys
-import numpy
 
 from pysnooper.utils import truncate
 from python_toolbox import sys_tools, temp_file_tools
@@ -1141,19 +1140,19 @@ def test_custom_repr():
     def print_list_size(l):
         return 'list(size={})'.format(len(l))
 
-    def print_ndarray(a):
-        return 'ndarray(shape={}, dtype={})'.format(a.shape, a.dtype)
+    def print_dict(d):
+        return 'dict(keys={})'.format(list(d.keys()))
 
     def evil_condition(x):
-        return large(x) or isinstance(x, numpy.ndarray)
+        return large(x) or isinstance(x, dict)
 
     @pysnooper.snoop(string_io, custom_repr=(
         (large, print_list_size),
-        (numpy.ndarray, print_ndarray),
+        (dict, print_dict),
         (evil_condition, lambda x: 'I am evil')))
     def sum_to_x(x):
         l = list(range(x))
-        a = numpy.zeros((10,10))
+        a = {'1': 1, '2': 2}
         return sum(l)
 
     result = sum_to_x(10000)
@@ -1167,7 +1166,7 @@ def test_custom_repr():
             LineEntry(),
             VariableEntry('l', 'list(size=10000)'),
             LineEntry(),
-            VariableEntry('a', 'ndarray(shape=(10, 10), dtype=float64)'),
+            VariableEntry('a', "dict(keys=['1', '2'])"),
             LineEntry(),
             ReturnEntry(),
             ReturnValueEntry('49995000'),
