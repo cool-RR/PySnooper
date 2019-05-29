@@ -160,15 +160,19 @@ def large(l):
 def print_list_size(l):
     return 'list(size={})'.format(len(l))
 
-@pysnooper.snoop(custom_repr=((large, print_list_size),))
+def print_ndarray(a):
+    return 'ndarray(shape={}, dtype={})'.format(a.shape, a.dtype)
+
+@pysnooper.snoop(custom_repr=((large, print_list_size), (numpy.ndarray, print_ndarray)))
 def sum_to_x(x):
     l = list(range(x))
+    a = numpy.zeros((10,10))
     return sum(l)
 
 sum_to_x(10000)
 ```
 
-You will get `l = list(size=10000)` for the list
+You will get `l = list(size=10000)` for the list, and `a = ndarray(shape=(10, 10), dtype=float64)` for the ndarray.
 
 # Installation #
 
