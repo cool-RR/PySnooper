@@ -1141,7 +1141,7 @@ def test_custom_repr():
         return 'list(size={})'.format(len(l))
 
     def print_dict(d):
-        return 'dict(keys={})'.format(list(d.keys()))
+        return 'dict(keys={})'.format(sorted(list(d.keys())))
 
     def evil_condition(x):
         return large(x) or isinstance(x, dict)
