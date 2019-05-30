@@ -59,8 +59,8 @@ def get_repr_function(item, custom_repr):
 
 
 def get_shortish_repr(item, custom_repr=()):
+    repr_function = get_repr_function(item, custom_repr)
     try:
-        repr_function = get_repr_function(item, custom_repr)
         r = repr_function(item)
     except Exception:
         r = 'REPR FAILED'
