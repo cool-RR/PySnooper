@@ -1,6 +1,9 @@
 import itertools
 import abc
-from collections import Mapping, Sequence
+try:
+    from collections.abc import Mapping, Sequence
+except ImportError:
+    from collections import Mapping, Sequence
 from copy import deepcopy
 
 from . import utils

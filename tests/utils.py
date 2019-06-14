@@ -10,7 +10,7 @@ try:
 except ImportError:
     from itertools import izip_longest as zip_longest
 
-from python_toolbox import caching, sys_tools
+from . import mini_toolbox
 
 import pysnooper.pycompat
 
@@ -190,7 +190,7 @@ class _BaseEventEntry(_BaseEntry):
         self.thread_info_regex = (None if thread_info_regex is None else
                              re.compile(thread_info_regex))
 
-    @caching.CachedProperty
+    @property
     def event_name(self):
         return re.match('^[A-Z][a-z_]*', type(self).__name__).group(0).lower()
 
@@ -270,7 +270,7 @@ def assert_output(output, expected_entries, prefix=None):
 
 
 def assert_sample_output(module):
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         module.main()
 

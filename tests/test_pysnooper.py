@@ -8,7 +8,6 @@ import types
 import sys
 
 from pysnooper.utils import truncate
-from python_toolbox import sys_tools, temp_file_tools
 import pytest
 
 import pysnooper
@@ -16,6 +15,7 @@ from pysnooper.variables import needs_parentheses
 from .utils import (assert_output, assert_sample_output, VariableEntry,
                     CallEntry, LineEntry, ReturnEntry, OpcodeEntry,
                     ReturnValueEntry, ExceptionEntry)
+from . import mini_toolbox
 
 
 def test_string_io():
@@ -54,7 +54,7 @@ def test_thread_info():
         y = 8
         return y + x
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = my_function('baba')
     assert result == 15
@@ -83,7 +83,7 @@ def test_multi_thread_info():
         y = 8
         return y + x
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         my_function('baba')
         t1 = threading.Thread(target=my_function, name="test123",args=['bubu'])
@@ -206,7 +206,7 @@ def test_watch():
         for i in range(2):
             foo.square()
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = my_function()
     assert result is None
@@ -252,7 +252,7 @@ def test_watch_explode():
         lst = [7, 8, 9]
         lst.append(10)
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = my_function()
     assert result is None
@@ -306,7 +306,7 @@ def test_variables_classes():
         _s = WithSlots()
         _lst = list(range(1000))
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = my_function()
     assert result is None
@@ -351,7 +351,7 @@ def test_single_watch_no_comma():
         for i in range(2):
             foo.square()
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = my_function()
     assert result is None
@@ -382,7 +382,7 @@ def test_long_variable():
         foo = list(range(1000))
         return foo
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = my_function()
     assert result == list(range(1000))
@@ -410,7 +410,7 @@ def test_repr_exception():
     def my_function():
         bad = Bad()
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = my_function()
     assert result is None
@@ -500,7 +500,7 @@ def test_method_and_prefix():
 
     baz = Baz()
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = baz.square()
     assert result is baz
@@ -525,7 +525,7 @@ def test_method_and_prefix():
 
 
 def test_file_output():
-    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
 
         @pysnooper.snoop(path)
@@ -615,8 +615,8 @@ def test_lambda():
 
 
 def test_unavailable_source():
-    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder, \
-            sys_tools.TempSysPathAdder(str(folder)):
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder, \
+                                    mini_toolbox.TempSysPathAdder(str(folder)):
         module_name = 'iaerojajsijf'
         python_file_path = folder / ('%s.py' % (module_name,))
         content = textwrap.dedent(u'''
@@ -629,7 +629,7 @@ def test_unavailable_source():
             python_file.write(content)
         module = __import__(module_name)
         python_file_path.unlink()
-        with sys_tools.OutputCapturer(stdout=False,
+        with mini_toolbox.OutputCapturer(stdout=False,
                                       stderr=True) as output_capturer:
             result = getattr(module, 'f')(7)
         assert result == 7
@@ -647,7 +647,7 @@ def test_unavailable_source():
 
 
 def test_no_overwrite_by_default():
-    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
@@ -679,7 +679,7 @@ def test_no_overwrite_by_default():
 
 
 def test_overwrite():
-    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
@@ -721,7 +721,7 @@ def test_overwrite():
 
 
 def test_error_in_overwrite_argument():
-    with temp_file_tools.create_temp_folder(prefix='pysnooper') as folder:
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         with pytest.raises(Exception, match='can only be used when writing'):
             @pysnooper.snoop(overwrite=True)
             def my_function(foo):
@@ -783,7 +783,7 @@ def test_with_block():
     def qux():
         return 9  # not traced, mustn't show up
 
-    with sys_tools.OutputCapturer(stdout=False,
+    with mini_toolbox.OutputCapturer(stdout=False,
                                   stderr=True) as output_capturer:
         result = foo(2)
     assert result == 2
