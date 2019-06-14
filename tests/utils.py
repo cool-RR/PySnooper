@@ -271,7 +271,7 @@ def assert_output(output, expected_entries, prefix=None):
 
 def assert_sample_output(module):
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         module.main()
 
     time = '21:10:42.298924'

@@ -55,7 +55,7 @@ def test_thread_info():
         return y + x
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = my_function('baba')
     assert result == 15
     output = output_capturer.string_io.getvalue()
@@ -84,7 +84,7 @@ def test_multi_thread_info():
         return y + x
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         my_function('baba')
         t1 = threading.Thread(target=my_function, name="test123",args=['bubu'])
         t1.start()
@@ -207,7 +207,7 @@ def test_watch():
             foo.square()
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = my_function()
     assert result is None
     output = output_capturer.string_io.getvalue()
@@ -253,7 +253,7 @@ def test_watch_explode():
         lst.append(10)
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = my_function()
     assert result is None
     output = output_capturer.string_io.getvalue()
@@ -307,7 +307,7 @@ def test_variables_classes():
         _lst = list(range(1000))
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = my_function()
     assert result is None
     output = output_capturer.string_io.getvalue()
@@ -352,7 +352,7 @@ def test_single_watch_no_comma():
             foo.square()
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = my_function()
     assert result is None
     output = output_capturer.string_io.getvalue()
@@ -383,7 +383,7 @@ def test_long_variable():
         return foo
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = my_function()
     assert result == list(range(1000))
     output = output_capturer.string_io.getvalue()
@@ -411,7 +411,7 @@ def test_repr_exception():
         bad = Bad()
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = my_function()
     assert result is None
     output = output_capturer.string_io.getvalue()
@@ -501,7 +501,7 @@ def test_method_and_prefix():
     baz = Baz()
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = baz.square()
     assert result is baz
     assert result.x == 4
@@ -630,7 +630,7 @@ def test_unavailable_source():
         module = __import__(module_name)
         python_file_path.unlink()
         with mini_toolbox.OutputCapturer(stdout=False,
-                                      stderr=True) as output_capturer:
+                                         stderr=True) as output_capturer:
             result = getattr(module, 'f')(7)
         assert result == 7
         output = output_capturer.output
@@ -784,7 +784,7 @@ def test_with_block():
         return 9  # not traced, mustn't show up
 
     with mini_toolbox.OutputCapturer(stdout=False,
-                                  stderr=True) as output_capturer:
+                                     stderr=True) as output_capturer:
         result = foo(2)
     assert result == 2
     output = output_capturer.string_io.getvalue()
