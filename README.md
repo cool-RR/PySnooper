@@ -207,6 +207,23 @@ Exclude specific keys/attributes/indices with the `exclude` parameter, e.g. `Att
 
 Add a slice after `Indices` to only see the values within that slice, e.g. `Indices('z')[-3:]`.
 
+`PYSNOOPER_DISABLED` as an environment variable, can be used to activate or deactivate pysnooner. Pysnooper is deactived by setting the parameter to a non-empty value , and actived by default.
+
+You can use `snoop.setup()` method to configure and get a new snoop object, then use it globally or in scope. Any parameters passing to `setup()` method should be supported by snoop.
+```python
+import pysnooper.snoop
+
+# use my_snoop to debug. my_snoop will always be enabled, stderr will redirect output to a file
+my_snoop = snoop.setup(output='/my/log/file.log', disable=False)
+
+@my_snoop()
+def foo():
+    x = 5
+    y = 10
+    return x + y
+```
+Notice that `PYSNOOPER_DISABLED` will be invalid if `disable` parameter is specified in `setup()`
+
 # Contribute #
 
 [Pull requests](https://github.com/cool-RR/PySnooper/pulls) are always welcome!
