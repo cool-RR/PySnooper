@@ -47,6 +47,11 @@ try:
 except AttributeError:
     iscoroutinefunction = lambda whatever: False # Lolz
 
+try:
+    getfullargspec = inspect.getfullargspec
+except AttributeError:
+    getfullargspec = inspect.getargspec
+
 
 if PY3:
     string_types = (str,)
