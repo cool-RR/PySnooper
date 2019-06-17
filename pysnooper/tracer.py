@@ -4,6 +4,7 @@
 import functools
 import inspect
 import opcode
+import os
 import sys
 import re
 import collections
@@ -194,6 +195,7 @@ class Tracer:
             overwrite=False,
             thread_info=False,
             custom_repr=(),
+            disable=None,
     ):
         self._write = get_write_function(output, overwrite)
 
@@ -214,8 +216,11 @@ class Tracer:
         self.target_frames = set()
         self.thread_local = threading.local()
         self.custom_repr = custom_repr
+        self.disable = os.getenv("PYSNOOPER_DISABLED", "") if disable is None else disable
 
     def __call__(self, function):
+        if self.disable:
+            return function
         self.target_codes.add(function.__code__)
 
         @functools.wraps(function)
@@ -251,6 +256,8 @@ class Tracer:
         self._write(s)
 
     def __enter__(self):
+        if self.disable:
+            return
         calling_frame = inspect.currentframe().f_back
         if not self._is_internal_frame(calling_frame):
             calling_frame.f_trace = self.trace
@@ -261,6 +268,8 @@ class Tracer:
         sys.settrace(self.trace)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        if self.disable:
+            return
         stack = self.thread_local.original_trace_functions
         sys.settrace(stack.pop())
         calling_frame = inspect.currentframe().f_back
@@ -275,7 +284,6 @@ class Tracer:
         self.thread_info_padding = max(self.thread_info_padding,
                                        current_thread_len)
         return thread_info.ljust(self.thread_info_padding)
-
 
     def trace(self, frame, event, arg):
 
@@ -400,3 +408,9 @@ class Tracer:
                        format(**locals()))
 
         return self.trace
+
+    @classmethod
+    def setup(cls, **kwargs):
+        if not (set(pycompat.getfullargspec(cls.__init__).args) > set(kwargs.keys())):
+            raise Exception('The parameters passed to setup contain non-snoop parameters')
+        return functools.partial(cls, **kwargs)
