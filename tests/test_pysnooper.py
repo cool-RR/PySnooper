@@ -1191,39 +1191,3 @@ def test_activate_deactivate_snoop():
 
     os.environ['PYSNOOPER_DISABLED'] = ''
     test_string_io()
-
-
-def test_setup_snoop_global():
-    my_snoop = pysnooper.snoop.setup(disable=False)
-    os.environ['PYSNOOPER_DISABLED'] = '1'
-
-    @my_snoop()
-    def my_function(foo):
-        x = 7
-        y = 8
-        return y + x
-
-    with mini_toolbox.OutputCapturer(stdout=False,
-                                     stderr=True) as output_capturer:
-        result = my_function('baba')
-    output = output_capturer.string_io.getvalue()
-    assert_output(
-        output,
-        (
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
-    )
-
-
-def test_mismatch_parameters_in_setup():
-    with pytest.raises(Exception, match='contain non-snoop parameters') as excinfo:
-        my_snoop = pysnooper.snoop.setup(disabled=False)
-
