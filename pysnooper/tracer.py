@@ -140,7 +140,7 @@ class FileWriter(object):
 
 
 thread_global = threading.local()
-
+DISABLED = os.getenv("PYSNOOPER_DISABLED", "")
 
 class Tracer:
     '''
@@ -195,7 +195,6 @@ class Tracer:
             overwrite=False,
             thread_info=False,
             custom_repr=(),
-            disable=None,
     ):
         self._write = get_write_function(output, overwrite)
 
@@ -216,10 +215,9 @@ class Tracer:
         self.target_frames = set()
         self.thread_local = threading.local()
         self.custom_repr = custom_repr
-        self.disable = os.getenv("PYSNOOPER_DISABLED", "") if disable is None else disable
 
     def __call__(self, function):
-        if self.disable:
+        if DISABLED:
             return function
         self.target_codes.add(function.__code__)
 
@@ -256,7 +254,7 @@ class Tracer:
         self._write(s)
 
     def __enter__(self):
-        if self.disable:
+        if DISABLED:
             return
         calling_frame = inspect.currentframe().f_back
         if not self._is_internal_frame(calling_frame):
@@ -268,7 +266,7 @@ class Tracer:
         sys.settrace(self.trace)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        if self.disable:
+        if DISABLED:
             return
         stack = self.thread_local.original_trace_functions
         sys.settrace(stack.pop())
@@ -408,9 +406,3 @@ class Tracer:
                        format(**locals()))
 
         return self.trace
-
-    @classmethod
-    def setup(cls, **kwargs):
-        if not (set(pycompat.getfullargspec(cls.__init__).args) > set(kwargs.keys())):
-            raise Exception('The parameters passed to setup contain non-snoop parameters')
-        return functools.partial(cls, **kwargs)
