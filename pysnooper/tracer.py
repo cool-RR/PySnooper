@@ -140,7 +140,7 @@ class FileWriter(object):
 
 
 thread_global = threading.local()
-DISABLED = os.getenv("PYSNOOPER_DISABLED", "")
+DISABLED = bool(os.getenv('PYSNOOPER_DISABLED', ''))
 
 class Tracer:
     '''

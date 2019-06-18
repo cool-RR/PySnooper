@@ -1175,7 +1175,7 @@ def test_custom_repr():
     )
 
 
-def test_activate_deactivate_snoop():
+def test_disable():
     string_io = io.StringIO()
 
     def my_function(foo):
@@ -1183,11 +1183,8 @@ def test_activate_deactivate_snoop():
         y = 8
         return x + y
 
-    pysnooper.tracer.DISABLED = '1'
-    with pysnooper.snoop(string_io):
-        result = my_function('baba')
+    with mini_toolbox.TempValueSetter((pysnooper.tracer, 'DISABLED'), True):
+        with pysnooper.snoop(string_io):
+            result = my_function('baba')
     output = string_io.getvalue()
-    assert output == ""
-
-    pysnooper.tracer.DISABLED = ''
-    test_string_io()
+    assert not output

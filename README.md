@@ -207,7 +207,9 @@ Exclude specific keys/attributes/indices with the `exclude` parameter, e.g. `Att
 
 Add a slice after `Indices` to only see the values within that slice, e.g. `Indices('z')[-3:]`.
 
-`PYSNOOPER_DISABLED` as an environment variable, can be used to activate or deactivate pysnooner. Pysnooper is deactivated by setting the parameter to a non-empty value, and active by default.
+```console
+$ export PYSNOOPER_DISABLED=1 # This makes PySnooper not do any snooping
+```
 
 # Contribute #
 
