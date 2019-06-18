@@ -1183,11 +1183,11 @@ def test_activate_deactivate_snoop():
         y = 8
         return x + y
 
-    os.environ['PYSNOOPER_DISABLED'] = '1'
-    with pysnooper.snoop():
+    pysnooper.tracer.DISABLED = '1'
+    with pysnooper.snoop(string_io):
         result = my_function('baba')
     output = string_io.getvalue()
     assert output == ""
 
-    os.environ['PYSNOOPER_DISABLED'] = ''
+    pysnooper.tracer.DISABLED = ''
     test_string_io()
