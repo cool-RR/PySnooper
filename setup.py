@@ -20,7 +20,7 @@ setuptools.setup(
     long_description=read_file('README.md'),
     long_description_content_type='text/markdown',
     url='https://github.com/cool-RR/PySnooper',
-    packages=setuptools.find_packages(exclude=['tests']),
+    packages=setuptools.find_packages(exclude=['tests*']),
     install_requires=read_file('requirements.in'),
     extras_require={
         'tests': {

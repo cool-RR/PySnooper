@@ -2,3 +2,5 @@ include README.md
 include LICENSE
 include requirements.in
 include requirements.txt
+recursive-include tests *.txt *.py
+prune tests/.pytest_cache
