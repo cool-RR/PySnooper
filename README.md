@@ -211,46 +211,6 @@ Add a slice after `Indices` to only see the values within that slice, e.g. `Indi
 $ export PYSNOOPER_DISABLED=1 # This makes PySnooper not do any snooping
 ```
 
-# Contribute #
-
-[Pull requests](https://github.com/cool-RR/PySnooper/pulls) are always welcome!
-Please, write tests and run them with [Tox](https://tox.readthedocs.io/).
-
-Tox installs all dependencies automatically. You only need to install Tox itself:
-
-```console
-$ pip install tox
-```
-
-List all environments `tox` would run:
-
-```console
-$ tox -lv
-```
-
-If you want to run tests against all target Python versions use [pyenv](
-https://github.com/pyenv/pyenv) to install them. Otherwise, you can run
-only linters and the ones you have already installed on your machine:
-
-```console
-# run only some environments
-$ tox -e flake8,pylint,bandit,py27,py36
-```
-
-Or just install project in developer mode with test dependencies:
-
-``` bash
-$ pip install -e path/to/PySnooper[tests]
-```
-
-And run tests:
-
-``` bash
-$ pytest
-```
-
-Tests should pass before you push your code. They will be run again on Travis CI.
-
 # License #
 
 Copyright (c) 2019 Ram Rachum and collaborators, released under the MIT license.
