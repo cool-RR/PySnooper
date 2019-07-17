@@ -38,6 +38,17 @@ class BaseVariable(pycompat.ABC):
     def _items(self, key):
         raise NotImplementedError
 
+    @property
+    def _fingerprint(self):
+        return (type(self), self.source, self.exclude)
+
+    def __hash__(self):
+        return hash(self._fingerprint)
+
+    def __eq__(self, other):
+        return (isinstance(other, BaseVariable) and
+                                       self._fingerprint == other._fingerprint)
+
 
 class CommonVariable(BaseVariable):
     def _items(self, main_value):

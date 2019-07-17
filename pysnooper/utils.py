@@ -4,7 +4,7 @@
 import abc
 
 import sys
-from .pycompat import ABC, string_types
+from .pycompat import ABC, string_types, collections_abc
 
 MAX_VARIABLE_LENGTH = 100
 MAX_EXCEPTION_LENGTH = 200
@@ -78,9 +78,11 @@ def truncate(string, max_length):
 
 
 def ensure_tuple(x):
-    if isinstance(x, string_types):
-        x = (x,)
-    return tuple(x)
+    if isinstance(x, collections_abc.Iterable) and \
+                                               not isinstance(x, string_types):
+        return tuple(x)
+    else:
+        return (x,)
 
 
 

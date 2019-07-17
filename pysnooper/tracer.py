@@ -261,7 +261,9 @@ class Tracer:
             calling_frame.f_trace = self.trace
             self.target_frames.add(calling_frame)
 
-        stack = self.thread_local.__dict__.setdefault('original_trace_functions', [])
+        stack = self.thread_local.__dict__.setdefault(
+            'original_trace_functions', []
+        )
         stack.append(sys.gettrace())
         sys.settrace(self.trace)
 
