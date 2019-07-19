@@ -25,7 +25,6 @@ setuptools.setup(
     extras_require={
         'tests': {
             'pytest',
-            'python-toolbox',
         },
     },
     classifiers=[
