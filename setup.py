@@ -27,6 +27,11 @@ setuptools.setup(
             'pytest',
         },
     },
+    entry_points={
+        'console_scripts': [
+            'pysnooper = pysnooper.__main__:main',
+        ],
+    },
     classifiers=[
         'Environment :: Console',
         'Intended Audience :: Developers',
