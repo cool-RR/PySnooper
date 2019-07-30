@@ -214,6 +214,9 @@ class Tracer:
         self.target_codes = set()
         self.target_frames = set()
         self.thread_local = threading.local()
+        if len(custom_repr) == 2 and not all(isinstance(x,
+                      pycompat.collections_abc.Iterable) for x in custom_repr):
+            custom_repr = (custom_repr,)
         self.custom_repr = custom_repr
 
     def __call__(self, function):
