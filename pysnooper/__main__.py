@@ -8,16 +8,31 @@ from tempfile import mkdtemp
 
 
 code = '''
-import pysnooper
+from distutils.util import strtobool
+from os import environ
+import sys
 
+from pysnooper.tracer import Tracer
 
-pysnooper.snoop().__enter__()
+options = {
+    'prefix': environ.get('PYSNOOPER_PREFIX', ''),
+    'thread_info': strtobool(environ.get('PYSNOOPER_THREAD_INFO', 'off')),
+}
+
+tracer = Tracer(**options)
+tracer.trace_from_script = True
+sys.settrace(tracer.trace)
 '''
 
 
+# TODO: Think about way to filter and --depth
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('script', help='python script', type=FileType('r'))
+    parser.add_argument('--prefix', help='output line prefix', default='')
+    parser.add_argument(
+        '--thread-info', help='show thread information', default=False,
+        action='store_true')
     args, rest = parser.parse_known_args()
 
     root = mkdtemp()
@@ -31,6 +46,11 @@ def main():
     else:
         pypath = root
     env['PYTHONPATH'] = pypath
+
+    if args.prefix:
+        env['PYSNOOPER_PREFIX'] = args.prefix
+    if args.thread_info:
+        env['PYSNOOPER_THREAD_INFO'] = 'yes'
 
     cmd = [executable, args.script.name] + rest
     run(cmd, env=env)

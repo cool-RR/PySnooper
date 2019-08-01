@@ -219,6 +219,9 @@ class Tracer:
             custom_repr = (custom_repr,)
         self.custom_repr = custom_repr
 
+        # Use by __main__.py
+        self.trace_from_script = False
+
     def __call__(self, function):
         if DISABLED:
             return function
@@ -288,40 +291,50 @@ class Tracer:
                                        current_thread_len)
         return thread_info.ljust(self.thread_info_padding)
 
-    def trace(self, frame, event, arg):
-
+    def _should_trace(self, frame):
         ### Checking whether we should trace this line: #######################
         #                                                                     #
         # We should trace this line either if it's in the decorated function,
         # or the user asked to go a few levels deeper and we're within that
         # number of levels deeper.
 
-        if not (frame.f_code in self.target_codes or frame in self.target_frames):
-            if self.depth == 1:
-                # We did the most common and quickest check above, because the
-                # trace function runs so incredibly often, therefore it's
-                # crucial to hyper-optimize it for the common case.
-                return None
-            elif self._is_internal_frame(frame):
-                return None
-            else:
-                _frame_candidate = frame
-                for i in range(1, self.depth):
-                    _frame_candidate = _frame_candidate.f_back
-                    if _frame_candidate is None:
-                        return None
-                    elif _frame_candidate.f_code in self.target_codes or _frame_candidate in self.target_frames:
-                        break
-                else:
-                    return None
+        if self.trace_from_script:
+            return True
+
+        if frame.f_code in self.target_codes:
+            return True
+
+        if frame in self.target_frames:
+            return True
+
+        if self.depth == 1:
+            # We did the most common and quickest check above, because the
+            # trace function runs so incredibly often, therefore it's
+            # crucial to hyper-optimize it for the common case.
+            return False
+
+        if self._is_internal_frame(frame):
+            return False
+
+        _frame_candidate = frame
+        for i in range(1, self.depth):
+            _frame_candidate = _frame_candidate.f_back
+            if _frame_candidate is None:
+                return False
+
+            if _frame_candidate.f_code in self.target_codes or _frame_candidate in self.target_frames:
+                return True
+
+        return False
+
+    def trace(self, frame, event, arg):
+        if not self._should_trace(frame):
+            return self.trace
 
         thread_global.__dict__.setdefault('depth', -1)
         if event == 'call':
             thread_global.depth += 1
         indent = ' ' * 4 * thread_global.depth
-
-        #                                                                     #
-        ### Finished checking whether we should trace this line. ##############
 
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
