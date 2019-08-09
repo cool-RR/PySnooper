@@ -22,6 +22,7 @@ def main():
 
 
 expected_output = '''
+Source path:... Whatever
 12:18:08.017782 call        17 def main():
 12:18:08.018142 line        18     try:
 12:18:08.018181 line        19         bar()

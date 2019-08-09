@@ -37,6 +37,7 @@ number_to_bits(6)
 The output to stderr is:
 
 ```
+Source path:... /my_code/foo.py
 Starting var:.. number = 6
 15:29:11.327032 call         4 def number_to_bits(number):
 15:29:11.327032 line         5     if number:

@@ -167,6 +167,31 @@ class ReturnValueEntry(_BaseValueEntry):
         else:
             return True
 
+class SourcePathEntry(_BaseValueEntry):
+    def __init__(self, source_path=None, source_path_regex=None, prefix=''):
+        _BaseValueEntry.__init__(self, prefix=prefix)
+        if source_path is not None:
+            assert source_path_regex is None
+
+        self.source_path = source_path
+        self.source_path_regex = (None if source_path_regex is None else
+                            re.compile(source_path_regex))
+
+    _preamble_pattern = re.compile(
+        r"""^Source path$"""
+    )
+
+    def _check_preamble(self, preamble):
+        return bool(self._preamble_pattern.match(preamble))
+
+    def _check_content(self, source_path):
+        if self.source_path is not None:
+            return source_path == self.source_path
+        elif self.source_path_regex is not None:
+            return self.source_path_regex.match(source_path)
+        else:
+            return True
+
 
 class _BaseEventEntry(_BaseEntry):
     def __init__(self, source=None, source_regex=None, thread_info=None,
@@ -278,7 +303,15 @@ def assert_sample_output(module):
     time_pattern = re.sub(r'\d', r'\\d', time)
 
     def normalise(out):
-        return re.sub(time_pattern, time, out).strip()
+        out = re.sub(time_pattern, time, out).strip()
+        out = re.sub(
+            r'^( *)Source path:\.\.\. .*$',
+            r'\1Source path:... Whatever',
+            out,
+            flags=re.MULTILINE
+        )
+        return out
+
 
     output = output_capturer.string_io.getvalue()
 
@@ -290,3 +323,5 @@ def assert_sample_output(module):
     except AssertionError:
         print('\n\nActual Output:\n\n' + output)  # to copy paste into expected_output
         raise  # show pytest diff (may need -vv flag to see in full)
+
+
