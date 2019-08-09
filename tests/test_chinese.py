@@ -16,7 +16,7 @@ from pysnooper import pycompat
 from pysnooper.variables import needs_parentheses
 from .utils import (assert_output, assert_sample_output, VariableEntry,
                     CallEntry, LineEntry, ReturnEntry, OpcodeEntry,
-                    ReturnValueEntry, ExceptionEntry)
+                    ReturnValueEntry, ExceptionEntry, SourcePathEntry)
 from . import mini_toolbox
 
 
@@ -36,6 +36,7 @@ def test_chinese():
         assert_output(
             output,
             (
+                SourcePathEntry(),
                 CallEntry(),
                 LineEntry(),
                 VariableEntry('a'),

@@ -14,8 +14,9 @@ def mul(a, b):
 
 def main():
     factorial(4)
-    
+
 expected_output = '''
+Source path:... Whatever
 Starting var:.. x = 4
 20:28:17.875295 call         5 def factorial(x):
 20:28:17.875509 line         6     if x <= 1:

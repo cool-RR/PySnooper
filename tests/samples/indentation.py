@@ -24,10 +24,12 @@ def f5():
 
 
 expected_output = '''
+Source path:... Whatever
 21:10:42.298924 call         5 def main():
 21:10:42.299158 line         6     f2()
     21:10:42.299205 call         9 def f2():
     21:10:42.299246 line        10     f3()
+        Source path:... Whatever
         21:10:42.299305 call        18 def f4():
         21:10:42.299348 line        19     f5()
             21:10:42.299386 call        22 def f5():

@@ -40,16 +40,16 @@ class UnavailableSource(object):
         return u'SOURCE IS UNAVAILABLE'
 
 
-source_cache = {}
+source_and_path_cache = {}
 
 
-def get_source_from_frame(frame):
+def get_path_and_source_from_frame(frame):
     globs = frame.f_globals or {}
     module_name = globs.get('__name__')
     file_name = frame.f_code.co_filename
     cache_key = (module_name, file_name)
     try:
-        return source_cache[cache_key]
+        return source_and_path_cache[cache_key]
     except KeyError:
         pass
     loader = globs.get('__loader__')
@@ -98,8 +98,9 @@ def get_source_from_frame(frame):
         source = [pycompat.text_type(sline, encoding, 'replace') for sline in
                   source]
 
-    source_cache[cache_key] = source
-    return source
+    result = (file_name, source)
+    source_and_path_cache[cache_key] = result
+    return result
 
 
 def get_write_function(output, overwrite):
@@ -218,6 +219,7 @@ class Tracer:
                       pycompat.collections_abc.Iterable) for x in custom_repr):
             custom_repr = (custom_repr,)
         self.custom_repr = custom_repr
+        self.last_source_path = None
 
     def __call__(self, function):
         if DISABLED:
@@ -323,6 +325,21 @@ class Tracer:
         #                                                                     #
         ### Finished checking whether we should trace this line. ##############
 
+        now_string = datetime_module.datetime.now().time().isoformat()
+        line_no = frame.f_lineno
+        source_path, source = get_path_and_source_from_frame(frame)
+        if self.last_source_path != source_path:
+            self.write(u'{indent}Source path:... {source_path}'.
+                       format(**locals()))
+            self.last_source_path = source_path
+        source_line = source[line_no - 1]
+        thread_info = ""
+        if self.thread_info:
+            current_thread = threading.current_thread()
+            thread_info = "{ident}-{name} ".format(
+                ident=current_thread.ident, name=current_thread.getName())
+        thread_info = self.set_thread_info_padding(thread_info)
+
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
         old_local_reprs = self.frame_to_local_reprs.get(frame, {})
@@ -343,15 +360,6 @@ class Tracer:
         #                                                                     #
         ### Finished newish and modified variables. ###########################
 
-        now_string = datetime_module.datetime.now().time().isoformat()
-        line_no = frame.f_lineno
-        source_line = get_source_from_frame(frame)[line_no - 1]
-        thread_info = ""
-        if self.thread_info:
-            current_thread = threading.current_thread()
-            thread_info = "{ident}-{name} ".format(
-                ident=current_thread.ident, name=current_thread.getName())
-        thread_info = self.set_thread_info_padding(thread_info)
 
         ### Dealing with misplaced function definition: #######################
         #                                                                     #
@@ -360,8 +368,7 @@ class Tracer:
             # function definition is found.
             for candidate_line_no in itertools.count(line_no):
                 try:
-                    candidate_source_line = \
-                            get_source_from_frame(frame)[candidate_line_no - 1]
+                    candidate_source_line = source[candidate_line_no - 1]
                 except IndexError:
                     # End of source file reached without finding a function
                     # definition. Fall back to original source line.

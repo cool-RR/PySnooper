@@ -15,7 +15,7 @@ import pysnooper
 from pysnooper.variables import needs_parentheses
 from .utils import (assert_output, assert_sample_output, VariableEntry,
                     CallEntry, LineEntry, ReturnEntry, OpcodeEntry,
-                    ReturnValueEntry, ExceptionEntry)
+                    ReturnValueEntry, ExceptionEntry, SourcePathEntry)
 from . import mini_toolbox
 
 
@@ -34,6 +34,7 @@ def test_string_io():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('foo', value_regex="u?'baba'"),
             CallEntry('def my_function(foo):'),
             LineEntry('x = 7'),
@@ -63,6 +64,7 @@ def test_thread_info():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('foo', value_regex="u?'baba'"),
             CallEntry('def my_function(foo):'),
             LineEntry('x = 7'),
@@ -105,6 +107,7 @@ def test_multi_thread_info():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('foo', value_regex="u?'baba'"),
             CallEntry('def my_function(foo):',
                       thread_info_regex=thread_info_regex.format(
@@ -174,6 +177,7 @@ def test_callable():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('foo', value_regex="u?'baba'"),
             CallEntry('def my_function(foo):'),
             LineEntry('x = 7'),
@@ -215,6 +219,7 @@ def test_watch():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('Foo'),
             VariableEntry('io.__name__', "'io'"),
             CallEntry('def my_function():'),
@@ -261,6 +266,7 @@ def test_watch_explode():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('Foo'),
             CallEntry('def my_function():'),
             LineEntry(),
@@ -315,6 +321,7 @@ def test_variables_classes():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('WithSlots'),
             CallEntry('def my_function():'),
             LineEntry(),
@@ -360,6 +367,7 @@ def test_single_watch_no_comma():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('Foo'),
             CallEntry('def my_function():'),
             LineEntry('foo = Foo()'),
@@ -392,6 +400,7 @@ def test_long_variable():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             CallEntry('def my_function():'),
             LineEntry('foo = list(range(1000))'),
             VariableEntry('foo', value_regex=regex),
@@ -419,6 +428,7 @@ def test_repr_exception():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('Bad'),
             CallEntry('def my_function():'),
             LineEntry('bad = Bad()'),
@@ -455,6 +465,7 @@ def test_depth():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry(),
             VariableEntry(),
             CallEntry('def f1(x1):'),
@@ -510,6 +521,7 @@ def test_method_and_prefix():
     assert_output(
         output,
         (
+            SourcePathEntry(prefix='ZZZ'),
             VariableEntry('self', prefix='ZZZ'),
             VariableEntry('self.x', '2', prefix='ZZZ'),
             CallEntry('def square(self):', prefix='ZZZ'),
@@ -542,6 +554,7 @@ def test_file_output():
         assert_output(
             output,
             (
+                SourcePathEntry(),
                 VariableEntry('_foo', value_regex="u?'baba'"),
                 CallEntry('def my_function(_foo):'),
                 LineEntry('x = 7'),
@@ -577,6 +590,7 @@ def test_confusing_decorator_lines():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('foo', value_regex="u?'baba'"),
             CallEntry('def my_function(foo):'),
             LineEntry(),
@@ -606,6 +620,7 @@ def test_lambda():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('x', '7'),
             CallEntry(source_regex='^my_function = pysnooper.*'),
             LineEntry(source_regex='^my_function = pysnooper.*'),
@@ -638,6 +653,7 @@ def test_unavailable_source():
         assert_output(
             output,
             (
+                SourcePathEntry(),
                 VariableEntry(stage='starting'),
                 CallEntry('SOURCE IS UNAVAILABLE'),
                 LineEntry('SOURCE IS UNAVAILABLE'),
@@ -666,6 +682,7 @@ def test_no_overwrite_by_default():
         assert_output(
             shortened_output,
             (
+                SourcePathEntry(),
                 VariableEntry('foo', value_regex="u?'baba'"),
                 CallEntry('def my_function(foo):'),
                 LineEntry('x = 7'),
@@ -698,6 +715,7 @@ def test_overwrite():
         assert_output(
             output,
             (
+                SourcePathEntry(),
                 VariableEntry('foo', value_regex="u?'baba'"),
                 CallEntry('def my_function(foo):'),
                 LineEntry('x = 7'),
@@ -793,6 +811,7 @@ def test_with_block():
         output,
         (
             # In first with
+            SourcePathEntry(),
             VariableEntry('x', '2'),
             VariableEntry('bar1'),
             VariableEntry('bar2'),
@@ -897,6 +916,7 @@ def test_with_block_depth():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry(),
             VariableEntry(),
             VariableEntry(),
@@ -948,6 +968,7 @@ def test_cellvars():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry(),
             VariableEntry(),
             VariableEntry(),
@@ -1002,6 +1023,7 @@ def test_var_order():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry(),
             VariableEntry(),
 
@@ -1087,6 +1109,7 @@ def test_generator():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('x1', '0'),
             VariableEntry(),
             CallEntry(),
@@ -1162,6 +1185,7 @@ def test_custom_repr():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('x', '10000'),
             CallEntry(),
             LineEntry(),
@@ -1188,6 +1212,7 @@ def test_custom_repr_single():
     assert_output(
         output,
         (
+            SourcePathEntry(),
             VariableEntry('x', '10000'),
             CallEntry(),
             LineEntry(),
