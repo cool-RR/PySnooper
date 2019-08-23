@@ -22,11 +22,13 @@ if pycompat.PY2:
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
-def get_local_reprs(frame, watch=(), custom_repr=()):
+def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None):
     code = frame.f_code
     vars_order = code.co_varnames + code.co_cellvars + code.co_freevars + tuple(frame.f_locals.keys())
 
-    result_items = [(key, utils.get_shortish_repr(value, custom_repr=custom_repr)) for key, value in frame.f_locals.items()]
+    result_items = [(key, utils.get_shortish_repr(value, custom_repr,
+                                                  max_length))
+                    for key, value in frame.f_locals.items()]
     result_items.sort(key=lambda key_value: vars_order.index(key_value[0]))
     result = collections.OrderedDict(result_items)
 
@@ -187,6 +189,10 @@ class Tracer:
 
         @pysnooper.snoop(custom_repr=((type1, custom_repr_func1), (condition2, custom_repr_func2), ...))
 
+    Customize the length of truncated result::
+
+        @pysnooper.snoop(max_variable_length=100)
+
     '''
     def __init__(
             self,
@@ -198,6 +204,7 @@ class Tracer:
             overwrite=False,
             thread_info=False,
             custom_repr=(),
+            max_variable_length=None,
     ):
         self._write = get_write_function(output, overwrite)
 
@@ -222,6 +229,7 @@ class Tracer:
             custom_repr = (custom_repr,)
         self.custom_repr = custom_repr
         self.last_source_path = None
+        self.max_variable_length = max_variable_length
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -366,7 +374,9 @@ class Tracer:
         #                                                                     #
         old_local_reprs = self.frame_to_local_reprs.get(frame, {})
         self.frame_to_local_reprs[frame] = local_reprs = \
-                                       get_local_reprs(frame, watch=self.watch, custom_repr=self.custom_repr)
+                                       get_local_reprs(frame,
+                                                       watch=self.watch, custom_repr=self.custom_repr,
+                                                       max_length=self.max_variable_length)
 
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
@@ -429,13 +439,16 @@ class Tracer:
             thread_global.depth -= 1
 
             if not ended_by_exception:
-                return_value_repr = utils.get_shortish_repr(arg, custom_repr=self.custom_repr)
+                return_value_repr = utils.get_shortish_repr(arg,
+                                                            custom_repr=self.custom_repr,
+                                                            max_length=self.max_variable_length)
                 self.write('{indent}Return value:.. {return_value_repr}'.
                            format(**locals()))
 
         if event == 'exception':
             exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
-            exception = utils.truncate(exception, utils.MAX_EXCEPTION_LENGTH)
+            if self.max_variable_length:
+                exception = utils.truncate(exception, self.max_variable_length)
             self.write('{indent}{exception}'.
                        format(**locals()))
 
