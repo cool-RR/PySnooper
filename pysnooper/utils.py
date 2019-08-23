@@ -6,9 +6,6 @@ import abc
 import sys
 from .pycompat import ABC, string_types, collections_abc
 
-MAX_VARIABLE_LENGTH = 100
-MAX_EXCEPTION_LENGTH = 200
-
 def _check_methods(C, *methods):
     mro = C.__mro__
     for method in methods:
@@ -58,14 +55,15 @@ def get_repr_function(item, custom_repr):
     return repr
 
 
-def get_shortish_repr(item, custom_repr=()):
+def get_shortish_repr(item, custom_repr=(), max_length=None):
     repr_function = get_repr_function(item, custom_repr)
     try:
         r = repr_function(item)
     except Exception:
         r = 'REPR FAILED'
     r = r.replace('\r', '').replace('\n', '')
-    r = truncate(r, MAX_VARIABLE_LENGTH)
+    if max_length:
+        r = truncate(r, max_length)
     return r
 
 
