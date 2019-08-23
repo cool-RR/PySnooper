@@ -385,8 +385,8 @@ def test_single_watch_no_comma():
     )
 
 
-def test_long_variable():
-    @pysnooper.snoop()
+def test_long_variable_with_truncate():
+    @pysnooper.snoop(max_variable_length=100)
     def my_function():
         foo = list(range(1000))
         return foo
