@@ -80,7 +80,9 @@ def get_path_and_source_from_frame(frame):
                     source = fp.read().splitlines()
             except utils.file_reading_errors:
                 pass
-    if source is None:
+    if not source:
+        # We used to check `if source is None` but I found a rare bug where it
+        # was empty, but not `None`, so now we check `if not source`.
         source = UnavailableSource()
 
     # If we just read the source from a file, or if the loader did not
