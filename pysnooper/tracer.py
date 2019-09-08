@@ -234,6 +234,11 @@ class Tracer:
 
     def _wrap_class(self, cls):
         for attr_name, attr in cls.__dict__.items():
+            # Coroutines are functions, but snooping them is not supported
+            # at the moment
+            if pycompat.iscoroutinefunction(attr):
+                continue
+
             if inspect.isfunction(attr):
                 setattr(cls, attr_name, self._wrap_function(attr))
         return cls
