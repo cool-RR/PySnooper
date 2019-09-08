@@ -84,6 +84,80 @@ def test_class():
         )
     )
 
+def test_class_with_property():
+    string_io = io.StringIO()
+
+    @pysnooper.snoop(string_io)
+    class MyClass(object):
+        def __init__(self):
+            self._x = 0
+
+        def plain_method(self):
+            pass
+
+        @property
+        def x(self):
+            self.plain_method()
+            return self._x
+
+        @x.setter
+        def x(self, value):
+            self.plain_method()
+            self._x = value
+
+        @x.deleter
+        def x(self):
+            self.plain_method()
+            del self._x
+
+    instance = MyClass()
+
+    # Do simple property operations, make sure we didn't mess up the normal behavior
+    result = instance.x
+    assert result == instance._x
+
+    instance.x = 1
+    assert instance._x == 1
+
+    del instance.x
+    with pytest.raises(AttributeError):
+        instance._x
+
+    # The property methods will not be traced, but their calls to plain_method will be.
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def __init__(self):'),
+            LineEntry('self._x = 0'),
+            ReturnEntry('self._x = 0'),
+            ReturnValueEntry('None'),
+
+            # Called from getter
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def plain_method(self):'),
+            LineEntry('pass'),
+            ReturnEntry('pass'),
+            ReturnValueEntry('None'),
+
+            # Called from setter
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def plain_method(self):'),
+            LineEntry('pass'),
+            ReturnEntry('pass'),
+            ReturnValueEntry('None'),
+
+            # Called from deleter
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def plain_method(self):'),
+            LineEntry('pass'),
+            ReturnEntry('pass'),
+            ReturnValueEntry('None'),
+        )
+    )
+
 
 def test_thread_info():
 
