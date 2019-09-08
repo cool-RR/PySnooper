@@ -1275,6 +1275,105 @@ def test_class():
         )
     )
 
+def test_class_with_decorated_method():
+    string_io = io.StringIO()
+
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            result = function(*args, **kwargs)
+            return result
+        return wrapper
+
+    @pysnooper.snoop(string_io)
+    class MyClass(object):
+        def __init__(self):
+            self.x = 7
+
+        @decorator
+        def my_method(self, foo):
+            y = 8
+            return y + self.x
+
+    instance = MyClass()
+    result = instance.my_method('baba')
+    assert result == 15
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def __init__(self):'),
+            LineEntry('self.x = 7'),
+            ReturnEntry('self.x = 7'),
+            ReturnValueEntry('None'),
+            VariableEntry('args', value_regex="u?.*"),
+            VariableEntry('kwargs', value_regex="u?.*"),
+            VariableEntry('function', value_regex="u?.*<locals>.MyClass.my_method at"),
+            CallEntry('def wrapper(*args, **kwargs):'),
+            LineEntry('result = function(*args, **kwargs)'),
+            VariableEntry('result', '15'),
+            LineEntry('return result'),
+            ReturnEntry('return result'),
+            ReturnValueEntry('15'),
+        )
+    )
+
+
+def test_class_with_decorated_method_and_snoop_applied_to_method():
+    string_io = io.StringIO()
+
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            result = function(*args, **kwargs)
+            return result
+        return wrapper
+
+    @pysnooper.snoop(string_io)
+    class MyClass(object):
+        def __init__(self):
+            self.x = 7
+
+        @decorator
+        @pysnooper.snoop(string_io)
+        def my_method(self, foo):
+            y = 8
+            return y + self.x
+
+    instance = MyClass()
+    result = instance.my_method('baba')
+    assert result == 15
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def __init__(self):'),
+            LineEntry('self.x = 7'),
+            ReturnEntry('self.x = 7'),
+            ReturnValueEntry('None'),
+            VariableEntry('args', value_regex="u?.*"),
+            VariableEntry('kwargs', value_regex="u?.*"),
+            VariableEntry('function', value_regex="u?.*<locals>.MyClass.my_method at"),
+            CallEntry('def wrapper(*args, **kwargs):'),
+            LineEntry('result = function(*args, **kwargs)'),
+            SourcePathEntry(),
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_method(self, foo):'),
+            LineEntry('y = 8'),
+            VariableEntry('y', '8'),
+            LineEntry('return y + self.x'),
+            ReturnEntry('return y + self.x'),
+            ReturnValueEntry('15'),
+            VariableEntry('result', '15'),
+            LineEntry('return result'),
+            ReturnEntry('return result'),
+            ReturnValueEntry('15'),
+        )
+    )
+
 
 def test_class_with_property():
     string_io = io.StringIO()
