@@ -152,6 +152,13 @@ On multi-threaded apps identify which thread are snooped in output:
 
 PySnooper supports decorating generators.
 
+If the decorator is applied to a class, PySnooper will decorate all of its instance methods. If you use this feature, you should be aware
+of the behaviour when snooping on decorated functions:
+
+* If any methods have existing decorators, and those decorators return functions, it is the decorated method that will be snooped.
+* Some decorators do not return functions (rather, they return an instance of a class with a `__call__` method).
+  This includes the `@property` builtin. In these cases, the decorated method will not be snooped at all.
+
 You can also customize the repr of an object:
 
 ```python
