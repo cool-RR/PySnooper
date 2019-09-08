@@ -28,10 +28,10 @@ def drop_recurrences(iterable):
             yield item
 
 
-def iterate_authors_by_chronological_order():
+def iterate_authors_by_chronological_order(branch):
     log_call = subprocess.run(
         (
-            'git', 'log', 'master', '--encoding=utf-8', '--full-history',
+            'git', 'log', branch, '--encoding=utf-8', '--full-history',
             '--reverse', '--format=format:%at;%an;%ae'
         ),
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -43,11 +43,16 @@ def iterate_authors_by_chronological_order():
     )
 
 
-def print_authors():
-    for author in iterate_authors_by_chronological_order():
+def print_authors(branch):
+    for author in iterate_authors_by_chronological_order(branch):
         sys.stdout.buffer.write(author.encode())
         sys.stdout.buffer.write(b'\n')
 
 
 if __name__ == '__main__':
-    print_authors()
+    try:
+        branch = sys.argv[1]
+    except IndexError:
+        branch = 'master'
+
+    print_authors(branch)
