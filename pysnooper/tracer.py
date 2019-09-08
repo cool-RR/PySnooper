@@ -233,7 +233,7 @@ class Tracer:
             return self._wrap_function(function_or_class)
 
     def _wrap_class(self, cls):
-        for attr_name in dir(cls):
+        for attr_name in cls.__dict__:
             attr = getattr(cls, attr_name)
             if inspect.isfunction(attr):
                 setattr(cls, attr_name, self._wrap_function(attr))

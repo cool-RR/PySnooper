@@ -1448,3 +1448,38 @@ def test_class_with_property():
             ReturnValueEntry('None'),
         )
     )
+
+
+def test_snooping_on_class_does_not_cause_base_class_to_be_snooped():
+    string_io = io.StringIO()
+
+    class UnsnoopedBaseClass(object):
+        def __init__(self):
+            self.method_on_base_class_was_called = False
+
+        def method_on_base_class(self):
+            self.method_on_base_class_was_called = True
+
+    @pysnooper.snoop(string_io)
+    class MyClass(UnsnoopedBaseClass):
+        def method_on_child_class(self):
+            self.method_on_base_class()
+
+    instance = MyClass()
+
+    assert not instance.method_on_base_class_was_called
+    instance.method_on_child_class()
+    assert instance.method_on_base_class_was_called
+
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def method_on_child_class(self):'),
+            LineEntry('self.method_on_base_class()'),
+            ReturnEntry('self.method_on_base_class()'),
+            ReturnValueEntry('None'),
+        )
+    )
