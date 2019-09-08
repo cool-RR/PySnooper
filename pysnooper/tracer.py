@@ -223,9 +223,23 @@ class Tracer:
         self.custom_repr = custom_repr
         self.last_source_path = None
 
-    def __call__(self, function):
+    def __call__(self, function_or_class):
         if DISABLED:
             return function
+
+        if inspect.isclass(function_or_class):
+            return self._wrap_class(function_or_class)
+        else:
+            return self._wrap_function(function_or_class)
+
+    def _wrap_class(self, cls):
+        for attr_name in dir(cls):
+            attr = getattr(cls, attr_name)
+            if inspect.isfunction(attr):
+                setattr(cls, attr_name, self._wrap_function(attr))
+        return cls
+
+    def _wrap_function(self, function):
         self.target_codes.add(function.__code__)
 
         @functools.wraps(function)

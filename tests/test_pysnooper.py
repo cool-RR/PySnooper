@@ -48,6 +48,43 @@ def test_string_io():
     )
 
 
+def test_class():
+    string_io = io.StringIO()
+
+    @pysnooper.snoop(string_io)
+    class MyClass(object):
+        def __init__(self):
+            self.x = 7
+
+        def my_method(self, foo):
+            y = 8
+            return y + self.x
+
+    instance = MyClass()
+    result = instance.my_method('baba')
+    assert result == 15
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            CallEntry('def __init__(self):'),
+            LineEntry('self.x = 7'),
+            ReturnEntry('self.x = 7'),
+            ReturnValueEntry('None'),
+            VariableEntry('self', value_regex="u?.*<locals>.MyClass object at"),
+            VariableEntry('foo', value_regex="u?'baba'"),
+            CallEntry('def my_method(self, foo):'),
+            LineEntry('y = 8'),
+            VariableEntry('y', '8'),
+            LineEntry('return y + self.x'),
+            ReturnEntry('return y + self.x'),
+            ReturnValueEntry('15'),
+        )
+    )
+
+
 def test_thread_info():
 
     @pysnooper.snoop(thread_info=True)
