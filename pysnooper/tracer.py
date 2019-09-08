@@ -225,7 +225,7 @@ class Tracer:
 
     def __call__(self, function_or_class):
         if DISABLED:
-            return function
+            return function_or_class
 
         if inspect.isclass(function_or_class):
             return self._wrap_class(function_or_class)
