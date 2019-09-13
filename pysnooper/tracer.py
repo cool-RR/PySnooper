@@ -267,7 +267,8 @@ class Tracer:
                     method, incoming = gen.throw, e
 
         if pycompat.iscoroutinefunction(function):
-            # return decorate(function, coroutine_wrapper)
+            raise NotImplementedError
+        if pycompat.isasyncgenfunction(function):
             raise NotImplementedError
         elif inspect.isgeneratorfunction(function):
             return generator_wrapper

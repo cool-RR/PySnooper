@@ -47,6 +47,11 @@ try:
 except AttributeError:
     iscoroutinefunction = lambda whatever: False # Lolz
 
+try:
+    isasyncgenfunction = inspect.isasyncgenfunction
+except AttributeError:
+    isasyncgenfunction = lambda whatever: False # Lolz
+
 
 if PY3:
     string_types = (str,)
