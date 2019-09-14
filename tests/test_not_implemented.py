@@ -29,7 +29,9 @@ def test_rejecting_coroutine_functions():
     async def foo(x):
         return 'lol'
     ''')
-    exec(code, globals())
+    namespace = {}
+    exec(code, namespace)
+    foo = namespace['foo']
 
     assert pycompat.iscoroutinefunction(foo)
     assert not pycompat.isasyncgenfunction(foo)
@@ -45,7 +47,9 @@ def test_rejecting_async_generator_functions():
     async def foo(x):
         yield 'lol'
     ''')
-    exec(code, globals())
+    namespace = {}
+    exec(code, namespace)
+    foo = namespace['foo']
 
     assert not pycompat.iscoroutinefunction(foo)
     assert pycompat.isasyncgenfunction(foo)
