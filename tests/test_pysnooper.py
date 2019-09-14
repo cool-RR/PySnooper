@@ -1233,8 +1233,12 @@ def test_disable():
         return x + y
 
     with mini_toolbox.TempValueSetter((pysnooper.tracer, 'DISABLED'), True):
-        with pysnooper.snoop(string_io):
+        tracer = pysnooper.snoop(string_io)
+        with tracer:
             result = my_function('baba')
+        my_decorated_function = tracer(my_function)
+        my_decorated_function('booboo')
+
     output = string_io.getvalue()
     assert not output
 
