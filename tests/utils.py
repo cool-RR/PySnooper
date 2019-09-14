@@ -299,11 +299,11 @@ def assert_sample_output(module):
                                      stderr=True) as output_capturer:
         module.main()
 
-    time = '21:10:42.298924'
-    time_pattern = re.sub(r'\d', r'\\d', time)
+    placeholder_time = '00:00:00.000000'
+    time_pattern = '[0-9:.]{15}'
 
     def normalise(out):
-        out = re.sub(time_pattern, time, out).strip()
+        out = re.sub(time_pattern, placeholder_time, out).strip()
         out = re.sub(
             r'^( *)Source path:\.\.\. .*$',
             r'\1Source path:... Whatever',
