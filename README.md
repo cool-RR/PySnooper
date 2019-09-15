@@ -178,6 +178,16 @@ sum_to_x(10000)
 You will get `l = list(size=10000)` for the list, and `a = ndarray(shape=(10, 10), dtype=float64)` for the ndarray.
 The `custom_repr` are matched in order, if one condition matches, no further conditions will be checked.
 
+Variables and exceptions get truncated to 100 characters by default. You
+can customize that:
+
+```python
+    @pysnooper.snoop(max_variable_length=200)
+```
+
+You can also use `max_variable_length=None` to never truncate them.
+
+
 # Installation #
 
 You can install **PySnooper** by:

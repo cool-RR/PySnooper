@@ -385,8 +385,8 @@ def test_single_watch_no_comma():
     )
 
 
-def test_long_variable_with_truncate():
-    @pysnooper.snoop(max_variable_length=100)
+def test_long_variable():
+    @pysnooper.snoop()
     def my_function():
         foo = list(range(1000))
         return foo
@@ -396,7 +396,7 @@ def test_long_variable_with_truncate():
         result = my_function()
     assert result == list(range(1000))
     output = output_capturer.string_io.getvalue()
-    regex = r'^\[0, 1, 2, .*\.\.\..*, 997, 998, 999\]$'
+    regex = r'^(?=.{100}$)\[0, 1, 2, .*\.\.\..*, 997, 998, 999\]$'
     assert_output(
         output,
         (
@@ -409,6 +409,60 @@ def test_long_variable_with_truncate():
             ReturnValueEntry(value_regex=regex)
         )
     )
+
+
+
+def test_long_variable_with_custom_max_variable_length():
+    @pysnooper.snoop(max_variable_length=200)
+    def my_function():
+        foo = list(range(1000))
+        return foo
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        result = my_function()
+    assert result == list(range(1000))
+    output = output_capturer.string_io.getvalue()
+    regex = r'^(?=.{200}$)\[0, 1, 2, .*\.\.\..*, 997, 998, 999\]$'
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            CallEntry('def my_function():'),
+            LineEntry('foo = list(range(1000))'),
+            VariableEntry('foo', value_regex=regex),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(value_regex=regex)
+        )
+    )
+
+
+def test_long_variable_with_infinite_max_variable_length():
+    @pysnooper.snoop(max_variable_length=None)
+    def my_function():
+        foo = list(range(1000))
+        return foo
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        result = my_function()
+    assert result == list(range(1000))
+    output = output_capturer.string_io.getvalue()
+    regex = r'^(?=.{1000,100000}$)\[0, 1, 2, [^.]+ 997, 998, 999\]$'
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            CallEntry('def my_function():'),
+            LineEntry('foo = list(range(1000))'),
+            VariableEntry('foo', value_regex=regex),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(value_regex=regex)
+        )
+    )
+
 
 
 def test_repr_exception():

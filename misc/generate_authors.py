@@ -54,5 +54,4 @@ if __name__ == '__main__':
         branch = sys.argv[1]
     except IndexError:
         branch = 'master'
-
     print_authors(branch)
