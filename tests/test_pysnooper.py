@@ -86,6 +86,9 @@ def test_multi_thread_info():
         y = 8
         return y + x
 
+    def parse_call_content(line):
+        return line.split('{event:9} '.format(event='call'))[-1]
+
     with mini_toolbox.OutputCapturer(stdout=False,
                                      stderr=True) as output_capturer:
         my_function('baba')
@@ -98,11 +101,8 @@ def test_multi_thread_info():
     output = output_capturer.string_io.getvalue()
     calls = [line for line in output.split("\n") if "call" in line]
     main_thread = calls[0]
-    assert len(main_thread) == len(calls[1])
-    assert len(main_thread) == len(calls[2])
-    main_thread_call_str = main_thread.find("call")
-    assert main_thread_call_str == calls[1].find("call")
-    assert main_thread_call_str == calls[2].find("call")
+    assert parse_call_content(main_thread) == parse_call_content(calls[1])
+    assert parse_call_content(main_thread) == parse_call_content(calls[2])
     thread_info_regex = '([0-9]+-{name}+[ ]+)'
     assert_output(
         output,
