@@ -24,7 +24,8 @@ ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None):
     code = frame.f_code
-    vars_order = code.co_varnames + code.co_cellvars + code.co_freevars + tuple(frame.f_locals.keys())
+    vars_order = (code.co_varnames + code.co_cellvars + code.co_freevars +
+                  tuple(frame.f_locals.keys()))
 
     result_items = [(key, utils.get_shortish_repr(value, custom_repr,
                                                   max_length))
@@ -187,25 +188,20 @@ class Tracer:
 
     Customize how values are represented as strings::
 
-        @pysnooper.snoop(custom_repr=((type1, custom_repr_func1), (condition2, custom_repr_func2), ...))
+        @pysnooper.snoop(custom_repr=((type1, custom_repr_func1),
+                         (condition2, custom_repr_func2), ...))
 
-    Customize the length of truncated result::
+    Variables and exceptions get truncated to 100 characters by default. You
+    can customize that:
 
-        @pysnooper.snoop(max_variable_length=100)
+        @pysnooper.snoop(max_variable_length=200)
+
+    You can also use `max_variable_length=None` to never truncate them.
 
     '''
-    def __init__(
-            self,
-            output=None,
-            watch=(),
-            watch_explode=(),
-            depth=1,
-            prefix='',
-            overwrite=False,
-            thread_info=False,
-            custom_repr=(),
-            max_variable_length=None,
-    ):
+    def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
+                 prefix='', overwrite=False, thread_info=False, custom_repr=(),
+                 max_variable_length=100):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
