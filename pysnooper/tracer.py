@@ -15,9 +15,9 @@ import traceback
 
 from .variables import CommonVariable, Exploding, BaseVariable
 from . import utils, pycompat
+
 if pycompat.PY2:
     from io import open
-
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
@@ -73,7 +73,7 @@ def get_path_and_source_from_frame(frame):
                 import IPython
                 ipython_shell = IPython.get_ipython()
                 ((_, _, source_chunk),) = ipython_shell.history_manager. \
-                                  get_range(0, entry_number, entry_number + 1)
+                    get_range(0, entry_number, entry_number + 1)
                 source = source_chunk.splitlines()
             except Exception:
                 pass
@@ -148,6 +148,7 @@ class FileWriter(object):
 thread_global = threading.local()
 DISABLED = bool(os.getenv('PYSNOOPER_DISABLED', ''))
 
+
 class Tracer:
     '''
     Snoop on the function, writing everything it's doing to stderr.
@@ -199,18 +200,19 @@ class Tracer:
     You can also use `max_variable_length=None` to never truncate them.
 
     '''
+
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
                  max_variable_length=100):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
-            v if isinstance(v, BaseVariable) else CommonVariable(v)
-            for v in utils.ensure_tuple(watch)
-         ] + [
-             v if isinstance(v, BaseVariable) else Exploding(v)
-             for v in utils.ensure_tuple(watch_explode)
-        ]
+                         v if isinstance(v, BaseVariable) else CommonVariable(v)
+                         for v in utils.ensure_tuple(watch)
+                     ] + [
+                         v if isinstance(v, BaseVariable) else Exploding(v)
+                         for v in utils.ensure_tuple(watch_explode)
+                     ]
         self.frame_to_local_reprs = {}
         self.depth = depth
         self.prefix = prefix
@@ -220,8 +222,9 @@ class Tracer:
         self.target_codes = set()
         self.target_frames = set()
         self.thread_local = threading.local()
-        if len(custom_repr) == 2 and not all(isinstance(x,
-                      pycompat.collections_abc.Iterable) for x in custom_repr):
+        if len(custom_repr) == 2 and not all(
+                isinstance(x, pycompat.collections_abc.Iterable) for x in custom_repr
+        ):
             custom_repr = (custom_repr,)
         self.custom_repr = custom_repr
         self.last_source_path = None
@@ -292,7 +295,7 @@ class Tracer:
             self.target_frames.add(calling_frame)
 
         stack = self.thread_local.__dict__.setdefault(
-            'original_trace_functions', []
+                'original_trace_functions', []
         )
         stack.append(sys.gettrace())
         sys.settrace(self.trace)
@@ -363,31 +366,30 @@ class Tracer:
         if self.thread_info:
             current_thread = threading.current_thread()
             thread_info = "{ident}-{name} ".format(
-                ident=current_thread.ident, name=current_thread.getName())
+                    ident=current_thread.ident, name=current_thread.getName())
         thread_info = self.set_thread_info_padding(thread_info)
 
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
         old_local_reprs = self.frame_to_local_reprs.get(frame, {})
         self.frame_to_local_reprs[frame] = local_reprs = \
-                                       get_local_reprs(frame,
-                                                       watch=self.watch, custom_repr=self.custom_repr,
-                                                       max_length=self.max_variable_length)
+            get_local_reprs(frame,
+                            watch=self.watch, custom_repr=self.custom_repr,
+                            max_length=self.max_variable_length)
 
         newish_string = ('Starting var:.. ' if event == 'call' else
-                                                            'New var:....... ')
+                         'New var:....... ')
 
         for name, value_repr in local_reprs.items():
             if name not in old_local_reprs:
                 self.write('{indent}{newish_string}{name} = {value_repr}'.format(
-                                                                       **locals()))
+                        **locals()))
             elif old_local_reprs[name] != value_repr:
                 self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
-                                                                   **locals()))
+                        **locals()))
 
         #                                                                     #
         ### Finished newish and modified variables. ###########################
-
 
         ### Dealing with misplaced function definition: #######################
         #                                                                     #
