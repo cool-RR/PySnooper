@@ -32,24 +32,23 @@ def test_string_io():
     assert result == 15
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):'),
+                LineEntry('x = 7'),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x'),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+            )
     )
 
 
 def test_thread_info():
-
     @pysnooper.snoop(thread_info=True)
     def my_function(foo):
         x = 7
@@ -62,24 +61,23 @@ def test_thread_info():
     assert result == 15
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):'),
+                LineEntry('x = 7'),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x'),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+            )
     )
 
 
 def test_multi_thread_info():
-
     @pysnooper.snoop(thread_info=True)
     def my_function(foo):
         x = 7
@@ -92,10 +90,10 @@ def test_multi_thread_info():
     with mini_toolbox.OutputCapturer(stdout=False,
                                      stderr=True) as output_capturer:
         my_function('baba')
-        t1 = threading.Thread(target=my_function, name="test123",args=['bubu'])
+        t1 = threading.Thread(target=my_function, name="test123", args=['bubu'])
         t1.start()
         t1.join()
-        t1 = threading.Thread(target=my_function, name="bibi",args=['bibi'])
+        t1 = threading.Thread(target=my_function, name="bibi", args=['bibi'])
         t1.start()
         t1.join()
     output = output_capturer.string_io.getvalue()
@@ -105,57 +103,57 @@ def test_multi_thread_info():
     assert parse_call_content(main_thread) == parse_call_content(calls[2])
     thread_info_regex = '([0-9]+-{name}+[ ]+)'
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):',
-                      thread_info_regex=thread_info_regex.format(
-                          name="MainThread")),
-            LineEntry('x = 7',
-                      thread_info_regex=thread_info_regex.format(
-                          name="MainThread")),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8',
-                      thread_info_regex=thread_info_regex.format(
-                          name="MainThread")),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x',
-                      thread_info_regex=thread_info_regex.format(
-                          name="MainThread")),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-            VariableEntry('foo', value_regex="u?'bubu'"),
-            CallEntry('def my_function(foo):',
-                      thread_info_regex=thread_info_regex.format(
-                          name="test123")),
-            LineEntry('x = 7',
-                      thread_info_regex=thread_info_regex.format(
-                          name="test123")),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8',
-                      thread_info_regex=thread_info_regex.format(
-                          name="test123")),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x',
-                      thread_info_regex=thread_info_regex.format(
-                          name="test123")),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-            VariableEntry('foo', value_regex="u?'bibi'"),
-            CallEntry('def my_function(foo):',
-                      thread_info_regex=thread_info_regex.format(name='bibi')),
-            LineEntry('x = 7',
-                      thread_info_regex=thread_info_regex.format(name='bibi')),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8',
-                      thread_info_regex=thread_info_regex.format(name='bibi')),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x',
-                      thread_info_regex=thread_info_regex.format(name='bibi')),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="MainThread")),
+                LineEntry('x = 7',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="MainThread")),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="MainThread")),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="MainThread")),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+                VariableEntry('foo', value_regex="u?'bubu'"),
+                CallEntry('def my_function(foo):',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="test123")),
+                LineEntry('x = 7',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="test123")),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="test123")),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x',
+                          thread_info_regex=thread_info_regex.format(
+                                  name="test123")),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+                VariableEntry('foo', value_regex="u?'bibi'"),
+                CallEntry('def my_function(foo):',
+                          thread_info_regex=thread_info_regex.format(name='bibi')),
+                LineEntry('x = 7',
+                          thread_info_regex=thread_info_regex.format(name='bibi')),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8',
+                          thread_info_regex=thread_info_regex.format(name='bibi')),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x',
+                          thread_info_regex=thread_info_regex.format(name='bibi')),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+            )
     )
 
 
@@ -175,25 +173,23 @@ def test_callable():
     assert result == 15
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):'),
+                LineEntry('x = 7'),
+                VariableEntry('x', '7'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + x'),
+                ReturnEntry('return y + x'),
+                ReturnValueEntry('15'),
+            )
     )
 
 
-
 def test_watch():
-
     class Foo(object):
         def __init__(self):
             self.x = 2
@@ -217,30 +213,30 @@ def test_watch():
     assert result is None
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('Foo'),
-            VariableEntry('io.__name__', "'io'"),
-            CallEntry('def my_function():'),
-            LineEntry('foo = Foo()'),
-            VariableEntry('foo'),
-            VariableEntry('foo.x', '2'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', '6'),
-            LineEntry(),
-            VariableEntry('i', '0'),
-            LineEntry(),
-            VariableEntry('foo.x', '4'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', '12'),
-            LineEntry(),
-            VariableEntry('i', '1'),
-            LineEntry(),
-            VariableEntry('foo.x', '16'),
-            VariableEntry('len(foo.__dict__["x"] * "abc")', '48'),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('Foo'),
+                VariableEntry('io.__name__', "'io'"),
+                CallEntry('def my_function():'),
+                LineEntry('foo = Foo()'),
+                VariableEntry('foo'),
+                VariableEntry('foo.x', '2'),
+                VariableEntry('len(foo.__dict__["x"] * "abc")', '6'),
+                LineEntry(),
+                VariableEntry('i', '0'),
+                LineEntry(),
+                VariableEntry('foo.x', '4'),
+                VariableEntry('len(foo.__dict__["x"] * "abc")', '12'),
+                LineEntry(),
+                VariableEntry('i', '1'),
+                LineEntry(),
+                VariableEntry('foo.x', '16'),
+                VariableEntry('len(foo.__dict__["x"] * "abc")', '48'),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+            )
     )
 
 
@@ -249,7 +245,6 @@ def test_watch_explode():
         def __init__(self, x, y):
             self.x = x
             self.y = y
-
 
     @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'))
     def my_function():
@@ -264,33 +259,33 @@ def test_watch_explode():
     assert result is None
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('Foo'),
-            CallEntry('def my_function():'),
-            LineEntry(),
-            VariableEntry('_d'),
-            VariableEntry("_d['a']", '1'),
-            VariableEntry("_d['b']", '2'),
-            VariableEntry("_d['c']", "'ignore'"),
-            LineEntry(),
-            VariableEntry('_point'),
-            VariableEntry('_point.x', '3'),
-            VariableEntry('_point.y', '4'),
-            LineEntry(),
-            VariableEntry('lst'),
-            VariableEntry('(lst + [])[0]', '7'),
-            VariableEntry('(lst + [])[1]', '8'),
-            VariableEntry('(lst + [])[2]', '9'),
-            VariableEntry('lst + []'),
-            LineEntry(),
-            VariableEntry('lst'),
-            VariableEntry('(lst + [])[3]', '10'),
-            VariableEntry('lst + []'),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('Foo'),
+                CallEntry('def my_function():'),
+                LineEntry(),
+                VariableEntry('_d'),
+                VariableEntry("_d['a']", '1'),
+                VariableEntry("_d['b']", '2'),
+                VariableEntry("_d['c']", "'ignore'"),
+                LineEntry(),
+                VariableEntry('_point'),
+                VariableEntry('_point.x', '3'),
+                VariableEntry('_point.y', '4'),
+                LineEntry(),
+                VariableEntry('lst'),
+                VariableEntry('(lst + [])[0]', '7'),
+                VariableEntry('(lst + [])[1]', '8'),
+                VariableEntry('(lst + [])[2]', '9'),
+                VariableEntry('lst + []'),
+                LineEntry(),
+                VariableEntry('lst'),
+                VariableEntry('(lst + [])[3]', '10'),
+                VariableEntry('lst + []'),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+            )
     )
 
 
@@ -319,33 +314,31 @@ def test_variables_classes():
     assert result is None
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('WithSlots'),
-            CallEntry('def my_function():'),
-            LineEntry(),
-            VariableEntry('_d'),
-            VariableEntry("_d['a']", '1'),
-            VariableEntry("_d['b']", '2'),
-            LineEntry(),
-            VariableEntry('_s'),
-            VariableEntry('_s.x', '3'),
-            VariableEntry('_s.y', '4'),
-            LineEntry(),
-            VariableEntry('_lst'),
-            VariableEntry('_lst[997]', '997'),
-            VariableEntry('_lst[998]', '998'),
-            VariableEntry('_lst[999]', '999'),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('WithSlots'),
+                CallEntry('def my_function():'),
+                LineEntry(),
+                VariableEntry('_d'),
+                VariableEntry("_d['a']", '1'),
+                VariableEntry("_d['b']", '2'),
+                LineEntry(),
+                VariableEntry('_s'),
+                VariableEntry('_s.x', '3'),
+                VariableEntry('_s.y', '4'),
+                LineEntry(),
+                VariableEntry('_lst'),
+                VariableEntry('_lst[997]', '997'),
+                VariableEntry('_lst[998]', '998'),
+                VariableEntry('_lst[999]', '999'),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+            )
     )
 
 
-
 def test_single_watch_no_comma():
-
     class Foo(object):
         def __init__(self):
             self.x = 2
@@ -365,23 +358,23 @@ def test_single_watch_no_comma():
     assert result is None
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('Foo'),
-            CallEntry('def my_function():'),
-            LineEntry('foo = Foo()'),
-            VariableEntry('foo'),
-            LineEntry(),
-            VariableEntry('i', '0'),
-            LineEntry(),
-            LineEntry(),
-            VariableEntry('i', '1'),
-            LineEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('Foo'),
+                CallEntry('def my_function():'),
+                LineEntry('foo = Foo()'),
+                VariableEntry('foo'),
+                LineEntry(),
+                VariableEntry('i', '0'),
+                LineEntry(),
+                LineEntry(),
+                VariableEntry('i', '1'),
+                LineEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+            )
     )
 
 
@@ -398,18 +391,17 @@ def test_long_variable():
     output = output_capturer.string_io.getvalue()
     regex = r'^(?=.{100}$)\[0, 1, 2, .*\.\.\..*, 997, 998, 999\]$'
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            CallEntry('def my_function():'),
-            LineEntry('foo = list(range(1000))'),
-            VariableEntry('foo', value_regex=regex),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry(value_regex=regex)
-        )
+            output,
+            (
+                SourcePathEntry(),
+                CallEntry('def my_function():'),
+                LineEntry('foo = list(range(1000))'),
+                VariableEntry('foo', value_regex=regex),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry(value_regex=regex)
+            )
     )
-
 
 
 def test_long_variable_with_custom_max_variable_length():
@@ -425,16 +417,16 @@ def test_long_variable_with_custom_max_variable_length():
     output = output_capturer.string_io.getvalue()
     regex = r'^(?=.{200}$)\[0, 1, 2, .*\.\.\..*, 997, 998, 999\]$'
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            CallEntry('def my_function():'),
-            LineEntry('foo = list(range(1000))'),
-            VariableEntry('foo', value_regex=regex),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry(value_regex=regex)
-        )
+            output,
+            (
+                SourcePathEntry(),
+                CallEntry('def my_function():'),
+                LineEntry('foo = list(range(1000))'),
+                VariableEntry('foo', value_regex=regex),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry(value_regex=regex)
+            )
     )
 
 
@@ -451,18 +443,17 @@ def test_long_variable_with_infinite_max_variable_length():
     output = output_capturer.string_io.getvalue()
     regex = r'^(?=.{1000,100000}$)\[0, 1, 2, [^.]+ 997, 998, 999\]$'
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            CallEntry('def my_function():'),
-            LineEntry('foo = list(range(1000))'),
-            VariableEntry('foo', value_regex=regex),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry(value_regex=regex)
-        )
+            output,
+            (
+                SourcePathEntry(),
+                CallEntry('def my_function():'),
+                LineEntry('foo = list(range(1000))'),
+                VariableEntry('foo', value_regex=regex),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry(value_regex=regex)
+            )
     )
-
 
 
 def test_repr_exception():
@@ -480,16 +471,16 @@ def test_repr_exception():
     assert result is None
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('Bad'),
-            CallEntry('def my_function():'),
-            LineEntry('bad = Bad()'),
-            VariableEntry('bad', value='REPR FAILED'),
-            ReturnEntry(),
-            ReturnValueEntry('None')
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('Bad'),
+                CallEntry('def my_function():'),
+                LineEntry('bad = Bad()'),
+                VariableEntry('bad', value='REPR FAILED'),
+                ReturnEntry(),
+                ReturnValueEntry('None')
+            )
     )
 
 
@@ -517,39 +508,39 @@ def test_depth():
     assert result == 20
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f1(x1):'),
-            LineEntry(),
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry('def f1(x1):'),
+                LineEntry(),
 
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f2(x2):'),
-            LineEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry('def f2(x2):'),
+                LineEntry(),
 
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f3(x3):'),
-            LineEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry('def f3(x3):'),
+                LineEntry(),
 
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
 
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
 
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
-        )
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
+            )
     )
 
 
@@ -573,21 +564,21 @@ def test_method_and_prefix():
     assert result.x == 4
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(prefix='ZZZ'),
-            VariableEntry('self', prefix='ZZZ'),
-            VariableEntry('self.x', '2', prefix='ZZZ'),
-            CallEntry('def square(self):', prefix='ZZZ'),
-            LineEntry('foo = 7', prefix='ZZZ'),
-            VariableEntry('foo', '7', prefix='ZZZ'),
-            LineEntry('self.x **= 2', prefix='ZZZ'),
-            VariableEntry('self.x', '4', prefix='ZZZ'),
-            LineEntry(prefix='ZZZ'),
-            ReturnEntry(prefix='ZZZ'),
-            ReturnValueEntry(prefix='ZZZ'),
-        ),
-        prefix='ZZZ'
+            output,
+            (
+                SourcePathEntry(prefix='ZZZ'),
+                VariableEntry('self', prefix='ZZZ'),
+                VariableEntry('self.x', '2', prefix='ZZZ'),
+                CallEntry('def square(self):', prefix='ZZZ'),
+                LineEntry('foo = 7', prefix='ZZZ'),
+                VariableEntry('foo', '7', prefix='ZZZ'),
+                LineEntry('self.x **= 2', prefix='ZZZ'),
+                VariableEntry('self.x', '4', prefix='ZZZ'),
+                LineEntry(prefix='ZZZ'),
+                ReturnEntry(prefix='ZZZ'),
+                ReturnValueEntry(prefix='ZZZ'),
+            ),
+            prefix='ZZZ'
     )
 
 
@@ -606,19 +597,19 @@ def test_file_output():
         with path.open() as output_file:
             output = output_file.read()
         assert_output(
-            output,
-            (
-                SourcePathEntry(),
-                VariableEntry('_foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(_foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
+                output,
+                (
+                    SourcePathEntry(),
+                    VariableEntry('_foo', value_regex="u?'baba'"),
+                    CallEntry('def my_function(_foo):'),
+                    LineEntry('x = 7'),
+                    VariableEntry('x', '7'),
+                    LineEntry('y = 8'),
+                    VariableEntry('y', '8'),
+                    LineEntry('return y + x'),
+                    ReturnEntry('return y + x'),
+                    ReturnValueEntry('15'),
+                )
         )
 
 
@@ -642,26 +633,26 @@ def test_confusing_decorator_lines():
     assert result == 15
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry(),
-            VariableEntry(),
-            LineEntry(),
-            VariableEntry(),
-            LineEntry(),
-            # inside lambda
-            VariableEntry('bar', value_regex="u?'baba'"),
-            CallEntry('x = lambda bar: 7'),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('7'),
-            # back in my_function
-            ReturnEntry(),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_function(foo):'),
+                LineEntry(),
+                VariableEntry(),
+                LineEntry(),
+                VariableEntry(),
+                LineEntry(),
+                # inside lambda
+                VariableEntry('bar', value_regex="u?'baba'"),
+                CallEntry('x = lambda bar: 7'),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('7'),
+                # back in my_function
+                ReturnEntry(),
+                ReturnValueEntry('15'),
+            )
     )
 
 
@@ -672,21 +663,21 @@ def test_lambda():
     assert result == 49
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('x', '7'),
-            CallEntry(source_regex='^my_function = pysnooper.*'),
-            LineEntry(source_regex='^my_function = pysnooper.*'),
-            ReturnEntry(source_regex='^my_function = pysnooper.*'),
-            ReturnValueEntry('49'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('x', '7'),
+                CallEntry(source_regex='^my_function = pysnooper.*'),
+                LineEntry(source_regex='^my_function = pysnooper.*'),
+                ReturnEntry(source_regex='^my_function = pysnooper.*'),
+                ReturnValueEntry('49'),
+            )
     )
 
 
 def test_unavailable_source():
     with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder, \
-                                    mini_toolbox.TempSysPathAdder(str(folder)):
+            mini_toolbox.TempSysPathAdder(str(folder)):
         module_name = 'iaerojajsijf'
         python_file_path = folder / ('%s.py' % (module_name,))
         content = textwrap.dedent(u'''
@@ -705,15 +696,15 @@ def test_unavailable_source():
         assert result == 7
         output = output_capturer.output
         assert_output(
-            output,
-            (
-                SourcePathEntry(),
-                VariableEntry(stage='starting'),
-                CallEntry('SOURCE IS UNAVAILABLE'),
-                LineEntry('SOURCE IS UNAVAILABLE'),
-                ReturnEntry('SOURCE IS UNAVAILABLE'),
-                ReturnValueEntry('7'),
-            )
+                output,
+                (
+                    SourcePathEntry(),
+                    VariableEntry(stage='starting'),
+                    CallEntry('SOURCE IS UNAVAILABLE'),
+                    LineEntry('SOURCE IS UNAVAILABLE'),
+                    ReturnEntry('SOURCE IS UNAVAILABLE'),
+                    ReturnValueEntry('7'),
+                )
         )
 
 
@@ -722,11 +713,13 @@ def test_no_overwrite_by_default():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
+
         @pysnooper.snoop(str(path))
         def my_function(foo):
             x = 7
             y = 8
             return y + x
+
         result = my_function('baba')
         assert result == 15
         with path.open() as output_file:
@@ -734,19 +727,19 @@ def test_no_overwrite_by_default():
         assert output.startswith('lala')
         shortened_output = output[4:]
         assert_output(
-            shortened_output,
-            (
-                SourcePathEntry(),
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
+                shortened_output,
+                (
+                    SourcePathEntry(),
+                    VariableEntry('foo', value_regex="u?'baba'"),
+                    CallEntry('def my_function(foo):'),
+                    LineEntry('x = 7'),
+                    VariableEntry('x', '7'),
+                    LineEntry('y = 8'),
+                    VariableEntry('y', '8'),
+                    LineEntry('return y + x'),
+                    ReturnEntry('return y + x'),
+                    ReturnValueEntry('15'),
+                )
         )
 
 
@@ -755,11 +748,13 @@ def test_overwrite():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
+
         @pysnooper.snoop(str(path), overwrite=True)
         def my_function(foo):
             x = 7
             y = 8
             return y + x
+
         result = my_function('baba')
         result = my_function('baba')
         assert result == 15
@@ -767,29 +762,29 @@ def test_overwrite():
             output = output_file.read()
         assert 'lala' not in output
         assert_output(
-            output,
-            (
-                SourcePathEntry(),
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
+                output,
+                (
+                    SourcePathEntry(),
+                    VariableEntry('foo', value_regex="u?'baba'"),
+                    CallEntry('def my_function(foo):'),
+                    LineEntry('x = 7'),
+                    VariableEntry('x', '7'),
+                    LineEntry('y = 8'),
+                    VariableEntry('y', '8'),
+                    LineEntry('return y + x'),
+                    ReturnEntry('return y + x'),
+                    ReturnValueEntry('15'),
 
-                VariableEntry('foo', value_regex="u?'baba'"),
-                CallEntry('def my_function(foo):'),
-                LineEntry('x = 7'),
-                VariableEntry('x', '7'),
-                LineEntry('y = 8'),
-                VariableEntry('y', '8'),
-                LineEntry('return y + x'),
-                ReturnEntry('return y + x'),
-                ReturnValueEntry('15'),
-            )
+                    VariableEntry('foo', value_regex="u?'baba'"),
+                    CallEntry('def my_function(foo):'),
+                    LineEntry('x = 7'),
+                    VariableEntry('x', '7'),
+                    LineEntry('y = 8'),
+                    VariableEntry('y', '8'),
+                    LineEntry('return y + x'),
+                    ReturnEntry('return y + x'),
+                    ReturnValueEntry('15'),
+                )
         )
 
 
@@ -862,84 +857,84 @@ def test_with_block():
     assert result == 2
     output = output_capturer.string_io.getvalue()
     assert_output(
-        output,
-        (
-            # In first with
-            SourcePathEntry(),
-            VariableEntry('x', '2'),
-            VariableEntry('bar1'),
-            VariableEntry('bar2'),
-            VariableEntry('bar3'),
-            VariableEntry('foo'),
-            VariableEntry('qux'),
-            VariableEntry('snoop'),
-            LineEntry('foo(x - 1)'),
+            output,
+            (
+                # In first with
+                SourcePathEntry(),
+                VariableEntry('x', '2'),
+                VariableEntry('bar1'),
+                VariableEntry('bar2'),
+                VariableEntry('bar3'),
+                VariableEntry('foo'),
+                VariableEntry('qux'),
+                VariableEntry('snoop'),
+                LineEntry('foo(x - 1)'),
 
-            # In with in recursive call
-            VariableEntry('x', '1'),
-            VariableEntry('bar1'),
-            VariableEntry('bar2'),
-            VariableEntry('bar3'),
-            VariableEntry('foo'),
-            VariableEntry('qux'),
-            VariableEntry('snoop'),
-            LineEntry('foo(x - 1)'),
+                # In with in recursive call
+                VariableEntry('x', '1'),
+                VariableEntry('bar1'),
+                VariableEntry('bar2'),
+                VariableEntry('bar3'),
+                VariableEntry('foo'),
+                VariableEntry('qux'),
+                VariableEntry('snoop'),
+                LineEntry('foo(x - 1)'),
 
-            # Call to bar1 from if block outside with
-            VariableEntry('_x', '0'),
-            VariableEntry('qux'),
-            CallEntry('def bar1(_x):'),
-            LineEntry('qux()'),
-            ReturnEntry('qux()'),
-            ReturnValueEntry('None'),
+                # Call to bar1 from if block outside with
+                VariableEntry('_x', '0'),
+                VariableEntry('qux'),
+                CallEntry('def bar1(_x):'),
+                LineEntry('qux()'),
+                ReturnEntry('qux()'),
+                ReturnValueEntry('None'),
 
-            # In with in recursive call
-            LineEntry('bar2(x)'),
+                # In with in recursive call
+                LineEntry('bar2(x)'),
 
-            # Call to bar2 from within with
-            VariableEntry('_x', '1'),
-            VariableEntry('qux'),
-            CallEntry('def bar2(_x):'),
-            LineEntry('qux()'),
-            ReturnEntry('qux()'),
-            ReturnValueEntry('None'),
+                # Call to bar2 from within with
+                VariableEntry('_x', '1'),
+                VariableEntry('qux'),
+                CallEntry('def bar2(_x):'),
+                LineEntry('qux()'),
+                ReturnEntry('qux()'),
+                ReturnValueEntry('None'),
 
-            # In with in recursive call
-            LineEntry('qux()'),
+                # In with in recursive call
+                LineEntry('qux()'),
 
-            # Call to bar3 from after with
-            VariableEntry('_x', '9'),
-            VariableEntry('qux'),
-            CallEntry('def bar3(_x):'),
-            LineEntry('qux()'),
-            ReturnEntry('qux()'),
-            ReturnValueEntry('None'),
+                # Call to bar3 from after with
+                VariableEntry('_x', '9'),
+                VariableEntry('qux'),
+                CallEntry('def bar3(_x):'),
+                LineEntry('qux()'),
+                ReturnEntry('qux()'),
+                ReturnValueEntry('None'),
 
-            # -- Similar to previous few sections,
-            # -- but from first call to foo
+                # -- Similar to previous few sections,
+                # -- but from first call to foo
 
-            # In with in first call
-            LineEntry('bar2(x)'),
+                # In with in first call
+                LineEntry('bar2(x)'),
 
-            # Call to bar2 from within with
-            VariableEntry('_x', '2'),
-            VariableEntry('qux'),
-            CallEntry('def bar2(_x):'),
-            LineEntry('qux()'),
-            ReturnEntry('qux()'),
-            ReturnValueEntry('None'),
+                # Call to bar2 from within with
+                VariableEntry('_x', '2'),
+                VariableEntry('qux'),
+                CallEntry('def bar2(_x):'),
+                LineEntry('qux()'),
+                ReturnEntry('qux()'),
+                ReturnValueEntry('None'),
 
-            # In with in first call
-            LineEntry('qux()'),
+                # In with in first call
+                LineEntry('qux()'),
 
-            # Call to bar3 from after with
-            VariableEntry('_x', '9'),
-            VariableEntry('qux'),
-            CallEntry('def bar3(_x):'),
-            LineEntry('qux()'),
-            ReturnEntry('qux()'),
-            ReturnValueEntry('None'),
-        ),
+                # Call to bar3 from after with
+                VariableEntry('_x', '9'),
+                VariableEntry('qux'),
+                CallEntry('def bar3(_x):'),
+                LineEntry('qux()'),
+                ReturnEntry('qux()'),
+                ReturnValueEntry('None'),
+            ),
     )
 
 
@@ -968,35 +963,36 @@ def test_with_block_depth():
     assert result == 20
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            LineEntry('result1 = f2(x1)'),
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                LineEntry('result1 = f2(x1)'),
 
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f2(x2):'),
-            LineEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry('def f2(x2):'),
+                LineEntry(),
 
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry('def f3(x3):'),
-            LineEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry('def f3(x3):'),
+                LineEntry(),
 
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
 
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('20'),
-        )
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('20'),
+            )
     )
+
 
 def test_cellvars():
     string_io = io.StringIO()
@@ -1005,10 +1001,13 @@ def test_cellvars():
         def f3(a):
             x = 0
             x += 1
+
             def f4(a):
                 y = x
                 return 42
+
             return f4(a)
+
         return f3(a)
 
     def f1(a):
@@ -1020,45 +1019,46 @@ def test_cellvars():
     assert result == 42
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            LineEntry('result1 = f2(a)'),
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                LineEntry('result1 = f2(a)'),
 
-            VariableEntry(),
-            CallEntry('def f2(a):'),
-            LineEntry(),
-            VariableEntry(),
-            LineEntry(),
+                VariableEntry(),
+                CallEntry('def f2(a):'),
+                LineEntry(),
+                VariableEntry(),
+                LineEntry(),
 
-            VariableEntry("a"),
-            CallEntry('def f3(a):'),
-            LineEntry(),
-            VariableEntry("x"),
-            LineEntry(),
-            VariableEntry("x"),
-            LineEntry(),
-            VariableEntry(),
+                VariableEntry("a"),
+                CallEntry('def f3(a):'),
+                LineEntry(),
+                VariableEntry("x"),
+                LineEntry(),
+                VariableEntry("x"),
+                LineEntry(),
+                VariableEntry(),
 
-            LineEntry(),
-            VariableEntry(),
-            VariableEntry("x"),
-            CallEntry('def f4(a):'),
-            LineEntry(),
-            VariableEntry(),
-            LineEntry(),
+                LineEntry(),
+                VariableEntry(),
+                VariableEntry("x"),
+                CallEntry('def f4(a):'),
+                LineEntry(),
+                VariableEntry(),
+                LineEntry(),
 
-            ReturnEntry(),
-            ReturnValueEntry(),
-            ReturnEntry(),
-            ReturnValueEntry(),
-            ReturnEntry(),
-            ReturnValueEntry(),
-        )
+                ReturnEntry(),
+                ReturnValueEntry(),
+                ReturnEntry(),
+                ReturnValueEntry(),
+                ReturnEntry(),
+                ReturnValueEntry(),
+            )
     )
+
 
 def test_var_order():
     string_io = io.StringIO()
@@ -1075,34 +1075,33 @@ def test_var_order():
 
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry(),
-            VariableEntry(),
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry(),
+                VariableEntry(),
 
-            LineEntry('result = f(1, 2, 3, 4)'),
-            VariableEntry("one", "1"),
-            VariableEntry("two", "2"),
-            VariableEntry("three", "3"),
-            VariableEntry("four", "4"),
+                LineEntry('result = f(1, 2, 3, 4)'),
+                VariableEntry("one", "1"),
+                VariableEntry("two", "2"),
+                VariableEntry("three", "3"),
+                VariableEntry("four", "4"),
 
-            CallEntry('def f(one, two, three, four):'),
-            LineEntry(),
-            VariableEntry("five"),
-            LineEntry(),
-            VariableEntry("six"),
-            LineEntry(),
-            VariableEntry("seven"),
-            LineEntry(),
-            VariableEntry("five", "5"),
-            VariableEntry("six", "6"),
-            VariableEntry("seven", "7"),
-            ReturnEntry(),
-            ReturnValueEntry(),
-        )
+                CallEntry('def f(one, two, three, four):'),
+                LineEntry(),
+                VariableEntry("five"),
+                LineEntry(),
+                VariableEntry("six"),
+                LineEntry(),
+                VariableEntry("seven"),
+                LineEntry(),
+                VariableEntry("five", "5"),
+                VariableEntry("six", "6"),
+                VariableEntry("seven", "7"),
+                ReturnEntry(),
+                ReturnValueEntry(),
+            )
     )
-
 
 
 def test_truncate():
@@ -1133,7 +1132,6 @@ def test_generator():
     original_tracer = sys.gettrace()
     original_tracer_active = lambda: (sys.gettrace() is original_tracer)
 
-
     @pysnooper.snoop(string_io)
     def f(x1):
         assert not original_tracer_active()
@@ -1144,7 +1142,6 @@ def test_generator():
         x4 = (yield 2)
         assert not original_tracer_active()
         return
-
 
     assert original_tracer_active()
     generator = f(0)
@@ -1161,51 +1158,51 @@ def test_generator():
 
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('x1', '0'),
-            VariableEntry(),
-            CallEntry(),
-            LineEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('0'),
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('x1', '0'),
+                VariableEntry(),
+                CallEntry(),
+                LineEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('0'),
 
-            # Pause and resume:
+                # Pause and resume:
 
-            VariableEntry('x1', '0'),
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry(),
-            VariableEntry('x2', "'blabla'"),
-            LineEntry(),
-            LineEntry(),
-            VariableEntry('x3', "'foo'"),
-            LineEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('2'),
+                VariableEntry('x1', '0'),
+                VariableEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry(),
+                VariableEntry('x2', "'blabla'"),
+                LineEntry(),
+                LineEntry(),
+                VariableEntry('x3', "'foo'"),
+                LineEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('2'),
 
-            # Pause and resume:
+                # Pause and resume:
 
-            VariableEntry('x1', '0'),
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            VariableEntry(),
-            CallEntry(),
-            VariableEntry('x4', "'looloo'"),
-            LineEntry(),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry(None),
+                VariableEntry('x1', '0'),
+                VariableEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                VariableEntry(),
+                CallEntry(),
+                VariableEntry('x4', "'looloo'"),
+                LineEntry(),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry(None),
 
-        )
+            )
     )
 
 
@@ -1225,9 +1222,9 @@ def test_custom_repr():
         return large(x) or isinstance(x, dict)
 
     @pysnooper.snoop(string_io, custom_repr=(
-        (large, print_list_size),
-        (dict, print_dict),
-        (evil_condition, lambda x: 'I am evil')))
+            (large, print_list_size),
+            (dict, print_dict),
+            (evil_condition, lambda x: 'I am evil')))
     def sum_to_x(x):
         l = list(range(x))
         a = {'1': 1, '2': 2}
@@ -1237,20 +1234,21 @@ def test_custom_repr():
 
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('x', '10000'),
-            CallEntry(),
-            LineEntry(),
-            VariableEntry('l', 'list(size=10000)'),
-            LineEntry(),
-            VariableEntry('a', "dict(keys=['1', '2'])"),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('49995000'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('x', '10000'),
+                CallEntry(),
+                LineEntry(),
+                VariableEntry('l', 'list(size=10000)'),
+                LineEntry(),
+                VariableEntry('a', "dict(keys=['1', '2'])"),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('49995000'),
+            )
     )
+
 
 def test_custom_repr_single():
     string_io = io.StringIO()
@@ -1264,17 +1262,17 @@ def test_custom_repr_single():
 
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('x', '10000'),
-            CallEntry(),
-            LineEntry(),
-            VariableEntry('l', 'foofoo!'),
-            LineEntry(),
-            ReturnEntry(),
-            ReturnValueEntry('7'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('x', '10000'),
+                CallEntry(),
+                LineEntry(),
+                VariableEntry('l', 'foofoo!'),
+                LineEntry(),
+                ReturnEntry(),
+                ReturnValueEntry('7'),
+            )
     )
 
 
@@ -1314,24 +1312,25 @@ def test_class():
     assert result == 15
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('self', value_regex="u?.+MyClass object at"),
-            CallEntry('def __init__(self):'),
-            LineEntry('self.x = 7'),
-            ReturnEntry('self.x = 7'),
-            ReturnValueEntry('None'),
-            VariableEntry('self', value_regex="u?.+MyClass object at"),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_method(self, foo):'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + self.x'),
-            ReturnEntry('return y + self.x'),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('self', value_regex="u?.+MyClass object at"),
+                CallEntry('def __init__(self):'),
+                LineEntry('self.x = 7'),
+                ReturnEntry('self.x = 7'),
+                ReturnValueEntry('None'),
+                VariableEntry('self', value_regex="u?.+MyClass object at"),
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_method(self, foo):'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + self.x'),
+                ReturnEntry('return y + self.x'),
+                ReturnValueEntry('15'),
+            )
     )
+
 
 def test_class_with_decorated_method():
     string_io = io.StringIO()
@@ -1340,6 +1339,7 @@ def test_class_with_decorated_method():
         def wrapper(*args, **kwargs):
             result = function(*args, **kwargs)
             return result
+
         return wrapper
 
     @pysnooper.snoop(string_io)
@@ -1357,24 +1357,24 @@ def test_class_with_decorated_method():
     assert result == 15
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('self', value_regex="u?.+MyClass object at"),
-            CallEntry('def __init__(self):'),
-            LineEntry('self.x = 7'),
-            ReturnEntry('self.x = 7'),
-            ReturnValueEntry('None'),
-            VariableEntry('args', value_regex=r"\(<.+>, 'baba'\)"),
-            VariableEntry('kwargs', value_regex=r"\{\}"),
-            VariableEntry('function', value_regex="u?.+my_method at"),
-            CallEntry('def wrapper(*args, **kwargs):'),
-            LineEntry('result = function(*args, **kwargs)'),
-            VariableEntry('result', '15'),
-            LineEntry('return result'),
-            ReturnEntry('return result'),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('self', value_regex="u?.+MyClass object at"),
+                CallEntry('def __init__(self):'),
+                LineEntry('self.x = 7'),
+                ReturnEntry('self.x = 7'),
+                ReturnValueEntry('None'),
+                VariableEntry('args', value_regex=r"\(<.+>, 'baba'\)"),
+                VariableEntry('kwargs', value_regex=r"\{\}"),
+                VariableEntry('function', value_regex="u?.+my_method at"),
+                CallEntry('def wrapper(*args, **kwargs):'),
+                LineEntry('result = function(*args, **kwargs)'),
+                VariableEntry('result', '15'),
+                LineEntry('return result'),
+                ReturnEntry('return result'),
+                ReturnValueEntry('15'),
+            )
     )
 
 
@@ -1385,6 +1385,7 @@ def test_class_with_decorated_method_and_snoop_applied_to_method():
         def wrapper(*args, **kwargs):
             result = function(*args, **kwargs)
             return result
+
         return wrapper
 
     @pysnooper.snoop(string_io)
@@ -1403,33 +1404,33 @@ def test_class_with_decorated_method_and_snoop_applied_to_method():
     assert result == 15
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('self', value_regex="u?.*MyClass object at"),
-            CallEntry('def __init__(self):'),
-            LineEntry('self.x = 7'),
-            ReturnEntry('self.x = 7'),
-            ReturnValueEntry('None'),
-            VariableEntry('args', value_regex=r"u?\(<.+>, 'baba'\)"),
-            VariableEntry('kwargs', value_regex=r"u?\{\}"),
-            VariableEntry('function', value_regex="u?.*my_method at"),
-            CallEntry('def wrapper(*args, **kwargs):'),
-            LineEntry('result = function(*args, **kwargs)'),
-            SourcePathEntry(),
-            VariableEntry('self', value_regex="u?.*MyClass object at"),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_method(self, foo):'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + self.x'),
-            ReturnEntry('return y + self.x'),
-            ReturnValueEntry('15'),
-            VariableEntry('result', '15'),
-            LineEntry('return result'),
-            ReturnEntry('return result'),
-            ReturnValueEntry('15'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                CallEntry('def __init__(self):'),
+                LineEntry('self.x = 7'),
+                ReturnEntry('self.x = 7'),
+                ReturnValueEntry('None'),
+                VariableEntry('args', value_regex=r"u?\(<.+>, 'baba'\)"),
+                VariableEntry('kwargs', value_regex=r"u?\{\}"),
+                VariableEntry('function', value_regex="u?.*my_method at"),
+                CallEntry('def wrapper(*args, **kwargs):'),
+                LineEntry('result = function(*args, **kwargs)'),
+                SourcePathEntry(),
+                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('foo', value_regex="u?'baba'"),
+                CallEntry('def my_method(self, foo):'),
+                LineEntry('y = 8'),
+                VariableEntry('y', '8'),
+                LineEntry('return y + self.x'),
+                ReturnEntry('return y + self.x'),
+                ReturnValueEntry('15'),
+                VariableEntry('result', '15'),
+                LineEntry('return result'),
+                ReturnEntry('return result'),
+                ReturnValueEntry('15'),
+            )
     )
 
 
@@ -1475,36 +1476,36 @@ def test_class_with_property():
     # The property methods will not be traced, but their calls to plain_method will be.
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('self', value_regex="u?.*MyClass object at"),
-            CallEntry('def __init__(self):'),
-            LineEntry('self._x = 0'),
-            ReturnEntry('self._x = 0'),
-            ReturnValueEntry('None'),
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                CallEntry('def __init__(self):'),
+                LineEntry('self._x = 0'),
+                ReturnEntry('self._x = 0'),
+                ReturnValueEntry('None'),
 
-            # Called from getter
-            VariableEntry('self', value_regex="u?.*MyClass object at"),
-            CallEntry('def plain_method(self):'),
-            LineEntry('pass'),
-            ReturnEntry('pass'),
-            ReturnValueEntry('None'),
+                # Called from getter
+                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                CallEntry('def plain_method(self):'),
+                LineEntry('pass'),
+                ReturnEntry('pass'),
+                ReturnValueEntry('None'),
 
-            # Called from setter
-            VariableEntry('self', value_regex="u?.*MyClass object at"),
-            CallEntry('def plain_method(self):'),
-            LineEntry('pass'),
-            ReturnEntry('pass'),
-            ReturnValueEntry('None'),
+                # Called from setter
+                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                CallEntry('def plain_method(self):'),
+                LineEntry('pass'),
+                ReturnEntry('pass'),
+                ReturnValueEntry('None'),
 
-            # Called from deleter
-            VariableEntry('self', value_regex="u?.*MyClass object at"),
-            CallEntry('def plain_method(self):'),
-            LineEntry('pass'),
-            ReturnEntry('pass'),
-            ReturnValueEntry('None'),
-        )
+                # Called from deleter
+                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                CallEntry('def plain_method(self):'),
+                LineEntry('pass'),
+                ReturnEntry('pass'),
+                ReturnValueEntry('None'),
+            )
     )
 
 
@@ -1531,13 +1532,31 @@ def test_snooping_on_class_does_not_cause_base_class_to_be_snooped():
 
     output = string_io.getvalue()
     assert_output(
-        output,
-        (
-            SourcePathEntry(),
-            VariableEntry('self', value_regex="u?.*MyClass object at"),
-            CallEntry('def method_on_child_class(self):'),
-            LineEntry('self.method_on_base_class()'),
-            ReturnEntry('self.method_on_base_class()'),
-            ReturnValueEntry('None'),
-        )
+            output,
+            (
+                SourcePathEntry(),
+                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                CallEntry('def method_on_child_class(self):'),
+                LineEntry('self.method_on_base_class()'),
+                ReturnEntry('self.method_on_base_class()'),
+                ReturnValueEntry('None'),
+            )
     )
+
+
+def test_see_output():
+    string_io = io.StringIO()
+
+    class A:
+        def __init__(self, a):
+            self.a = a
+
+    @pysnooper.snoop(string_io, normalize=True)
+    def stam():
+        a = A(19)
+        b = A(22)
+        res = a.a + b.a
+        return res
+
+    stam()
+    print(string_io.getvalue())
