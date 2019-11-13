@@ -203,7 +203,7 @@ class Tracer:
 
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
-                 max_variable_length=100):
+                 max_variable_length=100, normalize=False):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -229,6 +229,7 @@ class Tracer:
         self.custom_repr = custom_repr
         self.last_source_path = None
         self.max_variable_length = max_variable_length
+        self.normalize = normalize
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -354,9 +355,10 @@ class Tracer:
         ### Finished checking whether we should trace this line. ##############
 
         now = datetime_module.datetime.now().time()
-        now_string = pycompat.time_isoformat(now, timespec='microseconds')
+        now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ''
         line_no = frame.f_lineno
         source_path, source = get_path_and_source_from_frame(frame)
+        source_path = source_path if not self.normalize else os.path.basename(source_path)
         if self.last_source_path != source_path:
             self.write(u'{indent}Source path:... {source_path}'.
                        format(**locals()))
@@ -381,6 +383,8 @@ class Tracer:
                          'New var:....... ')
 
         for name, value_repr in local_reprs.items():
+            if self.normalize:
+                value_repr = utils.normalize_repr(value_repr)
             if name not in old_local_reprs:
                 self.write('{indent}{newish_string}{name} = {value_repr}'.format(
                         **locals()))
@@ -440,6 +444,8 @@ class Tracer:
                 return_value_repr = utils.get_shortish_repr(arg,
                                                             custom_repr=self.custom_repr,
                                                             max_length=self.max_variable_length)
+                if self.normalize:
+                    return_value_repr = utils.normalize_repr(return_value_repr)
                 self.write('{indent}Return value:.. {return_value_repr}'.
                            format(**locals()))
 

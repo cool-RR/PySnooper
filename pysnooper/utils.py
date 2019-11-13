@@ -55,6 +55,9 @@ def get_repr_function(item, custom_repr):
     return repr
 
 
+def normalize_repr(item_repr):
+    return item_repr.partition(' at')[0]
+
 def get_shortish_repr(item, custom_repr=(), max_length=None):
     repr_function = get_repr_function(item, custom_repr)
     try:
