@@ -1551,7 +1551,7 @@ def test_see_output():
         def __init__(self, a):
             self.a = a
 
-    @pysnooper.snoop(string_io, normalize=True)
+    @pysnooper.snoop(string_io, normalize=False)
     def stam():
         a = A(19)
         b = A(22)

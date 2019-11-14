@@ -6,6 +6,7 @@ import abc
 import sys
 from .pycompat import ABC, string_types, collections_abc
 
+
 def _check_methods(C, *methods):
     mro = C.__mro__
     for method in methods:
@@ -31,18 +32,16 @@ class WritableStream(ABC):
         return NotImplemented
 
 
-
 file_reading_errors = (
     IOError,
     OSError,
-    ValueError # IronPython weirdness.
+    ValueError  # IronPython weirdness.
 )
-
 
 
 def shitcode(s):
     return ''.join(
-        (c if (0 < ord(c) < 256) else '?') for c in s
+            (c if (0 < ord(c) < 256) else '?') for c in s
     )
 
 
@@ -56,7 +55,11 @@ def get_repr_function(item, custom_repr):
 
 
 def normalize_repr(item_repr):
-    return item_repr.partition(' at')[0]
+    parts = item_repr.partition(' at')
+    if parts[1]:
+        return parts[0] + '>'
+    return parts[0]
+
 
 def get_shortish_repr(item, custom_repr=(), max_length=None):
     repr_function = get_repr_function(item, custom_repr)
@@ -81,10 +84,7 @@ def truncate(string, max_length):
 
 def ensure_tuple(x):
     if isinstance(x, collections_abc.Iterable) and \
-                                               not isinstance(x, string_types):
+            not isinstance(x, string_types):
         return tuple(x)
     else:
         return (x,)
-
-
-
