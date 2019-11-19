@@ -22,19 +22,19 @@ if pycompat.PY2:
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
-def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None):
+def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=False):
     code = frame.f_code
     vars_order = (code.co_varnames + code.co_cellvars + code.co_freevars +
                   tuple(frame.f_locals.keys()))
 
     result_items = [(key, utils.get_shortish_repr(value, custom_repr,
-                                                  max_length))
+                                                  max_length, normalize))
                     for key, value in frame.f_locals.items()]
     result_items.sort(key=lambda key_value: vars_order.index(key_value[0]))
     result = collections.OrderedDict(result_items)
 
     for variable in watch:
-        result.update(sorted(variable.items(frame)))
+        result.update(sorted(variable.items(frame, normalize)))
     return result
 
 
@@ -201,7 +201,7 @@ class Tracer:
     '''
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
-                 max_variable_length=100):
+                 max_variable_length=100, normalize=False):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -226,6 +226,7 @@ class Tracer:
         self.custom_repr = custom_repr
         self.last_source_path = None
         self.max_variable_length = max_variable_length
+        self.normalize = normalize
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -351,9 +352,10 @@ class Tracer:
         ### Finished checking whether we should trace this line. ##############
 
         now = datetime_module.datetime.now().time()
-        now_string = pycompat.time_isoformat(now, timespec='microseconds')
+        now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ''
         line_no = frame.f_lineno
         source_path, source = get_path_and_source_from_frame(frame)
+        source_path = source_path if not self.normalize else os.path.basename(source_path)
         if self.last_source_path != source_path:
             self.write(u'{indent}Source path:... {source_path}'.
                        format(**locals()))
@@ -361,6 +363,9 @@ class Tracer:
         source_line = source[line_no - 1]
         thread_info = ""
         if self.thread_info:
+            if self.normalize:
+                raise NotImplementedError("normalize is not supported with "
+                                          "thread_info")
             current_thread = threading.current_thread()
             thread_info = "{ident}-{name} ".format(
                 ident=current_thread.ident, name=current_thread.getName())
@@ -372,7 +377,9 @@ class Tracer:
         self.frame_to_local_reprs[frame] = local_reprs = \
                                        get_local_reprs(frame,
                                                        watch=self.watch, custom_repr=self.custom_repr,
-                                                       max_length=self.max_variable_length)
+                                                       max_length=self.max_variable_length,
+                                                       normalize=self.normalize,
+                                                       )
 
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
@@ -437,7 +444,9 @@ class Tracer:
             if not ended_by_exception:
                 return_value_repr = utils.get_shortish_repr(arg,
                                                             custom_repr=self.custom_repr,
-                                                            max_length=self.max_variable_length)
+                                                            max_length=self.max_variable_length,
+                                                            normalize=self.normalize,
+                                                            )
                 self.write('{indent}Return value:.. {return_value_repr}'.
                            format(**locals()))
 
