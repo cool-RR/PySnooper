@@ -157,13 +157,14 @@ def test_multi_thread_info():
     )
 
 
-def test_callable():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_callable(normalize):
     string_io = io.StringIO()
 
     def write(msg):
         string_io.write(msg)
 
-    @pysnooper.snoop(write)
+    @pysnooper.snoop(write, normalize=normalize)
     def my_function(foo):
         x = 7
         y = 8
@@ -185,11 +186,13 @@ def test_callable():
                 LineEntry('return y + x'),
                 ReturnEntry('return y + x'),
                 ReturnValueEntry('15'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_watch():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_watch(normalize):
     class Foo(object):
         def __init__(self):
             self.x = 2
@@ -201,7 +204,7 @@ def test_watch():
             'foo.x',
             'io.__name__',
             'len(foo.__dict__["x"] * "abc")',
-    ))
+    ), normalize=normalize)
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -236,17 +239,19 @@ def test_watch():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry('None')
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_watch_explode():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_watch_explode(normalize):
     class Foo:
         def __init__(self, x, y):
             self.x = x
             self.y = y
 
-    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'))
+    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'), normalize=normalize)
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _point = Foo(x=3, y=4)
@@ -285,11 +290,13 @@ def test_watch_explode():
                 VariableEntry('lst + []'),
                 ReturnEntry(),
                 ReturnValueEntry('None')
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_variables_classes():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_variables_classes(normalize):
     class WithSlots(object):
         __slots__ = ('x', 'y')
 
@@ -302,7 +309,7 @@ def test_variables_classes():
             pysnooper.Attrs('_d'),  # doesn't have attributes
             pysnooper.Attrs('_s'),
             pysnooper.Indices('_lst')[-3:],
-    ))
+    ), normalize=normalize)
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _s = WithSlots()
@@ -334,11 +341,13 @@ def test_variables_classes():
                 VariableEntry('_lst[999]', '999'),
                 ReturnEntry(),
                 ReturnValueEntry('None')
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_single_watch_no_comma():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_single_watch_no_comma(normalize):
     class Foo(object):
         def __init__(self):
             self.x = 2
@@ -346,7 +355,7 @@ def test_single_watch_no_comma():
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(watch='foo')
+    @pysnooper.snoop(watch='foo', normalize=normalize)
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -374,12 +383,14 @@ def test_single_watch_no_comma():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry('None')
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_long_variable():
-    @pysnooper.snoop()
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_long_variable(normalize):
+    @pysnooper.snoop(normalize=normalize)
     def my_function():
         foo = list(range(1000))
         return foo
@@ -400,12 +411,14 @@ def test_long_variable():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry(value_regex=regex)
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_long_variable_with_custom_max_variable_length():
-    @pysnooper.snoop(max_variable_length=200)
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_long_variable_with_custom_max_variable_length(normalize):
+    @pysnooper.snoop(max_variable_length=200, normalize=normalize)
     def my_function():
         foo = list(range(1000))
         return foo
@@ -426,12 +439,14 @@ def test_long_variable_with_custom_max_variable_length():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry(value_regex=regex)
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_long_variable_with_infinite_max_variable_length():
-    @pysnooper.snoop(max_variable_length=None)
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_long_variable_with_infinite_max_variable_length(normalize):
+    @pysnooper.snoop(max_variable_length=None, normalize=normalize)
     def my_function():
         foo = list(range(1000))
         return foo
@@ -452,16 +467,18 @@ def test_long_variable_with_infinite_max_variable_length():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry(value_regex=regex)
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_repr_exception():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_repr_exception(normalize):
     class Bad(object):
         def __repr__(self):
             1 / 0
 
-    @pysnooper.snoop()
+    @pysnooper.snoop(normalize=normalize)
     def my_function():
         bad = Bad()
 
@@ -480,11 +497,13 @@ def test_repr_exception():
                 VariableEntry('bad', value='REPR FAILED'),
                 ReturnEntry(),
                 ReturnValueEntry('None')
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_depth():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_depth(normalize):
     string_io = io.StringIO()
 
     def f4(x4):
@@ -499,7 +518,7 @@ def test_depth():
         result2 = f3(x2)
         return result2
 
-    @pysnooper.snoop(string_io, depth=3)
+    @pysnooper.snoop(string_io, depth=3, normalize=normalize)
     def f1(x1):
         result1 = f2(x1)
         return result1
@@ -540,16 +559,18 @@ def test_depth():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry('20'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_method_and_prefix():
+@pytest.mark.parametrize("normalize", [False, True, ])
+def test_method_and_prefix(normalize):
     class Baz(object):
         def __init__(self):
             self.x = 2
 
-        @pysnooper.snoop(watch=('self.x',), prefix='ZZZ')
+        @pysnooper.snoop(watch=('self.x',), prefix='ZZZ', normalize=normalize)
         def square(self):
             foo = 7
             self.x **= 2
@@ -578,15 +599,17 @@ def test_method_and_prefix():
                 ReturnEntry(prefix='ZZZ'),
                 ReturnValueEntry(prefix='ZZZ'),
             ),
-            prefix='ZZZ'
+            prefix='ZZZ',
+            normalize=normalize,
     )
 
 
-def test_file_output():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_file_output(normalize):
     with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
 
-        @pysnooper.snoop(path)
+        @pysnooper.snoop(path, normalize=normalize)
         def my_function(_foo):
             x = 7
             y = 8
@@ -609,18 +632,20 @@ def test_file_output():
                     LineEntry('return y + x'),
                     ReturnEntry('return y + x'),
                     ReturnValueEntry('15'),
-                )
+                ),
+                normalize=normalize,
         )
 
 
-def test_confusing_decorator_lines():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_confusing_decorator_lines(normalize):
     string_io = io.StringIO()
 
     def empty_decorator(function):
         return function
 
     @empty_decorator
-    @pysnooper.snoop(string_io,
+    @pysnooper.snoop(string_io, normalize=normalize,
                      depth=2)  # Multi-line decorator for extra confusion!
     @empty_decorator
     @empty_decorator
@@ -652,13 +677,15 @@ def test_confusing_decorator_lines():
                 # back in my_function
                 ReturnEntry(),
                 ReturnValueEntry('15'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_lambda():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_lambda(normalize):
     string_io = io.StringIO()
-    my_function = pysnooper.snoop(string_io)(lambda x: x ** 2)
+    my_function = pysnooper.snoop(string_io, normalize=normalize)(lambda x: x ** 2)
     result = my_function(7)
     assert result == 49
     output = string_io.getvalue()
@@ -671,7 +698,8 @@ def test_lambda():
                 LineEntry(source_regex='^my_function = pysnooper.*'),
                 ReturnEntry(source_regex='^my_function = pysnooper.*'),
                 ReturnValueEntry('49'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
@@ -815,9 +843,10 @@ def test_needs_parentheses():
     assert needs_parentheses('x if z else y')
 
 
-def test_with_block():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_with_block(normalize):
     # Testing that a single Tracer can handle many mixed uses
-    snoop = pysnooper.snoop()
+    snoop = pysnooper.snoop(normalize=normalize)
 
     def foo(x):
         if x == 0:
@@ -935,10 +964,12 @@ def test_with_block():
                 ReturnEntry('qux()'),
                 ReturnValueEntry('None'),
             ),
+            normalize=normalize,
     )
 
 
-def test_with_block_depth():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_with_block_depth(normalize):
     string_io = io.StringIO()
 
     def f4(x4):
@@ -955,7 +986,7 @@ def test_with_block_depth():
 
     def f1(x1):
         str(3)
-        with pysnooper.snoop(string_io, depth=3):
+        with pysnooper.snoop(string_io, depth=3, normalize=normalize):
             result1 = f2(x1)
         return result1
 
@@ -966,6 +997,7 @@ def test_with_block_depth():
             output,
             (
                 SourcePathEntry(),
+                VariableEntry(),
                 VariableEntry(),
                 VariableEntry(),
                 VariableEntry(),
@@ -990,11 +1022,13 @@ def test_with_block_depth():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry('20'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_cellvars():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_cellvars(normalize):
     string_io = io.StringIO()
 
     def f2(a):
@@ -1011,7 +1045,7 @@ def test_cellvars():
         return f3(a)
 
     def f1(a):
-        with pysnooper.snoop(string_io, depth=4):
+        with pysnooper.snoop(string_io, depth=4, normalize=normalize):
             result1 = f2(a)
         return result1
 
@@ -1022,6 +1056,7 @@ def test_cellvars():
             output,
             (
                 SourcePathEntry(),
+                VariableEntry(),
                 VariableEntry(),
                 VariableEntry(),
                 VariableEntry(),
@@ -1056,11 +1091,13 @@ def test_cellvars():
                 ReturnValueEntry(),
                 ReturnEntry(),
                 ReturnValueEntry(),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_var_order():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_var_order(normalize):
     string_io = io.StringIO()
 
     def f(one, two, three, four):
@@ -1070,7 +1107,7 @@ def test_var_order():
 
         five, six, seven = 5, 6, 7
 
-    with pysnooper.snoop(string_io, depth=2):
+    with pysnooper.snoop(string_io, depth=2, normalize=normalize):
         result = f(1, 2, 3, 4)
 
     output = string_io.getvalue()
@@ -1078,6 +1115,7 @@ def test_var_order():
             output,
             (
                 SourcePathEntry(),
+                VariableEntry(),
                 VariableEntry(),
                 VariableEntry(),
 
@@ -1100,7 +1138,8 @@ def test_var_order():
                 VariableEntry("seven", "7"),
                 ReturnEntry(),
                 ReturnValueEntry(),
-            )
+            ),
+            normalize=normalize,
     )
 
 
@@ -1206,7 +1245,8 @@ def test_generator():
     )
 
 
-def test_custom_repr():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_custom_repr(normalize):
     string_io = io.StringIO()
 
     def large(l):
@@ -1221,10 +1261,14 @@ def test_custom_repr():
     def evil_condition(x):
         return large(x) or isinstance(x, dict)
 
-    @pysnooper.snoop(string_io, custom_repr=(
-            (large, print_list_size),
-            (dict, print_dict),
-            (evil_condition, lambda x: 'I am evil')))
+    @pysnooper.snoop(
+            string_io,
+            custom_repr=(
+                    (large, print_list_size), (dict, print_dict),
+                    (evil_condition, lambda x: 'I am evil')
+            ),
+            normalize=normalize,
+    )
     def sum_to_x(x):
         l = list(range(x))
         a = {'1': 1, '2': 2}
@@ -1246,14 +1290,20 @@ def test_custom_repr():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry('49995000'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_custom_repr_single():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_custom_repr_single(normalize):
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io, custom_repr=(list, lambda l: 'foofoo!'))
+    @pysnooper.snoop(
+            string_io,
+            normalize=normalize,
+            custom_repr=(list, lambda l: 'foofoo!'),
+    )
     def sum_to_x(x):
         l = list(range(x))
         return 7
@@ -1272,7 +1322,8 @@ def test_custom_repr_single():
                 LineEntry(),
                 ReturnEntry(),
                 ReturnValueEntry('7'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
@@ -1295,10 +1346,11 @@ def test_disable():
     assert not output
 
 
-def test_class():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_class(normalize):
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, normalize=normalize)
     class MyClass(object):
         def __init__(self):
             self.x = 7
@@ -1315,12 +1367,12 @@ def test_class():
             output,
             (
                 SourcePathEntry(),
-                VariableEntry('self', value_regex="u?.+MyClass object at"),
+                VariableEntry('self', value_regex="u?.+MyClass object"),
                 CallEntry('def __init__(self):'),
                 LineEntry('self.x = 7'),
                 ReturnEntry('self.x = 7'),
                 ReturnValueEntry('None'),
-                VariableEntry('self', value_regex="u?.+MyClass object at"),
+                VariableEntry('self', value_regex="u?.+MyClass object"),
                 VariableEntry('foo', value_regex="u?'baba'"),
                 CallEntry('def my_method(self, foo):'),
                 LineEntry('y = 8'),
@@ -1328,11 +1380,13 @@ def test_class():
                 LineEntry('return y + self.x'),
                 ReturnEntry('return y + self.x'),
                 ReturnValueEntry('15'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_class_with_decorated_method():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_class_with_decorated_method(normalize):
     string_io = io.StringIO()
 
     def decorator(function):
@@ -1342,7 +1396,7 @@ def test_class_with_decorated_method():
 
         return wrapper
 
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, normalize=normalize)
     class MyClass(object):
         def __init__(self):
             self.x = 7
@@ -1360,25 +1414,27 @@ def test_class_with_decorated_method():
             output,
             (
                 SourcePathEntry(),
-                VariableEntry('self', value_regex="u?.+MyClass object at"),
+                VariableEntry('self', value_regex="u?.+MyClass object"),
                 CallEntry('def __init__(self):'),
                 LineEntry('self.x = 7'),
                 ReturnEntry('self.x = 7'),
                 ReturnValueEntry('None'),
                 VariableEntry('args', value_regex=r"\(<.+>, 'baba'\)"),
                 VariableEntry('kwargs', value_regex=r"\{\}"),
-                VariableEntry('function', value_regex="u?.+my_method at"),
+                VariableEntry('function', value_regex="u?.+my_method"),
                 CallEntry('def wrapper(*args, **kwargs):'),
                 LineEntry('result = function(*args, **kwargs)'),
                 VariableEntry('result', '15'),
                 LineEntry('return result'),
                 ReturnEntry('return result'),
                 ReturnValueEntry('15'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_class_with_decorated_method_and_snoop_applied_to_method():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_class_with_decorated_method_and_snoop_applied_to_method(normalize):
     string_io = io.StringIO()
 
     def decorator(function):
@@ -1388,13 +1444,13 @@ def test_class_with_decorated_method_and_snoop_applied_to_method():
 
         return wrapper
 
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, normalize=normalize)
     class MyClass(object):
         def __init__(self):
             self.x = 7
 
         @decorator
-        @pysnooper.snoop(string_io)
+        @pysnooper.snoop(string_io, normalize=normalize)
         def my_method(self, foo):
             y = 8
             return y + self.x
@@ -1407,18 +1463,18 @@ def test_class_with_decorated_method_and_snoop_applied_to_method():
             output,
             (
                 SourcePathEntry(),
-                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('self', value_regex="u?.*MyClass object"),
                 CallEntry('def __init__(self):'),
                 LineEntry('self.x = 7'),
                 ReturnEntry('self.x = 7'),
                 ReturnValueEntry('None'),
                 VariableEntry('args', value_regex=r"u?\(<.+>, 'baba'\)"),
                 VariableEntry('kwargs', value_regex=r"u?\{\}"),
-                VariableEntry('function', value_regex="u?.*my_method at"),
+                VariableEntry('function', value_regex="u?.*my_method"),
                 CallEntry('def wrapper(*args, **kwargs):'),
                 LineEntry('result = function(*args, **kwargs)'),
                 SourcePathEntry(),
-                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('self', value_regex="u?.*MyClass object"),
                 VariableEntry('foo', value_regex="u?'baba'"),
                 CallEntry('def my_method(self, foo):'),
                 LineEntry('y = 8'),
@@ -1430,14 +1486,16 @@ def test_class_with_decorated_method_and_snoop_applied_to_method():
                 LineEntry('return result'),
                 ReturnEntry('return result'),
                 ReturnValueEntry('15'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_class_with_property():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_class_with_property(normalize):
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, normalize=normalize)
     class MyClass(object):
         def __init__(self):
             self._x = 0
@@ -1479,37 +1537,39 @@ def test_class_with_property():
             output,
             (
                 SourcePathEntry(),
-                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('self', value_regex="u?.*MyClass object"),
                 CallEntry('def __init__(self):'),
                 LineEntry('self._x = 0'),
                 ReturnEntry('self._x = 0'),
                 ReturnValueEntry('None'),
 
                 # Called from getter
-                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('self', value_regex="u?.*MyClass object"),
                 CallEntry('def plain_method(self):'),
                 LineEntry('pass'),
                 ReturnEntry('pass'),
                 ReturnValueEntry('None'),
 
                 # Called from setter
-                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('self', value_regex="u?.*MyClass object"),
                 CallEntry('def plain_method(self):'),
                 LineEntry('pass'),
                 ReturnEntry('pass'),
                 ReturnValueEntry('None'),
 
                 # Called from deleter
-                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('self', value_regex="u?.*MyClass object"),
                 CallEntry('def plain_method(self):'),
                 LineEntry('pass'),
                 ReturnEntry('pass'),
                 ReturnValueEntry('None'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_snooping_on_class_does_not_cause_base_class_to_be_snooped():
+@pytest.mark.parametrize("normalize", [True, False, ])
+def test_snooping_on_class_does_not_cause_base_class_to_be_snooped(normalize):
     string_io = io.StringIO()
 
     class UnsnoopedBaseClass(object):
@@ -1519,7 +1579,7 @@ def test_snooping_on_class_does_not_cause_base_class_to_be_snooped():
         def method_on_base_class(self):
             self.method_on_base_class_was_called = True
 
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, normalize=normalize)
     class MyClass(UnsnoopedBaseClass):
         def method_on_child_class(self):
             self.method_on_base_class()
@@ -1535,28 +1595,105 @@ def test_snooping_on_class_does_not_cause_base_class_to_be_snooped():
             output,
             (
                 SourcePathEntry(),
-                VariableEntry('self', value_regex="u?.*MyClass object at"),
+                VariableEntry('self', value_regex="u?.*MyClass object"),
                 CallEntry('def method_on_child_class(self):'),
                 LineEntry('self.method_on_base_class()'),
                 ReturnEntry('self.method_on_base_class()'),
                 ReturnValueEntry('None'),
-            )
+            ),
+            normalize=normalize,
     )
 
 
-def test_see_output():
+def test_normalize():
     string_io = io.StringIO()
 
     class A:
         def __init__(self, a):
             self.a = a
 
-    @pysnooper.snoop(string_io, normalize=False)
-    def stam():
+    @pysnooper.snoop(string_io, normalize=True)
+    def add():
         a = A(19)
         b = A(22)
         res = a.a + b.a
         return res
 
-    stam()
-    print(string_io.getvalue())
+    add()
+    output = string_io.getvalue()
+    assert_output(
+            output,
+            (
+                SourcePathEntry('test_pysnooper.py'),
+                VariableEntry('A', value_regex=r"<class .*<locals>.A"),
+                CallEntry('def add():'),
+                LineEntry('a = A(19)'),
+                VariableEntry('a', value_regex=r"<.*<locals>\.A object>"),
+                LineEntry('b = A(22)'),
+                VariableEntry('b', value_regex=r"<.*<locals>\.A object>"),
+                LineEntry('res = a.a + b.a'),
+                VariableEntry('res', value="41"),
+                LineEntry('return res'),
+                ReturnEntry('return res'),
+                ReturnValueEntry('41'),
+            )
+    )
+
+
+def test_normalize_prefix():
+    string_io = io.StringIO()
+    _prefix = 'ZZZZ'
+
+    class A:
+        def __init__(self, a):
+            self.a = a
+
+    @pysnooper.snoop(string_io, normalize=True, prefix=_prefix)
+    def add():
+        a = A(19)
+        b = A(22)
+        res = a.a + b.a
+        return res
+
+    add()
+    output = string_io.getvalue()
+    assert_output(
+            output,
+            (
+                SourcePathEntry('test_pysnooper.py', prefix=_prefix),
+                VariableEntry('A', value_regex=r"<class .*<locals>.A", prefix=_prefix),
+                CallEntry('def add():', prefix=_prefix),
+                LineEntry('a = A(19)', prefix=_prefix),
+                VariableEntry('a', value_regex=r"<.*<locals>\.A object>", prefix=_prefix),
+                LineEntry('b = A(22)', prefix=_prefix),
+                VariableEntry('b', value_regex=r"<.*<locals>\.A object>", prefix=_prefix),
+                LineEntry('res = a.a + b.a', prefix=_prefix),
+                VariableEntry('res', value="41", prefix=_prefix),
+                LineEntry('return res', prefix=_prefix),
+                ReturnEntry('return res', prefix=_prefix),
+                ReturnValueEntry('41', prefix=_prefix),
+            )
+    )
+
+
+def test_normalize_thread_info():
+    string_io = io.StringIO()
+
+    class A:
+        def __init__(self, a):
+            self.a = a
+
+    @pysnooper.snoop(string_io, normalize=True, thread_info=True)
+    def add():
+        a = A(19)
+        b = A(22)
+        res = a.a + b.a
+        return res
+
+    try:
+        add()
+    except NotImplementedError:
+        # should be thrown when using both flags
+        pass
+    else:
+        assert False, "should throw NotImplementedError"
