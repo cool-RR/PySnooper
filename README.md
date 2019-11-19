@@ -144,6 +144,12 @@ Start all snoop lines with a prefix, to grep for them easily:
 @pysnooper.snoop(prefix='ZZZ ')
 ```
 
+Remove all machine-related data (paths, timestamps, memory addresses) to compare with other traces easily:
+
+```python
+@pysnooper.snoop(normalize=True)
+```
+
 On multi-threaded apps identify which thread are snooped in output:
 
 ```python
