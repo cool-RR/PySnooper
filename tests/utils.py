@@ -204,7 +204,7 @@ class _BaseEventEntry(_BaseEntry):
         if source is not None:
             assert source_regex is None
         self.line_pattern = re.compile(
-            r"""^%s(?P<indent>(?: {4})*)(?:[0-9:.]{15})? """
+            r"""^%s(?P<indent>(?: {4})*)(?:(?:[0-9:.]{15})|(?: {15})) """
             r"""(?P<thread_info>[0-9]+-[0-9A-Za-z_-]+[ ]+)?"""
             r"""(?P<event_name>[a-z_]*) +(?P<line_number>[0-9]*) """
             r"""+(?P<source>.*)$""" % (re.escape(self.prefix,))

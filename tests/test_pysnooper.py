@@ -1679,10 +1679,5 @@ def test_normalize_thread_info():
         res = a.a + b.a
         return res
 
-    try:
+    with pytest.raises(NotImplementedError):
         add()
-    except NotImplementedError:
-        # should be thrown when using both flags
-        pass
-    else:
-        assert False, "should throw NotImplementedError"
