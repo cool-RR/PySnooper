@@ -352,7 +352,7 @@ class Tracer:
         ### Finished checking whether we should trace this line. ##############
 
         now = datetime_module.datetime.now().time()
-        now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ''
+        now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ' ' * 15
         line_no = frame.f_lineno
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
