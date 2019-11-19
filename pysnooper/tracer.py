@@ -22,13 +22,13 @@ if pycompat.PY2:
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
 
-def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None):
+def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=False):
     code = frame.f_code
     vars_order = (code.co_varnames + code.co_cellvars + code.co_freevars +
                   tuple(frame.f_locals.keys()))
 
     result_items = [(key, utils.get_shortish_repr(value, custom_repr,
-                                                  max_length))
+                                                  max_length, normalize))
                     for key, value in frame.f_locals.items()]
     result_items.sort(key=lambda key_value: vars_order.index(key_value[0]))
     result = collections.OrderedDict(result_items)
@@ -366,6 +366,9 @@ class Tracer:
         source_line = source[line_no - 1]
         thread_info = ""
         if self.thread_info:
+            if self.normalize:
+                raise NotImplementedError("normalize is not supported with "
+                                          "thread_info")
             current_thread = threading.current_thread()
             thread_info = "{ident}-{name} ".format(
                     ident=current_thread.ident, name=current_thread.getName())
@@ -377,14 +380,12 @@ class Tracer:
         self.frame_to_local_reprs[frame] = local_reprs = \
             get_local_reprs(frame,
                             watch=self.watch, custom_repr=self.custom_repr,
-                            max_length=self.max_variable_length)
+                            max_length=self.max_variable_length, normalize=self.normalize)
 
         newish_string = ('Starting var:.. ' if event == 'call' else
                          'New var:....... ')
 
         for name, value_repr in local_reprs.items():
-            if self.normalize:
-                value_repr = utils.normalize_repr(value_repr)
             if name not in old_local_reprs:
                 self.write('{indent}{newish_string}{name} = {value_repr}'.format(
                         **locals()))
@@ -443,9 +444,8 @@ class Tracer:
             if not ended_by_exception:
                 return_value_repr = utils.get_shortish_repr(arg,
                                                             custom_repr=self.custom_repr,
-                                                            max_length=self.max_variable_length)
-                if self.normalize:
-                    return_value_repr = utils.normalize_repr(return_value_repr)
+                                                            max_length=self.max_variable_length,
+                                                            normalize=self.normalize)
                 self.write('{indent}Return value:.. {return_value_repr}'.
                            format(**locals()))
 

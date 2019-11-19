@@ -2,6 +2,7 @@
 # This program is distributed under the MIT license.
 
 import abc
+import re
 
 import sys
 from .pycompat import ABC, string_types, collections_abc
@@ -54,20 +55,23 @@ def get_repr_function(item, custom_repr):
     return repr
 
 
+DEFAULT_REPR_RE = re.compile(r' at 0x[a-f0-9A-F]{4,}')
+
+
 def normalize_repr(item_repr):
-    parts = item_repr.partition(' at')
-    if parts[1]:
-        return parts[0] + '>'
-    return parts[0]
+    """Remove memory address (0x...) from a default python repr"""
+    return DEFAULT_REPR_RE.sub('', item_repr)
 
 
-def get_shortish_repr(item, custom_repr=(), max_length=None):
+def get_shortish_repr(item, custom_repr=(), max_length=None, normalize=False):
     repr_function = get_repr_function(item, custom_repr)
     try:
         r = repr_function(item)
     except Exception:
         r = 'REPR FAILED'
     r = r.replace('\r', '').replace('\n', '')
+    if normalize:
+        r = normalize_repr(r)
     if max_length:
         r = truncate(r, max_length)
     return r
