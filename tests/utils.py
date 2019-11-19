@@ -1,9 +1,11 @@
 # Copyright 2019 Ram Rachum and collaborators.
 # This program is distributed under the MIT license.
-
+import os
 import re
 import abc
 import inspect
+
+from pysnooper.utils import DEFAULT_REPR_RE
 
 try:
     from itertools import zip_longest
@@ -202,7 +204,7 @@ class _BaseEventEntry(_BaseEntry):
         if source is not None:
             assert source_regex is None
         self.line_pattern = re.compile(
-            r"""^%s(?P<indent>(?: {4})*)[0-9:.]{15} """
+            r"""^%s(?P<indent>(?: {4})*)(?:(?:[0-9:.]{15})|(?: {15})) """
             r"""(?P<thread_info>[0-9]+-[0-9A-Za-z_-]+[ ]+)?"""
             r"""(?P<event_name>[a-z_]*) +(?P<line_number>[0-9]*) """
             r"""+(?P<source>.*)$""" % (re.escape(self.prefix,))
@@ -269,13 +271,34 @@ class OutputFailure(Exception):
     pass
 
 
-def assert_output(output, expected_entries, prefix=None):
+def verify_normalize(lines, prefix):
+    time_re = re.compile(r"[0-9:.]{15}")
+    src_re = re.compile(r'^(?: *)Source path:\.\.\. (.*)$')
+    for line in lines:
+        if DEFAULT_REPR_RE.search(line):
+            msg = "normalize is active, memory address should not appear"
+            raise OutputFailure(line, msg)
+        no_prefix = line.replace(prefix if prefix else '', '').strip()
+        if time_re.match(no_prefix):
+            msg = "normalize is active, time should not appear"
+            raise OutputFailure(line, msg)
+        m = src_re.match(line)
+        if m:
+            if not os.path.basename(m.group(1)) == m.group(1):
+                msg = "normalize is active, path should be only basename"
+                raise OutputFailure(line, msg)
+
+
+def assert_output(output, expected_entries, prefix=None, normalize=False):
     lines = tuple(filter(None, output.split('\n')))
 
     if prefix is not None:
         for line in lines:
             if not line.startswith(prefix):
                 raise OutputFailure(line)
+
+    if normalize:
+        verify_normalize(lines, prefix)
 
     any_mismatch = False
     result = ''
