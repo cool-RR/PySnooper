@@ -159,7 +159,7 @@ def test_multi_thread_info():
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_callable(normalize):
     string_io = io.StringIO()
 
@@ -193,7 +193,7 @@ def test_callable(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_watch(normalize):
     class Foo(object):
         def __init__(self):
@@ -246,7 +246,7 @@ def test_watch(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_watch_explode(normalize):
     class Foo:
         def __init__(self, x, y):
@@ -297,7 +297,7 @@ def test_watch_explode(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_variables_classes(normalize):
     class WithSlots(object):
         __slots__ = ('x', 'y')
@@ -348,7 +348,7 @@ def test_variables_classes(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_single_watch_no_comma(normalize):
     class Foo(object):
         def __init__(self):
@@ -390,7 +390,7 @@ def test_single_watch_no_comma(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_long_variable(normalize):
     @pysnooper.snoop(normalize=normalize)
     def my_function():
@@ -418,7 +418,7 @@ def test_long_variable(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_long_variable_with_custom_max_variable_length(normalize):
     @pysnooper.snoop(max_variable_length=200, normalize=normalize)
     def my_function():
@@ -446,7 +446,7 @@ def test_long_variable_with_custom_max_variable_length(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_long_variable_with_infinite_max_variable_length(normalize):
     @pysnooper.snoop(max_variable_length=None, normalize=normalize)
     def my_function():
@@ -474,7 +474,7 @@ def test_long_variable_with_infinite_max_variable_length(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_repr_exception(normalize):
     class Bad(object):
         def __repr__(self):
@@ -504,7 +504,7 @@ def test_repr_exception(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_depth(normalize):
     string_io = io.StringIO()
 
@@ -566,7 +566,7 @@ def test_depth(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_method_and_prefix(normalize):
     class Baz(object):
         def __init__(self):
@@ -606,7 +606,7 @@ def test_method_and_prefix(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_file_output(normalize):
     with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
@@ -639,7 +639,7 @@ def test_file_output(normalize):
         )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_confusing_decorator_lines(normalize):
     string_io = io.StringIO()
 
@@ -684,7 +684,7 @@ def test_confusing_decorator_lines(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_lambda(normalize):
     string_io = io.StringIO()
     my_function = pysnooper.snoop(string_io, normalize=normalize)(lambda x: x ** 2)
@@ -841,7 +841,7 @@ def test_needs_parentheses():
     assert needs_parentheses('x if z else y')
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_with_block(normalize):
     # Testing that a single Tracer can handle many mixed uses
     snoop = pysnooper.snoop(normalize=normalize)
@@ -966,7 +966,7 @@ def test_with_block(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_with_block_depth(normalize):
     string_io = io.StringIO()
 
@@ -1025,7 +1025,7 @@ def test_with_block_depth(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_cellvars(normalize):
     string_io = io.StringIO()
 
@@ -1091,7 +1091,7 @@ def test_cellvars(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_var_order(normalize):
     string_io = io.StringIO()
 
@@ -1243,7 +1243,7 @@ def test_generator():
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_custom_repr(normalize):
     string_io = io.StringIO()
 
@@ -1290,7 +1290,7 @@ def test_custom_repr(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_custom_repr_single(normalize):
     string_io = io.StringIO()
 
@@ -1337,7 +1337,7 @@ def test_disable():
     assert not output
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_class(normalize):
     string_io = io.StringIO()
 
@@ -1376,7 +1376,7 @@ def test_class(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_class_with_decorated_method(normalize):
     string_io = io.StringIO()
 
@@ -1423,7 +1423,7 @@ def test_class_with_decorated_method(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_class_with_decorated_method_and_snoop_applied_to_method(normalize):
     string_io = io.StringIO()
 
@@ -1480,7 +1480,7 @@ def test_class_with_decorated_method_and_snoop_applied_to_method(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_class_with_property(normalize):
     string_io = io.StringIO()
 
@@ -1557,7 +1557,7 @@ def test_class_with_property(normalize):
     )
 
 
-@pytest.mark.parametrize("normalize", (True, False, ))
+@pytest.mark.parametrize("normalize", (True, False))
 def test_snooping_on_class_does_not_cause_base_class_to_be_snooped(normalize):
     string_io = io.StringIO()
 
