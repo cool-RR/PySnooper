@@ -1,5 +1,6 @@
 import itertools
 import abc
+
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:
@@ -27,15 +28,15 @@ class BaseVariable(pycompat.ABC):
         else:
             self.unambiguous_source = source
 
-    def items(self, frame):
+    def items(self, frame, normalize=False):
         try:
             main_value = eval(self.code, frame.f_globals or {}, frame.f_locals)
         except Exception:
             return ()
-        return self._items(main_value)
+        return self._items(main_value, normalize)
 
     @abc.abstractmethod
-    def _items(self, key):
+    def _items(self, key, normalize=False):
         raise NotImplementedError
 
     @property
@@ -47,12 +48,12 @@ class BaseVariable(pycompat.ABC):
 
     def __eq__(self, other):
         return (isinstance(other, BaseVariable) and
-                                       self._fingerprint == other._fingerprint)
+                self._fingerprint == other._fingerprint)
 
 
 class CommonVariable(BaseVariable):
-    def _items(self, main_value):
-        result = [(self.source, utils.get_shortish_repr(main_value))]
+    def _items(self, main_value, normalize=False):
+        result = [(self.source, utils.get_shortish_repr(main_value, normalize=normalize))]
         for key in self._safe_keys(main_value):
             try:
                 if key in self.exclude:
@@ -86,8 +87,8 @@ class CommonVariable(BaseVariable):
 class Attrs(CommonVariable):
     def _keys(self, main_value):
         return itertools.chain(
-            getattr(main_value, '__dict__', ()),
-            getattr(main_value, '__slots__', ())
+                getattr(main_value, '__dict__', ()),
+                getattr(main_value, '__slots__', ())
         )
 
     def _format_key(self, key):
@@ -122,7 +123,7 @@ class Indices(Keys):
 
 
 class Exploding(BaseVariable):
-    def _items(self, main_value):
+    def _items(self, main_value, normalize=False):
         if isinstance(main_value, Mapping):
             cls = Keys
         elif isinstance(main_value, Sequence):
@@ -130,4 +131,4 @@ class Exploding(BaseVariable):
         else:
             cls = Attrs
 
-        return cls(self.source, self.exclude)._items(main_value)
+        return cls(self.source, self.exclude)._items(main_value, normalize)
