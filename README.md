@@ -153,3 +153,5 @@ Python and related topics.
 
 [Hacker News thread](https://news.ycombinator.com/item?id=19717786)
 and [/r/Python Reddit thread](https://www.reddit.com/r/Python/comments/bg0ida/pysnooper_never_use_print_for_debugging_again/) (22 April 2019)
+
+[Podcast.__init__ episode](https://www.pythonpodcast.com/pysnooper-python-debugging-episode-241/) (9 December 2019)
