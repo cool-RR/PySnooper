@@ -296,6 +296,7 @@ class Tracer:
             'original_trace_functions', []
         )
         stack.append(sys.gettrace())
+        self.start_time = datetime_module.datetime.now()
         sys.settrace(self.trace)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -306,6 +307,11 @@ class Tracer:
         calling_frame = inspect.currentframe().f_back
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
+
+        now = (datetime_module.datetime.min + (
+            datetime_module.datetime.now() - self.start_time)).time()
+        now_string = pycompat.time_isoformat(now, timespec='microseconds')
+        self.write('Total elapsed time: {now_string}'.format(**locals()))
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
