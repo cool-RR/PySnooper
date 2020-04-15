@@ -201,7 +201,8 @@ class Tracer:
     '''
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
-                 max_variable_length=100, normalize=False):
+                 max_variable_length=100, normalize=False,
+                 relative_time=False):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -227,6 +228,7 @@ class Tracer:
         self.last_source_path = None
         self.max_variable_length = max_variable_length
         self.normalize = normalize
+        self.relative_time = relative_time
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -357,7 +359,11 @@ class Tracer:
         #                                                                     #
         ### Finished checking whether we should trace this line. ##############
 
-        now = datetime_module.datetime.now().time()
+        if self.relative_time:
+            now = (datetime_module.datetime.min +
+                   (datetime_module.datetime.now() - self.start_time)).time()
+        else:
+            now = datetime_module.datetime.now().time()
         now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ' ' * 15
         line_no = frame.f_lineno
         source_path, source = get_path_and_source_from_frame(frame)
