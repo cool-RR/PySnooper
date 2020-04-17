@@ -50,10 +50,10 @@ def test_string_io():
     )
 
 
-def test_relative_time():
+def test_elapsed_time():
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io, relative_time=True)
+    @pysnooper.snoop(string_io, elapsed_time=True)
     def my_function(foo):
         x = 7
         y = 8
