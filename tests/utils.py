@@ -77,6 +77,31 @@ class _BaseValueEntry(_BaseEntry):
                                                   self._check_content(content))
 
 
+class _BasePrintEntry(_BaseEntry):
+    def __init__(self, prefix=''):
+        _BaseEntry.__init__(self, prefix=prefix)
+        self.line_pattern = re.compile(
+            r"""^%s(?P<indent>(?: {4})*)(?P<preamble>[^:]*):"""
+            r""" (?P<content>.*)$""" % (re.escape(self.prefix),)
+        )
+
+    @abc.abstractmethod
+    def _check_preamble(self, preamble):
+        pass
+
+    @abc.abstractmethod
+    def _check_content(self, preamble):
+        pass
+
+    def check(self, s):
+        match = self.line_pattern.match(s)
+        if not match:
+            return False
+        _, preamble, content = match.groups()
+        return (self._check_preamble(preamble) and
+                self._check_content(content))
+
+
 class VariableEntry(_BaseValueEntry):
     def __init__(self, name=None, value=None, stage=None, prefix='',
                  name_regex=None, value_regex=None):
@@ -193,6 +218,21 @@ class SourcePathEntry(_BaseValueEntry):
             return self.source_path_regex.match(source_path)
         else:
             return True
+
+
+class ElapsedTimeEntry(_BasePrintEntry):
+    def __init__(self, prefix=''):
+        _BasePrintEntry.__init__(self, prefix=prefix)
+
+    _preamble_pattern = re.compile(
+        r"""^Total elapsed time$"""
+    )
+
+    def _check_preamble(self, preamble):
+        return bool(self._preamble_pattern.match(preamble))
+
+    def _check_content(self, content):
+        return True
 
 
 class _BaseEventEntry(_BaseEntry):
