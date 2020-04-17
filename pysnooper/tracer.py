@@ -310,9 +310,10 @@ class Tracer:
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
 
-        duration = datetime_module.datetime.now() - self.start_time
-        now_string = pycompat.timedelta_isoformat(duration, timespec='microseconds')
-        self.write('Total elapsed time: {now_string}'.format(**locals()))
+        if thread_global.depth == -1:
+            duration = datetime_module.datetime.now() - self.start_time
+            now_string = pycompat.timedelta_isoformat(duration, timespec='microseconds')
+            self.write('Total elapsed time: {now_string}'.format(**locals()))
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
