@@ -59,4 +59,5 @@ Starting var:.. x = 4
     Return value:.. 24
 20:28:17.876646 return       8     return mul(x, factorial(x - 1))
 Return value:.. 24
+Total elapsed time: 00:00:00.000651
 '''

@@ -46,4 +46,5 @@ TypeError: bad
 12:18:08.018787 line        21         pass
 12:18:08.018813 return      21         pass
 Return value:.. None
+Total elapsed time: 00:00:00.000885
 '''
