@@ -310,9 +310,8 @@ class Tracer:
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
 
-        now = (datetime_module.datetime.min + (
-            datetime_module.datetime.now() - self.start_time)).time()
-        now_string = pycompat.time_isoformat(now, timespec='microseconds')
+        duration = datetime_module.datetime.now() - self.start_time
+        now_string = pycompat.timedelta_isoformat(duration, timespec='microseconds')
         self.write('Total elapsed time: {now_string}'.format(**locals()))
 
     def _is_internal_frame(self, frame):
@@ -360,11 +359,12 @@ class Tracer:
         ### Finished checking whether we should trace this line. ##############
 
         if self.relative_time:
-            now = (datetime_module.datetime.min +
-                   (datetime_module.datetime.now() - self.start_time)).time()
+            duration = datetime_module.datetime.now() - self.start_time
+            now_string = pycompat.timedelta_isoformat(
+                duration, timespec='microseconds') if not self.normalize else ' ' * 15
         else:
             now = datetime_module.datetime.now().time()
-        now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ' ' * 15
+            now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ' ' * 15
         line_no = frame.f_lineno
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
