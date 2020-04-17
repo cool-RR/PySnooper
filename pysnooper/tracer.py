@@ -198,11 +198,15 @@ class Tracer:
 
     You can also use `max_variable_length=None` to never truncate them.
 
+    Print time in elapsed time format::
+
+        @pysnooper.snoop(elapsed_time=True)
+
     '''
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
                  max_variable_length=100, normalize=False,
-                 relative_time=False):
+                 elapsed_time=False):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -228,7 +232,7 @@ class Tracer:
         self.last_source_path = None
         self.max_variable_length = max_variable_length
         self.normalize = normalize
-        self.relative_time = relative_time
+        self.elapsed_time = elapsed_time
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -359,7 +363,7 @@ class Tracer:
         #                                                                     #
         ### Finished checking whether we should trace this line. ##############
 
-        if self.relative_time:
+        if self.elapsed_time:
             duration = datetime_module.datetime.now() - self.start_time
             now_string = pycompat.timedelta_isoformat(
                 duration, timespec='microseconds') if not self.normalize else ' ' * 15

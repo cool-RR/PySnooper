@@ -72,12 +72,12 @@ Or if you don't want to trace an entire function, you can wrap the relevant part
 import pysnooper
 import random
 
-def foo(relative_time=False):
+def foo(elapsed_time=False):
     lst = []
     for i in range(10):
         lst.append(random.randrange(1, 1000))
 
-    with pysnooper.snoop(relative_time=relative_time):
+    with pysnooper.snoop(elapsed_time=elapsed_time):
         lower = min(lst)
         upper = max(lst)
         mid = (lower + upper) / 2
@@ -102,18 +102,18 @@ New var:....... mid = 453.0
 Total elapsed time: 00:00:00.000344
 ```
 
-If `relative_time` is `True`, print time format will be relative.
+If `elapsed_time` is `True`, print elapsed time format.
 
 ```python
 import pysnooper
 import random
 
-def foo(relative_time=False):
+def foo(elapsed_time=False):
     lst = []
     for i in range(10):
         lst.append(random.randrange(1, 1000))
 
-    with pysnooper.snoop(relative_time=relative_time):
+    with pysnooper.snoop(elapsed_time=elapsed_time):
         lower = min(lst)
         upper = max(lst)
         mid = (lower + upper) / 2
