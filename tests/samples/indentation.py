@@ -42,4 +42,5 @@ Source path:... Whatever
     Return value:.. None
 21:10:42.299627 return       6     f2()
 Return value:.. None
+Total elapsed time: 00:00:00.000885
 '''
