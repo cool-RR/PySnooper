@@ -18,46 +18,49 @@ def main():
 expected_output = '''
 Source path:... Whatever
 Starting var:.. x = 4
-20:28:17.875295 call         5 def factorial(x):
-20:28:17.875509 line         6     if x <= 1:
-20:28:17.875550 line         8     return mul(x, factorial(x - 1))
+09:31:32.691599 call         5 def factorial(x):
+09:31:32.691722 line         6     if x <= 1:
+09:31:32.691746 line         8     return mul(x, factorial(x - 1))
     Starting var:.. x = 3
-    20:28:17.875624 call         5 def factorial(x):
-    20:28:17.875668 line         6     if x <= 1:
-    20:28:17.875703 line         8     return mul(x, factorial(x - 1))
+    09:31:32.691781 call         5 def factorial(x):
+    09:31:32.691806 line         6     if x <= 1:
+    09:31:32.691823 line         8     return mul(x, factorial(x - 1))
         Starting var:.. x = 2
-        20:28:17.875771 call         5 def factorial(x):
-        20:28:17.875813 line         6     if x <= 1:
-        20:28:17.875849 line         8     return mul(x, factorial(x - 1))
+        09:31:32.691852 call         5 def factorial(x):
+        09:31:32.691875 line         6     if x <= 1:
+        09:31:32.691892 line         8     return mul(x, factorial(x - 1))
             Starting var:.. x = 1
-            20:28:17.875913 call         5 def factorial(x):
-            20:28:17.875953 line         6     if x <= 1:
-            20:28:17.875987 line         7         return 1
-            20:28:17.876021 return       7         return 1
+            09:31:32.691918 call         5 def factorial(x):
+            09:31:32.691941 line         6     if x <= 1:
+            09:31:32.691961 line         7         return 1
+            09:31:32.691978 return       7         return 1
             Return value:.. 1
+            Total elapsed time: 00:00:00.000092
             Starting var:.. a = 2
             Starting var:.. b = 1
-            20:28:17.876111 call        11 def mul(a, b):
-            20:28:17.876151 line        12     return a * b
-            20:28:17.876190 return      12     return a * b
+            09:31:32.692025 call        11 def mul(a, b):
+            09:31:32.692055 line        12     return a * b
+            09:31:32.692075 return      12     return a * b
             Return value:.. 2
-        20:28:17.876235 return       8     return mul(x, factorial(x - 1))
+        09:31:32.692102 return       8     return mul(x, factorial(x - 1))
         Return value:.. 2
+        Total elapsed time: 00:00:00.000283
         Starting var:.. a = 3
         Starting var:.. b = 2
-        20:28:17.876320 call        11 def mul(a, b):
-        20:28:17.876359 line        12     return a * b
-        20:28:17.876397 return      12     return a * b
+        09:31:32.692147 call        11 def mul(a, b):
+        09:31:32.692174 line        12     return a * b
+        09:31:32.692193 return      12     return a * b
         Return value:.. 6
-    20:28:17.876442 return       8     return mul(x, factorial(x - 1))
+    09:31:32.692216 return       8     return mul(x, factorial(x - 1))
     Return value:.. 6
+    Total elapsed time: 00:00:00.000468
     Starting var:.. a = 4
     Starting var:.. b = 6
-    20:28:17.876525 call        11 def mul(a, b):
-    20:28:17.876563 line        12     return a * b
-    20:28:17.876601 return      12     return a * b
+    09:31:32.692259 call        11 def mul(a, b):
+    09:31:32.692285 line        12     return a * b
+    09:31:32.692304 return      12     return a * b
     Return value:.. 24
-20:28:17.876646 return       8     return mul(x, factorial(x - 1))
+09:31:32.692326 return       8     return mul(x, factorial(x - 1))
 Return value:.. 24
-Total elapsed time: 00:00:00.000651
+Total elapsed time: 00:00:00.000760
 '''

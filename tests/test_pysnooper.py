@@ -1544,6 +1544,7 @@ def test_class_with_decorated_method_and_snoop_applied_to_method(normalize):
             LineEntry('return y + self.x'),
             ReturnEntry('return y + self.x'),
             ReturnValueEntry('15'),
+            ElapsedTimeEntry(),
             VariableEntry('result', '15'),
             LineEntry('return result'),
             ReturnEntry('return result'),
