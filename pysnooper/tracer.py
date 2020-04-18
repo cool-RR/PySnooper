@@ -13,7 +13,7 @@ import itertools
 import threading
 import traceback
 
-from .variables import CommonVariable, Exploding, BaseVariable
+from .variables import CommonVariable, Exploding, BaseVariable, VariableInfo
 from . import utils, pycompat
 if pycompat.PY2:
     from io import open
@@ -27,8 +27,11 @@ def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=
     vars_order = (code.co_varnames + code.co_cellvars + code.co_freevars +
                   tuple(frame.f_locals.keys()))
 
-    result_items = [(key, utils.get_shortish_repr(value, custom_repr,
-                                                  max_length, normalize))
+    result_items = [(key,
+                     VariableInfo(
+                         utils.get_shortish_repr(value, custom_repr,
+                                                 max_length, normalize),
+                         id(value)))
                     for key, value in frame.f_locals.items()]
     result_items.sort(key=lambda key_value: vars_order.index(key_value[0]))
     result = collections.OrderedDict(result_items)
@@ -384,13 +387,16 @@ class Tracer:
         newish_string = ('Starting var:.. ' if event == 'call' else
                                                             'New var:....... ')
 
-        for name, value_repr in local_reprs.items():
+        for name, (value_repr, memory_address) in local_reprs.items():
+            hex_id = hex(memory_address)
+            # print(old_local_reprs)
             if name not in old_local_reprs:
-                self.write('{indent}{newish_string}{name} = {value_repr}'.format(
-                                                                       **locals()))
-            elif old_local_reprs[name] != value_repr:
-                self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
-                                                                   **locals()))
+                self.write(
+                    '{indent}{newish_string}{name} = '
+                    '{value_repr} @ {hex_id}'.format(**locals()))
+            elif old_local_reprs[name].value_repr != value_repr:
+                self.write('{indent}Modified var:.. {name} = {value_repr}'
+                           ' @ {hex_id}'.format(**locals()))
 
         #                                                                     #
         ### Finished newish and modified variables. ###########################

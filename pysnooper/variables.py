@@ -57,7 +57,10 @@ class BaseVariable(pycompat.ABC):
 
 class CommonVariable(BaseVariable):
     def _items(self, main_value, normalize=False):
-        result = [(self.source, utils.get_shortish_repr(main_value, normalize=normalize))]
+        result = [(self.source,
+                   VariableInfo(utils.get_shortish_repr(
+                       main_value, normalize=normalize),
+                                id(main_value)))]
         for key in self._safe_keys(main_value):
             try:
                 if key in self.exclude:
@@ -67,7 +70,7 @@ class CommonVariable(BaseVariable):
                 continue
             result.append((
                 '{}{}'.format(self.unambiguous_source, self._format_key(key)),
-                utils.get_shortish_repr(value)
+                VariableInfo(utils.get_shortish_repr(value), id(value))
             ))
         return result
 
