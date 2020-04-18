@@ -317,7 +317,7 @@ class Tracer:
 
         start_time = self.start_times.pop(-1)
         duration = datetime_module.datetime.now() - start_time
-        now_string = pycompat.timedelta_isoformat(duration, timespec='microseconds')
+        now_string = pycompat.timedelta_isoformat(duration)
         indent = ' ' * 4 * (thread_global.depth + 1)
         self.write('{indent}Total elapsed time: {now_string}'.format(
             **locals()))
