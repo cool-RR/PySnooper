@@ -217,7 +217,7 @@ class Tracer:
              for v in utils.ensure_tuple(watch_explode)
         ]
         self.frame_to_local_reprs = {}
-        self.start_times = {}
+        self.start_times = []
         self.depth = depth
         self.prefix = prefix
         self.thread_info = thread_info
@@ -303,7 +303,7 @@ class Tracer:
             'original_trace_functions', []
         )
         stack.append(sys.gettrace())
-        self.start_times[id(calling_frame)] = datetime_module.datetime.now()
+        self.start_times.append(datetime_module.datetime.now())
         sys.settrace(self.trace)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -315,7 +315,7 @@ class Tracer:
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
 
-        start_time = self.start_times.pop(id(calling_frame))
+        start_time = self.start_times.pop(-1)
         duration = datetime_module.datetime.now() - start_time
         now_string = pycompat.timedelta_isoformat(duration, timespec='microseconds')
         indent = ' ' * 4 * (thread_global.depth + 1)
@@ -332,7 +332,6 @@ class Tracer:
         return thread_info.ljust(self.thread_info_padding)
 
     def trace(self, frame, event, arg):
-
         ### Checking whether we should trace this line: #######################
         #                                                                     #
         # We should trace this line either if it's in the decorated function,
@@ -367,9 +366,7 @@ class Tracer:
         ### Finished checking whether we should trace this line. ##############
 
         if self.elapsed_time:
-            calling_frame = frame.f_back
-            duration = datetime_module.datetime.now() - self.start_times[
-                id(calling_frame)]
+            duration = datetime_module.datetime.now() - self.start_times[-1]
             now_string = pycompat.timedelta_isoformat(
                 duration, timespec='microseconds') if not self.normalize else ' ' * 15
         else:
