@@ -38,6 +38,7 @@ Source path:... Whatever
             Return value:.. None
         21:10:42.299509 return      19     f5()
         Return value:.. None
+        Total elapsed time: 00:00:00.000134
     21:10:42.299577 return      10     f3()
     Return value:.. None
 21:10:42.299627 return       6     f2()
