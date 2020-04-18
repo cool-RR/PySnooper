@@ -107,14 +107,14 @@ class VariableEntry(_BaseValueEntry):
         return self._check_stage(stage)
 
     _content_pattern = re.compile(
-        r"""^(?P<name>.+?) = (?P<value>.+)$"""
+        r"""^(?P<name>.+?) = (?P<value>.+) @ 0x(?P<address>[\da-f]+)$"""
     )
 
     def _check_content(self, content):
         match = self._content_pattern.match(content)
         if not match:
             return False
-        name, value = match.groups()
+        name, value, _ = match.groups()
         return self._check_name(name) and self._check_value(value)
 
     def _check_name(self, name):
@@ -333,8 +333,13 @@ def assert_sample_output(module):
             out,
             flags=re.MULTILINE
         )
+        out = re.sub(
+            r'^(?P<indent>(?: {4})*)'
+            r'(?P<stage>(New|Modified|Starting) var:.+) '
+            r'(?P<name>.+?) = (?P<value>.+) @ 0x(?P<address>[\da-f]+)$',
+            r'\1\2 \4 = \5 @ Wherever', out, flags=re.MULTILINE
+        )
         return out
-
 
     output = output_capturer.string_io.getvalue()
 
