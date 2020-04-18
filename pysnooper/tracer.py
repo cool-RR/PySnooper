@@ -318,7 +318,9 @@ class Tracer:
         start_time = self.start_times.pop(id(calling_frame))
         duration = datetime_module.datetime.now() - start_time
         now_string = pycompat.timedelta_isoformat(duration, timespec='microseconds')
-        self.write('Total elapsed time: {now_string}'.format(**locals()))
+        indent = ' ' * 4 * (thread_global.depth + 1)
+        self.write('{indent}Total elapsed time: {now_string}'.format(
+            **locals()))
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
