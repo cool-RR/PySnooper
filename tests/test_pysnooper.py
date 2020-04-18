@@ -4,6 +4,7 @@
 import io
 import textwrap
 import threading
+import time
 import types
 import os
 import sys
@@ -51,32 +52,132 @@ def test_string_io():
 
 
 def test_elapsed_time():
-    string_io = io.StringIO()
+    snoop = pysnooper.snoop(elapsed_time=True)
 
-    @pysnooper.snoop(string_io, elapsed_time=True)
-    def my_function(foo):
-        x = 7
-        y = 8
-        return y + x
+    def foo(x):
+        if x == 0:
+            bar1(x)
+            qux()
+            return
 
-    result = my_function('baba')
-    assert result == 15
-    output = string_io.getvalue()
+        with snoop:
+            # There should be line entries for these three lines,
+            # no line entries for anything else in this function,
+            # but calls to all bar functions should be traced
+            foo(x - 1)
+            bar2(x)
+            qux()
+        int(4)
+        bar3(9)
+        return x
+
+    @snoop
+    def bar1(_x):
+        qux()
+
+    @snoop
+    def bar2(_x):
+        qux()
+
+    @snoop
+    def bar3(_x):
+        qux()
+
+    def qux():
+        time.sleep(0.1)
+        return 9  # not traced, mustn't show up
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        result = foo(2)
+    assert result == 2
+    output = output_capturer.string_io.getvalue()
     assert_output(
         output,
         (
+            # In first with
             SourcePathEntry(),
-            VariableEntry('foo', value_regex="u?'baba'"),
-            CallEntry('def my_function(foo):'),
-            LineEntry('x = 7'),
-            VariableEntry('x', '7'),
-            LineEntry('y = 8'),
-            VariableEntry('y', '8'),
-            LineEntry('return y + x'),
-            ReturnEntry('return y + x'),
-            ReturnValueEntry('15'),
-            ElapsedTimeEntry(),
-        )
+            VariableEntry('x', '2'),
+            VariableEntry('bar1'),
+            VariableEntry('bar2'),
+            VariableEntry('bar3'),
+            VariableEntry('foo'),
+            VariableEntry('qux'),
+            VariableEntry('snoop'),
+            LineEntry('foo(x - 1)'),
+
+            # In with in recursive call
+            VariableEntry('x', '1'),
+            VariableEntry('bar1'),
+            VariableEntry('bar2'),
+            VariableEntry('bar3'),
+            VariableEntry('foo'),
+            VariableEntry('qux'),
+            VariableEntry('snoop'),
+            LineEntry('foo(x - 1)'),
+
+            # Call to bar1 from if block outside with
+            VariableEntry('_x', '0'),
+            VariableEntry('qux'),
+            CallEntry('def bar1(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+            ElapsedTimeEntry(0.1),
+
+            # In with in recursive call
+            LineEntry('bar2(x)'),
+
+            # Call to bar2 from within with
+            VariableEntry('_x', '1'),
+            VariableEntry('qux'),
+            CallEntry('def bar2(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+            ElapsedTimeEntry(0.1),
+
+            # In with in recursive call
+            LineEntry('qux()'),
+            ElapsedTimeEntry(0.4),
+
+            # Call to bar3 from after with
+            VariableEntry('_x', '9'),
+            VariableEntry('qux'),
+            CallEntry('def bar3(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+            ElapsedTimeEntry(0.1),
+
+            # -- Similar to previous few sections,
+            # -- but from first call to foo
+
+            # In with in first call
+            LineEntry('bar2(x)'),
+
+            # Call to bar2 from within with
+            VariableEntry('_x', '2'),
+            VariableEntry('qux'),
+            CallEntry('def bar2(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+            ElapsedTimeEntry(0.1),
+
+            # In with in first call
+            LineEntry('qux()'),
+            ElapsedTimeEntry(0.7),
+
+            # Call to bar3 from after with
+            VariableEntry('_x', '9'),
+            VariableEntry('qux'),
+            CallEntry('def bar3(_x):'),
+            LineEntry('qux()'),
+            ReturnEntry('qux()'),
+            ReturnValueEntry('None'),
+            ElapsedTimeEntry(0.1),
+        ),
     )
 
 

@@ -221,8 +221,13 @@ class SourcePathEntry(_BaseValueEntry):
 
 
 class ElapsedTimeEntry(_BasePrintEntry):
-    def __init__(self, prefix=''):
+
+    def __init__(self, elapsed_time_value=None,
+                 tolerance=0.05,
+                 prefix=''):
         _BasePrintEntry.__init__(self, prefix=prefix)
+        self.elapsed_time_value = elapsed_time_value
+        self.tolerance = tolerance
 
     _preamble_pattern = re.compile(
         r"""^Total elapsed time$"""
@@ -232,7 +237,13 @@ class ElapsedTimeEntry(_BasePrintEntry):
         return bool(self._preamble_pattern.match(preamble))
 
     def _check_content(self, content):
-        return True
+        if self.elapsed_time_value:
+            time = pysnooper.pycompat.time_fromisoformat(content)
+            sec = (time.hour * 60 + time.minute) * 60 + time.second + \
+                time.microsecond * (10 ** -6)
+            return abs(sec - self.elapsed_time_value) <= self.tolerance
+        else:
+            return True
 
 
 class _BaseEventEntry(_BaseEntry):
