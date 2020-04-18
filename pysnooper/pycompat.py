@@ -90,9 +90,6 @@ else:
         return datetime_module.time(hour, minute, second, microsecond)
 
 
-def timedelta_isoformat(timedelta, timespec='microseconds'):
-    assert isinstance(timedelta, datetime_module.timedelta)
-    if timespec != 'microseconds':
-        raise NotImplementedError
+def timedelta_isoformat(timedelta):
     time = (datetime_module.datetime.min + timedelta).time()
-    return time_isoformat(time, timespec)
+    return time_isoformat(time)
