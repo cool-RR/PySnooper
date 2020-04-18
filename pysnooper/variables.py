@@ -1,4 +1,5 @@
 import itertools
+from collections import namedtuple
 import abc
 try:
     from collections.abc import Mapping, Sequence
@@ -15,6 +16,10 @@ def needs_parentheses(source):
         return compile(s, '<variable>', 'eval').co_code
 
     return code('{}.x'.format(source)) != code('({}).x'.format(source))
+
+
+VariableInfo = namedtuple('VariableInfo',
+                          ('value_repr', 'memory_address'))
 
 
 class BaseVariable(pycompat.ABC):
