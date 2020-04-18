@@ -90,6 +90,6 @@ else:
         return datetime_module.time(hour, minute, second, microsecond)
 
 
-def timedelta_isoformat(timedelta):
+def timedelta_isoformat(timedelta, timespec='microseconds'):
     time = (datetime_module.datetime.min + timedelta).time()
-    return time_isoformat(time)
+    return time_isoformat(time, timespec)
