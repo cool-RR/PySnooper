@@ -1681,3 +1681,37 @@ def test_normalize_thread_info():
 
     with pytest.raises(NotImplementedError):
         add()
+
+
+@pytest.mark.parametrize("normalize", (True, False))
+def test_memory_address(normalize):
+
+    @pysnooper.snoop(watch=('io.__name__', 'x', 'y'),
+                     normalize=normalize)
+    def my_function():
+        z = x + y
+
+    x = 'abcd'
+    y = 'efgh'
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        result = my_function()
+    assert result is None
+    output = output_capturer.string_io.getvalue()
+    print(output)
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            VariableEntry('x', "'abcd'", memory_address=hex(id(x))),
+            VariableEntry('y', "'efgh'", memory_address=hex(id(y))),
+            VariableEntry('io.__name__', "'io'", memory_address=hex(id(io.__name__))),
+            CallEntry('def my_function():'),
+            LineEntry(),
+            VariableEntry('z', "'abcdefgh'"),
+            ReturnEntry('z = x + y'),
+            ReturnValueEntry(None),
+        ),
+        normalize=normalize,
+    )

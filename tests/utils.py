@@ -79,7 +79,7 @@ class _BaseValueEntry(_BaseEntry):
 
 class VariableEntry(_BaseValueEntry):
     def __init__(self, name=None, value=None, stage=None, prefix='',
-                 name_regex=None, value_regex=None):
+                 name_regex=None, value_regex=None, memory_address=None):
         _BaseValueEntry.__init__(self, prefix=prefix)
         if name is not None:
             assert name_regex is None
@@ -94,6 +94,7 @@ class VariableEntry(_BaseValueEntry):
                            re.compile(name_regex))
         self.value_regex = (None if value_regex is None else
                             re.compile(value_regex))
+        self.memory_address = memory_address
 
     _preamble_pattern = re.compile(
         r"""^(?P<stage>New|Modified|Starting) var$"""
@@ -114,8 +115,9 @@ class VariableEntry(_BaseValueEntry):
         match = self._content_pattern.match(content)
         if not match:
             return False
-        name, value, _ = match.groups()
-        return self._check_name(name) and self._check_value(value)
+        name, value, address = match.groups()
+        return self._check_name(name) and self._check_value(value) and \
+            self._check_address(address)
 
     def _check_name(self, name):
         if self.name is not None:
@@ -139,6 +141,14 @@ class VariableEntry(_BaseValueEntry):
             return stage in ('starting', 'new', 'modified')
         else:
             return stage == self.stage
+
+    def _check_address(self, address):
+        # address's format is 0x[\da-f]*
+        if self.memory_address:
+            return self.memory_address[2:] == address
+        else:
+            # no check
+            return True
 
 
 class ReturnValueEntry(_BaseValueEntry):
