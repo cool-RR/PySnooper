@@ -217,7 +217,7 @@ class Tracer:
              for v in utils.ensure_tuple(watch_explode)
         ]
         self.frame_to_local_reprs = {}
-        self.start_times = []
+        self.start_times = {}
         self.depth = depth
         self.prefix = prefix
         self.thread_info = thread_info
@@ -303,7 +303,7 @@ class Tracer:
             'original_trace_functions', []
         )
         stack.append(sys.gettrace())
-        self.start_times.append(datetime_module.datetime.now())
+        self.start_times[calling_frame] = datetime_module.datetime.now()
         sys.settrace(self.trace)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -315,12 +315,14 @@ class Tracer:
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
 
-        start_time = self.start_times.pop(-1)
-        duration = datetime_module.datetime.now() - start_time
-        now_string = pycompat.timedelta_isoformat(duration)
-        indent = ' ' * 4 * (thread_global.depth + 1)
-        self.write('{indent}Total elapsed time: {now_string}'.format(
-            **locals()))
+        start_time = self.start_times.pop(calling_frame, None)
+        # TODO(Fix case of start_time is None)
+        if start_time:
+            duration = datetime_module.datetime.now() - start_time
+            now_string = pycompat.timedelta_isoformat(duration)
+            indent = ' ' * 4 * (thread_global.depth + 1)
+            self.write('{indent}Total elapsed time: {now_string}'.format(
+                **locals()))
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
@@ -366,7 +368,11 @@ class Tracer:
         ### Finished checking whether we should trace this line. ##############
 
         if self.elapsed_time:
-            duration = datetime_module.datetime.now() - self.start_times[-1]
+            if frame not in self.start_times:
+                self.start_times[frame] = start_time = datetime_module.datetime.now()
+            else:
+                start_time = self.start_times[frame]
+            duration = datetime_module.datetime.now() - start_time
             now_string = pycompat.timedelta_isoformat(
                 duration) if not self.normalize else ' ' * 15
         else:
@@ -458,6 +464,8 @@ class Tracer:
 
         if event == 'return':
             del self.frame_to_local_reprs[frame]
+            if self.elapsed_time:
+                del self.start_times[frame]
             thread_global.depth -= 1
 
             if not ended_by_exception:
