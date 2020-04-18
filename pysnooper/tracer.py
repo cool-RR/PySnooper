@@ -374,7 +374,7 @@ class Tracer:
                 start_time = self.start_times[frame]
             duration = datetime_module.datetime.now() - start_time
             now_string = pycompat.timedelta_isoformat(
-                duration) if not self.normalize else ' ' * 15
+                duration, timespec='microseconds') if not self.normalize else ' ' * 15
         else:
             now = datetime_module.datetime.now().time()
             now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ' ' * 15
