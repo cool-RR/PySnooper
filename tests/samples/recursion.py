@@ -35,7 +35,7 @@ Starting var:.. x = 4
             09:31:32.691961 line         7         return 1
             09:31:32.691978 return       7         return 1
             Return value:.. 1
-            Total elapsed time: 00:00:00.000092
+            Elapsed time: 00:00:00.000092
             Starting var:.. a = 2
             Starting var:.. b = 1
             09:31:32.692025 call        11 def mul(a, b):
@@ -44,7 +44,7 @@ Starting var:.. x = 4
             Return value:.. 2
         09:31:32.692102 return       8     return mul(x, factorial(x - 1))
         Return value:.. 2
-        Total elapsed time: 00:00:00.000283
+        Elapsed time: 00:00:00.000283
         Starting var:.. a = 3
         Starting var:.. b = 2
         09:31:32.692147 call        11 def mul(a, b):
@@ -53,7 +53,7 @@ Starting var:.. x = 4
         Return value:.. 6
     09:31:32.692216 return       8     return mul(x, factorial(x - 1))
     Return value:.. 6
-    Total elapsed time: 00:00:00.000468
+    Elapsed time: 00:00:00.000468
     Starting var:.. a = 4
     Starting var:.. b = 6
     09:31:32.692259 call        11 def mul(a, b):
@@ -62,5 +62,5 @@ Starting var:.. x = 4
     Return value:.. 24
 09:31:32.692326 return       8     return mul(x, factorial(x - 1))
 Return value:.. 24
-Total elapsed time: 00:00:00.000760
+Elapsed time: 00:00:00.000760
 '''

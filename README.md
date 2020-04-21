@@ -64,6 +64,7 @@ Modified var:.. bits = [1, 1, 0]
 15:29:11.327032 line        10         return bits
 15:29:11.327032 return      10         return bits
 Return value:.. [1, 1, 0]
+Elapsed time: 00:00:00.000001
 ```
 
 Or if you don't want to trace an entire function, you can wrap the relevant part in a `with` block:
@@ -72,18 +73,18 @@ Or if you don't want to trace an entire function, you can wrap the relevant part
 import pysnooper
 import random
 
-def foo(elapsed_time=False):
+def foo():
     lst = []
     for i in range(10):
         lst.append(random.randrange(1, 1000))
 
-    with pysnooper.snoop(elapsed_time=elapsed_time):
+    with pysnooper.snoop():
         lower = min(lst)
         upper = max(lst)
         mid = (lower + upper) / 2
         print(lower, mid, upper)
 
-foo(False)
+foo()
 ```
 
 which outputs something like:
@@ -99,27 +100,7 @@ New var:....... upper = 832
 74 453.0 832
 New var:....... mid = 453.0
 09:37:35.882486 line        13         print(lower, mid, upper)
-Total elapsed time: 00:00:00.000344
-```
-
-If `elapsed_time` is `True`, print elapsed time format.
-
-```python
-import pysnooper
-import random
-
-def foo(elapsed_time=False):
-    lst = []
-    for i in range(10):
-        lst.append(random.randrange(1, 1000))
-
-    with pysnooper.snoop(elapsed_time=elapsed_time):
-        lower = min(lst)
-        upper = max(lst)
-        mid = (lower + upper) / 2
-        print(lower, mid, upper)
-
-foo(True)
+Elapsed time: 00:00:00.000344
 ```
 
 # Features #

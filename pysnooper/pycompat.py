@@ -80,16 +80,16 @@ else:
         return result
 
 
-if sys.version_info[:2] >= (3, 7):
-    time_fromisoformat = datetime_module.time.fromisoformat
-else:
-    def time_fromisoformat(isoformat_str):
-        hour, minute, second, microsecond = map(
-            int,
-            isoformat_str.replace('.', ':').split(':'))
-        return datetime_module.time(hour, minute, second, microsecond)
-
-
-def timedelta_isoformat(timedelta, timespec='microseconds'):
+def timedelta_format(timedelta):
     time = (datetime_module.datetime.min + timedelta).time()
-    return time_isoformat(time, timespec)
+    return time_isoformat(time, timespec='microseconds')
+
+def timedelta_parse(s):
+    hours, minutes, seconds, microseconds = map(
+        int,
+        s.replace('.', ':').split(':')
+    )
+    return datetime_module.timedelta(hours=hours, minutes=minutes,
+                                     seconds=seconds,
+                                     microseconds=microseconds)
+

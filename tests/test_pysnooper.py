@@ -51,8 +51,8 @@ def test_string_io():
     )
 
 
-def test_elapsed_time():
-    snoop = pysnooper.snoop(elapsed_time=True)
+def test_relative_time():
+    snoop = pysnooper.snoop(relative_time=True)
 
     def foo(x):
         if x == 0:
