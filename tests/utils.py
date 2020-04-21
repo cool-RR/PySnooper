@@ -77,29 +77,28 @@ class _BaseValueEntry(_BaseEntry):
                                                   self._check_content(content))
 
 
-class _BasePrintEntry(_BaseEntry):
-    def __init__(self, prefix=''):
+class ElapsedTimeEntry(_BaseEntry):
+    def __init__(self, elapsed_time_value=None, tolerance=0.2, prefix=''):
         _BaseEntry.__init__(self, prefix=prefix)
         self.line_pattern = re.compile(
-            r"""^%s(?P<indent>(?: {4})*)(?P<preamble>[^:]*):"""
-            r""" (?P<content>.*)$""" % (re.escape(self.prefix),)
+            r"""^%s(?P<indent>(?: {4})*)Elapsed time: (?P<time>.*)""" % (
+                re.escape(self.prefix),
+            )
         )
-
-    @abc.abstractmethod
-    def _check_preamble(self, preamble):
-        pass
-
-    @abc.abstractmethod
-    def _check_content(self, preamble):
-        pass
+        self.elapsed_time_value = elapsed_time_value
+        self.tolerance = tolerance
 
     def check(self, s):
         match = self.line_pattern.match(s)
         if not match:
             return False
-        _, preamble, content = match.groups()
-        return (self._check_preamble(preamble) and
-                self._check_content(content))
+        timedelta = pysnooper.pycompat.timedelta_parse(match.group('time'))
+        if self.elapsed_time_value:
+            return abs(timedelta.total_seconds() - self.elapsed_time_value) \
+                                                              <= self.tolerance
+        else:
+            return True
+
 
 
 class VariableEntry(_BaseValueEntry):
@@ -216,32 +215,6 @@ class SourcePathEntry(_BaseValueEntry):
             return source_path == self.source_path
         elif self.source_path_regex is not None:
             return self.source_path_regex.match(source_path)
-        else:
-            return True
-
-
-class ElapsedTimeEntry(_BasePrintEntry):
-
-    def __init__(self, elapsed_time_value=None,
-                 tolerance=0.05,
-                 prefix=''):
-        _BasePrintEntry.__init__(self, prefix=prefix)
-        self.elapsed_time_value = elapsed_time_value
-        self.tolerance = tolerance
-
-    _preamble_pattern = re.compile(
-        r"""^Total elapsed time$"""
-    )
-
-    def _check_preamble(self, preamble):
-        return bool(self._preamble_pattern.match(preamble))
-
-    def _check_content(self, content):
-        if self.elapsed_time_value:
-            time = pysnooper.pycompat.time_fromisoformat(content)
-            sec = (time.hour * 60 + time.minute) * 60 + time.second + \
-                time.microsecond * (10 ** -6)
-            return abs(sec - self.elapsed_time_value) <= self.tolerance
         else:
             return True
 

@@ -198,15 +198,14 @@ class Tracer:
 
     You can also use `max_variable_length=None` to never truncate them.
 
-    Print time in elapsed time format::
+    Show timestamps relative to start time rather than wall time::
 
-        @pysnooper.snoop(elapsed_time=True)
+        @pysnooper.snoop(relative_time=True)
 
     '''
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
-                 max_variable_length=100, normalize=False,
-                 elapsed_time=False):
+                 max_variable_length=100, normalize=False, relative_time=False):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -233,7 +232,7 @@ class Tracer:
         self.last_source_path = None
         self.max_variable_length = max_variable_length
         self.normalize = normalize
-        self.elapsed_time = elapsed_time
+        self.relative_time = relative_time
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -315,14 +314,17 @@ class Tracer:
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
 
-        start_time = self.start_times.pop(calling_frame, None)
-        # TODO(Fix case of start_time is None)
-        if start_time:
-            duration = datetime_module.datetime.now() - start_time
-            now_string = pycompat.timedelta_isoformat(duration)
-            indent = ' ' * 4 * (thread_global.depth + 1)
-            self.write('{indent}Total elapsed time: {now_string}'.format(
-                **locals()))
+        ### Writing elapsed time: #############################################
+        #                                                                     #
+        start_time = self.start_times.pop(calling_frame)
+        duration = datetime_module.datetime.now() - start_time
+        elapsed_time_string = pycompat.timedelta_format(duration)
+        indent = ' ' * 4 * (thread_global.depth + 1)
+        self.write(
+            '{indent}Elapsed time: {elapsed_time_string}'.format(**locals())
+        )
+        #                                                                     #
+        ### Finished writing elapsed time. ####################################
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
@@ -334,6 +336,7 @@ class Tracer:
         return thread_info.ljust(self.thread_info_padding)
 
     def trace(self, frame, event, arg):
+
         ### Checking whether we should trace this line: #######################
         #                                                                     #
         # We should trace this line either if it's in the decorated function,
@@ -367,17 +370,26 @@ class Tracer:
         #                                                                     #
         ### Finished checking whether we should trace this line. ##############
 
-        if self.elapsed_time:
-            if frame not in self.start_times:
-                self.start_times[frame] = start_time = datetime_module.datetime.now()
-            else:
+        ### Making timestamp: #################################################
+        #                                                                     #
+        if self.normalize:
+            timestamp = ' ' * 15
+        elif self.relative_time:
+            try:
                 start_time = self.start_times[frame]
+            except KeyError:
+                start_time = self.start_times[frame] = \
+                                                 datetime_module.datetime.now()
             duration = datetime_module.datetime.now() - start_time
-            now_string = pycompat.timedelta_isoformat(
-                duration, timespec='microseconds') if not self.normalize else ' ' * 15
+            timestamp = pycompat.timedelta_format(duration)
         else:
-            now = datetime_module.datetime.now().time()
-            now_string = pycompat.time_isoformat(now, timespec='microseconds') if not self.normalize else ' ' * 15
+            timestamp = pycompat.time_isoformat(
+                datetime_module.datetime.now().time(),
+                timespec='microseconds'
+            )
+        #                                                                     #
+        ### Finished making timestamp. ########################################
+
         line_no = frame.f_lineno
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
@@ -459,13 +471,12 @@ class Tracer:
             self.write('{indent}Call ended by exception'.
                        format(**locals()))
         else:
-            self.write(u'{indent}{now_string} {thread_info}{event:9} '
+            self.write(u'{indent}{timestamp} {thread_info}{event:9} '
                        u'{line_no:4} {source_line}'.format(**locals()))
 
         if event == 'return':
-            del self.frame_to_local_reprs[frame]
-            if self.elapsed_time:
-                del self.start_times[frame]
+            self.frame_to_local_reprs.pop(frame, None)
+            self.start_times.pop(frame, None)
             thread_global.depth -= 1
 
             if not ended_by_exception:
