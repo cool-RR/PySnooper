@@ -1895,3 +1895,51 @@ def test_relative_time():
             ElapsedTimeEntry(0.1),
         ),
     )
+
+
+def test_relative_time_generators():
+    string_io = io.StringIO()
+
+    def g():
+        time.sleep(0.1)
+        yield 8
+        time.sleep(0.1)
+
+    @pysnooper.snoop(string_io, relative_time=True)
+    def f():
+        time.sleep(0.1)
+        for x in g():
+            yield x
+        time.sleep(0.1)
+
+
+    result = tuple(f())
+    assert result == (8,)
+
+    output = string_io.getvalue()
+
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            VariableEntry('g'),
+            CallEntry(),
+            LineEntry(),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(),
+            ElapsedTimeEntry(),
+
+            VariableEntry(),
+            VariableEntry(),
+            CallEntry(),
+            LineEntry(),
+            ExceptionEntry(),
+            LineEntry(),
+            ReturnEntry(),
+            ReturnValueEntry(),
+            ElapsedTimeEntry(),
+        ),
+    )
