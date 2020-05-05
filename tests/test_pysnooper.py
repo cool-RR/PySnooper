@@ -16,7 +16,8 @@ import pysnooper
 from pysnooper.variables import needs_parentheses
 from .utils import (assert_output, assert_sample_output, VariableEntry,
                     CallEntry, LineEntry, ReturnEntry, OpcodeEntry,
-                    ReturnValueEntry, ExceptionEntry, SourcePathEntry,
+                    ReturnValueEntry, ExceptionEntry, ExceptionValueEntry,
+                    SourcePathEntry, CallEndedByExceptionEntry,
                     ElapsedTimeEntry)
 from . import mini_toolbox
 
@@ -1864,3 +1865,34 @@ def test_normalize_thread_info():
 
     with pytest.raises(NotImplementedError):
         add()
+
+
+def test_exception():
+    string_io = io.StringIO()
+    @pysnooper.snoop(string_io)
+    def f():
+        x = 8
+        raise MemoryError
+
+    with pytest.raises(MemoryError):
+        f()
+
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            CallEntry(),
+            LineEntry(),
+            VariableEntry(),
+            LineEntry(),
+            ExceptionEntry(),
+            ExceptionValueEntry('MemoryError'),
+            CallEndedByExceptionEntry(),
+            ElapsedTimeEntry(),
+        )
+    )
+
+
+
+
