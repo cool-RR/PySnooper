@@ -101,6 +101,19 @@ class ElapsedTimeEntry(_BaseEntry):
 
 
 
+class CallEndedByExceptionEntry(_BaseEntry):
+    # Todo: Looking at this class, we could rework the hierarchy.
+    def __init__(self, prefix=''):
+        _BaseEntry.__init__(self, prefix=prefix)
+
+    def check(self, s):
+        return re.match(
+            r'''(?P<indent>(?: {4})*)Call ended by exception''',
+            s
+        )
+
+
+
 class VariableEntry(_BaseValueEntry):
     def __init__(self, name=None, value=None, stage=None, prefix='',
                  name_regex=None, value_regex=None):
@@ -165,7 +178,7 @@ class VariableEntry(_BaseValueEntry):
             return stage == self.stage
 
 
-class ReturnValueEntry(_BaseValueEntry):
+class _BaseSimpleValueEntry(_BaseValueEntry):
     def __init__(self, value=None, value_regex=None, prefix=''):
         _BaseValueEntry.__init__(self, prefix=prefix)
         if value is not None:
@@ -174,10 +187,6 @@ class ReturnValueEntry(_BaseValueEntry):
         self.value = value
         self.value_regex = (None if value_regex is None else
                             re.compile(value_regex))
-
-    _preamble_pattern = re.compile(
-        r"""^Return value$"""
-    )
 
     def _check_preamble(self, preamble):
         return bool(self._preamble_pattern.match(preamble))
@@ -192,6 +201,16 @@ class ReturnValueEntry(_BaseValueEntry):
             return self.value_regex.match(value)
         else:
             return True
+
+class ReturnValueEntry(_BaseSimpleValueEntry):
+    _preamble_pattern = re.compile(
+        r"""^Return value$"""
+    )
+
+class ExceptionValueEntry(_BaseSimpleValueEntry):
+    _preamble_pattern = re.compile(
+        r"""^Exception$"""
+    )
 
 class SourcePathEntry(_BaseValueEntry):
     def __init__(self, source_path=None, source_path_regex=None, prefix=''):
@@ -315,6 +334,8 @@ def verify_normalize(lines, prefix):
 
 def assert_output(output, expected_entries, prefix=None, normalize=False):
     lines = tuple(filter(None, output.split('\n')))
+    if expected_entries and not lines:
+        raise OutputFailure("Output is empty")
 
     if prefix is not None:
         for line in lines:

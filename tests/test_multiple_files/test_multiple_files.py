@@ -15,7 +15,8 @@ import pysnooper
 from pysnooper.variables import needs_parentheses
 from ..utils import (assert_output, assert_sample_output, VariableEntry,
                     CallEntry, LineEntry, ReturnEntry, OpcodeEntry,
-                    ReturnValueEntry, ExceptionEntry, SourcePathEntry,
+                    ReturnValueEntry, ExceptionEntry, ExceptionValueEntry,
+                    SourcePathEntry, CallEndedByExceptionEntry,
                     ElapsedTimeEntry)
 from .. import mini_toolbox
 from .multiple_files import foo
