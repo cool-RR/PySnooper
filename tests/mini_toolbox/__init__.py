@@ -213,7 +213,6 @@ class OutputCapturer(object):
         # Not doing exception swallowing anywhere here.
         self._stderr_temp_setter.__exit__(exc_type, exc_value, exc_traceback)
         self._stdout_temp_setter.__exit__(exc_type, exc_value, exc_traceback)
-        return self
 
     output = property(lambda self: self.string_io.getvalue(),
                       doc='''The string of output that was captured.''')
