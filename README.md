@@ -142,6 +142,11 @@ $ pip install pysnooper
 $ conda install -c conda-forge pysnooper
 ```
 
+* Arch Linux:
+```console
+$ yay -S python-pysnooper
+```
+
 
 # License #
 
