@@ -128,21 +128,24 @@ Show snoop lines for functions that your function calls:
 **See [Advanced Usage](https://github.com/cool-RR/PySnooper/blob/master/ADVANCED_USAGE.md) for more options.** <------
 
 
-# Installation #
+# Installation with Pip #
 
-You can install **PySnooper** by:
+The best way to install **PySnooper** is with Pip:
 
-* pip:
 ```console
 $ pip install pysnooper
 ```
 
-* conda with conda-forge channel:
+# Other installation options #
+
+Conda with conda-forge channel:
+
 ```console
 $ conda install -c conda-forge pysnooper
 ```
 
-* Arch Linux:
+Arch Linux:
+
 ```console
 $ yay -S python-pysnooper
 ```
