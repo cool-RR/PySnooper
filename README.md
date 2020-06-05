@@ -1,7 +1,5 @@
 # PySnooper - Never use print for debugging again #
 
-[![Travis CI](https://img.shields.io/travis/cool-RR/PySnooper/master.svg)](https://travis-ci.org/cool-RR/PySnooper)
-
 **PySnooper** is a poor man's debugger.
 
 You're trying to figure out why your Python code isn't doing what you think it should be doing. You'd love to use a full-fledged debugger with breakpoints and watches, but you can't be bothered to set one up right now.
