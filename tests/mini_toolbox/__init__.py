@@ -94,8 +94,8 @@ class TempValueSetter(object):
 
         try:
             first, second = variable
-        except Exception:
-            raise bad_input_exception
+        except Exception as exception:
+            raise bad_input_exception from exception
         if hasattr(first, '__getitem__') and hasattr(first, 'get') and \
            hasattr(first, '__setitem__') and hasattr(first, '__delitem__'):
             # `first` is a dictoid; so we were probably handed a `(dict, key)`
