@@ -1894,5 +1894,10 @@ def test_exception():
     )
 
 
+def test_exception_on_entry():
+    @pysnooper.snoop()
+    def f(x):
+        pass
 
-
+    with pytest.raises(TypeError):
+        f()
