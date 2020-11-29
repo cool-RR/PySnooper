@@ -18,7 +18,6 @@ def main():
     except:
         pass
 
-
 expected_output = '''
 Source path:... Whatever
 12:18:08.017782 call        17 def main():
