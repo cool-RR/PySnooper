@@ -4,14 +4,12 @@ import pysnooper
 def foo():
     raise TypeError('bad')
 
-
 def bar():
     try:
         foo()
     except Exception:
         str(1)
         raise
-
 
 @pysnooper.snoop(depth=3)
 def main():
