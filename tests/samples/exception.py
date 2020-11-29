@@ -1,9 +1,7 @@
 import pysnooper
 
-
 def foo():
     raise TypeError('bad')
-
 
 def bar():
     try:
