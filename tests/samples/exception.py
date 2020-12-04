@@ -1,6 +1,5 @@
 import pysnooper
 
-
 def foo():
     raise TypeError('bad')
 
@@ -17,7 +16,6 @@ def main():
         bar()
     except:
         pass
-
 
 expected_output = '''
 Source path:... Whatever
