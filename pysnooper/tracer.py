@@ -429,7 +429,7 @@ class Tracer:
                 str = '{indent}{newish_string}{name} = {value_repr}'.format(**locals())
                 idx = str.find(":")
                 if ("Start" in str):
-                    self.write('\033[33m' + str[0:idx + 3] + '\033[34m' + str[idx + 3:] + '\033[0m')
+                    self.write('\033[95m' + str[0:idx + 3] + '\033[34m' + str[idx + 3:] + '\033[0m')
                 else:
                     self.write('\033[33m' + str[0:idx + 8] + '\033[34m' + str[idx + 8:] + '\033[0m')
             elif old_local_reprs[name] != value_repr:
@@ -498,14 +498,14 @@ class Tracer:
                                                             self.max_variable_length,
                                                             self.normalize,
                                                             )
-                self.write('\033[95m' + '{indent}Return value:.. {name} = {return_value_repr}'.
+                self.write('\033[95m' + '{indent}Return value:... {return_value_repr}'.
                            format(**locals()) + '\033[0m')
 
         if event == 'exception':
             exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
             if self.max_variable_length:
                 exception = utils.truncate(exception, self.max_variable_length)
-            self.write('{indent}Exception:..... {exception}'.
+            self.write('\033[31m' + '{indent}Exception:..... {exception}'.
                        format(**locals()))
 
         return self.trace
