@@ -15,9 +15,9 @@ import traceback
 
 from .variables import CommonVariable, Exploding, BaseVariable
 from . import utils, pycompat
+
 if pycompat.PY2:
     from io import open
-
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 
@@ -38,6 +38,7 @@ def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=
     return result
 
 
+# if it is unavailable source.
 class UnavailableSource(object):
     def __getitem__(self, i):
         return u'SOURCE IS UNAVAILABLE'
@@ -73,7 +74,7 @@ def get_path_and_source_from_frame(frame):
                 import IPython
                 ipython_shell = IPython.get_ipython()
                 ((_, _, source_chunk),) = ipython_shell.history_manager. \
-                                  get_range(0, entry_number, entry_number + 1)
+                    get_range(0, entry_number, entry_number + 1)
                 source = source_chunk.splitlines()
             except Exception:
                 pass
@@ -148,6 +149,7 @@ class FileWriter(object):
 thread_global = threading.local()
 DISABLED = bool(os.getenv('PYSNOOPER_DISABLED', ''))
 
+
 class Tracer:
     '''
     Snoop on the function, writing everything it's doing to stderr.
@@ -203,18 +205,19 @@ class Tracer:
         @pysnooper.snoop(relative_time=True)
 
     '''
+
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
                  max_variable_length=100, normalize=False, relative_time=False):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
-            v if isinstance(v, BaseVariable) else CommonVariable(v)
-            for v in utils.ensure_tuple(watch)
-         ] + [
-             v if isinstance(v, BaseVariable) else Exploding(v)
-             for v in utils.ensure_tuple(watch_explode)
-        ]
+                         v if isinstance(v, BaseVariable) else CommonVariable(v)
+                         for v in utils.ensure_tuple(watch)
+                     ] + [
+                         v if isinstance(v, BaseVariable) else Exploding(v)
+                         for v in utils.ensure_tuple(watch_explode)
+                     ]
         self.frame_to_local_reprs = {}
         self.start_times = {}
         self.depth = depth
@@ -226,7 +229,7 @@ class Tracer:
         self.target_frames = set()
         self.thread_local = threading.local()
         if len(custom_repr) == 2 and not all(isinstance(x,
-                      pycompat.collections_abc.Iterable) for x in custom_repr):
+                                                        pycompat.collections_abc.Iterable) for x in custom_repr):
             custom_repr = (custom_repr,)
         self.custom_repr = custom_repr
         self.last_source_path = None
@@ -379,7 +382,7 @@ class Tracer:
                 start_time = self.start_times[frame]
             except KeyError:
                 start_time = self.start_times[frame] = \
-                                                 datetime_module.datetime.now()
+                    datetime_module.datetime.now()
             duration = datetime_module.datetime.now() - start_time
             timestamp = pycompat.timedelta_format(duration)
         else:
@@ -412,14 +415,14 @@ class Tracer:
         #                                                                     #
         old_local_reprs = self.frame_to_local_reprs.get(frame, {})
         self.frame_to_local_reprs[frame] = local_reprs = \
-                                       get_local_reprs(frame,
-                                                       watch=self.watch, custom_repr=self.custom_repr,
-                                                       max_length=self.max_variable_length,
-                                                       normalize=self.normalize,
-                                                       )
+            get_local_reprs(frame,
+                            watch=self.watch, custom_repr=self.custom_repr,
+                            max_length=self.max_variable_length,
+                            normalize=self.normalize,
+                            )
 
         newish_string = ('Starting var:.. ' if event == 'call' else
-                                                            'New var:....... ')
+                         'New var:....... ')
 
         for name, value_repr in local_reprs.items():
             if name not in old_local_reprs:
@@ -437,7 +440,6 @@ class Tracer:
         #                                                                     #
         ### Finished newish and modified variables. ###########################
 
-
         ### Dealing with misplaced function definition: #######################
         #                                                                     #
         if event == 'call' and source_line.lstrip().startswith('@'):
@@ -453,6 +455,7 @@ class Tracer:
 
                 if candidate_source_line.lstrip().startswith('def'):
                     # Found the def line!
+                    # Save line_no and sorce line
                     line_no = candidate_line_no
                     source_line = candidate_source_line
                     break
@@ -491,9 +494,9 @@ class Tracer:
 
             if not ended_by_exception:
                 return_value_repr = utils.get_shortish_repr(arg,
-                                                            custom_repr=self.custom_repr,
-                                                            max_length=self.max_variable_length,
-                                                            normalize=self.normalize,
+                                                            self.custom_repr,
+                                                            self.max_variable_length,
+                                                            self.normalize,
                                                             )
                 self.write('\033[95m' + '{indent}Return value:.. {return_value_repr}'.
                            format(**locals()) + '\033[0m')
