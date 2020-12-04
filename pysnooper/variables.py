@@ -1,5 +1,6 @@
 import itertools
 import abc
+
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:
@@ -47,7 +48,7 @@ class BaseVariable(pycompat.ABC):
 
     def __eq__(self, other):
         return (isinstance(other, BaseVariable) and
-                                       self._fingerprint == other._fingerprint)
+                self._fingerprint == other._fingerprint)
 
 
 class CommonVariable(BaseVariable):

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="a6ce10d4-c4cf-4d3e-a399-1dd8833312f0" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -14,9 +17,39 @@
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="settings.editor.selected.configurable" value="build.tools" />
+  </component>
+  <component name="RunManager">
+    <configuration name="test_chinese" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\Minje\AppData\Local\Programs\Python\Python38-32\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/test_chinese.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.test_chinese" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -28,5 +61,31 @@
       <updated>1607091614772</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="734" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1607092665434">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state x="734" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1040@0.0.2560.1040" timestamp="1607092665434" />
+    <state width="2539" height="205" key="GridCell.Tab.0.bottom" timestamp="1607097787642">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state width="2539" height="205" key="GridCell.Tab.0.bottom/0.0.2560.1040@0.0.2560.1040" timestamp="1607097787642" />
+    <state width="2539" height="205" key="GridCell.Tab.0.center" timestamp="1607097787642">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state width="2539" height="205" key="GridCell.Tab.0.center/0.0.2560.1040@0.0.2560.1040" timestamp="1607097787642" />
+    <state width="2539" height="205" key="GridCell.Tab.0.left" timestamp="1607097787641">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state width="2539" height="205" key="GridCell.Tab.0.left/0.0.2560.1040@0.0.2560.1040" timestamp="1607097787641" />
+    <state width="2539" height="205" key="GridCell.Tab.0.right" timestamp="1607097787642">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state width="2539" height="205" key="GridCell.Tab.0.right/0.0.2560.1040@0.0.2560.1040" timestamp="1607097787642" />
+    <state x="781" y="164" key="SettingsEditor" timestamp="1607094631533">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state x="781" y="164" key="SettingsEditor/0.0.2560.1040@0.0.2560.1040" timestamp="1607094631533" />
   </component>
 </project>
