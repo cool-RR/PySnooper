@@ -142,7 +142,7 @@ class FileWriter(object):
         with open(self.path, 'w' if self.overwrite else 'a',
                   encoding='utf-8') as output_file:
             output_file.write(s)
-        self.overwrite = False
+        self.overwrite = False333
 
 
 thread_global = threading.local()
@@ -322,7 +322,7 @@ class Tracer:
         elapsed_time_string = pycompat.timedelta_format(duration)
         indent = ' ' * 4 * (thread_global.depth + 1)
         self.write(
-            '{indent}Elapsed time: {elapsed_time_string}'.format(**locals())
+            '\033[33m'+'{indent}Elapsed time: {elapsed_time_string}'+'\033[0m'.format(**locals())
         )
         #                                                                     #
         ### Finished writing elapsed time. ####################################
@@ -394,7 +394,7 @@ class Tracer:
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
         if self.last_source_path != source_path:
-            self.write(u'{indent}Source path:... {source_path}'.
+            self.write('\033[33m' + u'{indent}Source path:... {source_path}' + '\033[0m'.
                        format(**locals()))
             self.last_source_path = source_path
         source_line = source[line_no - 1]
@@ -423,11 +423,16 @@ class Tracer:
 
         for name, value_repr in local_reprs.items():
             if name not in old_local_reprs:
-                self.write('{indent}{newish_string}{name} = {value_repr}'.format(
-                                                                       **locals()))
+                str = '{indent}{newish_string}{name} = {value_repr}'.format( **locals())
+                idx = str.find(":")
+                if("Start" in str):
+                    self.write('\033[33m' + str[0:idx+3] + '\033[34m' + str[idx+3:] + '\033[0m')
+                else:
+                    self.write('\033[33m' + str[0:idx+8] + '\033[34m' + str[idx+8:] + '\033[0m')
             elif old_local_reprs[name] != value_repr:
-                self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
-                                                                   **locals()))
+                str = '{indent}Modified var:.. {name} = {value_repr}'.format(**locals())
+                idx = str.find("..")
+                self.write('\033[33m' + str[0:idx+2] + '\033[34m' + str[idx+2:] + '\033[0m')
 
         #                                                                     #
         ### Finished newish and modified variables. ###########################
@@ -471,8 +476,13 @@ class Tracer:
             self.write('{indent}Call ended by exception'.
                        format(**locals()))
         else:
-            self.write(u'{indent}{timestamp} {thread_info}{event:9} '
-                       u'{line_no:4} {source_line}'.format(**locals()))
+            str = u'{indent}{timestamp} {thread_info}{event:9} 'u'{line_no:4} {source_line}'.format(**locals())
+            idx = str.find(" ")
+
+            for s in str.split():
+                if(s.isdigit()): num = s
+            numidx = str.find(" " + num + " ")
+            self.write('\033[30m' + str[:idx] + '\033[32m' + str[idx:numidx] + '\033[36m' + str[numidx:] + '\033[0m')
 
         if event == 'return':
             self.frame_to_local_reprs.pop(frame, None)
@@ -485,8 +495,8 @@ class Tracer:
                                                             max_length=self.max_variable_length,
                                                             normalize=self.normalize,
                                                             )
-                self.write('{indent}Return value:.. {return_value_repr}'.
-                           format(**locals()))
+                self.write('\033[95m' + '{indent}Return value:.. {return_value_repr}'.
+                           format(**locals()) + '\033[0m')
 
         if event == 'exception':
             exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
