@@ -15,3 +15,4 @@ build/
 
 .coverage
 htmlcov
+*.xml
