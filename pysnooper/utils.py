@@ -4,8 +4,8 @@
 import abc
 import re
 
+import sys
 from .pycompat import ABC, string_types, collections_abc
-
 
 def _check_methods(C, *methods):
     mro = C.__mro__
@@ -32,11 +32,13 @@ class WritableStream(ABC):
         return NotImplemented
 
 
+
 file_reading_errors = (
     IOError,
     OSError,
-    ValueError  # IronPython weirdness.
+    ValueError # IronPython weirdness.
 )
+
 
 
 def shitcode(s):
@@ -87,7 +89,10 @@ def truncate(string, max_length):
 
 def ensure_tuple(x):
     if isinstance(x, collections_abc.Iterable) and \
-            not isinstance(x, string_types):
+                                               not isinstance(x, string_types):
         return tuple(x)
     else:
         return (x,)
+
+
+
