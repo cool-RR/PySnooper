@@ -455,7 +455,7 @@ class Tracer:
 
                 if candidate_source_line.lstrip().startswith('def'):
                     # Found the def line!
-                    # Save line_no and sorce line
+                    # Save line_no and source line
                     line_no = candidate_line_no
                     source_line = candidate_source_line
                     break
