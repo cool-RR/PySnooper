@@ -142,7 +142,7 @@ class FileWriter(object):
         with open(self.path, 'w' if self.overwrite else 'a',
                   encoding='utf-8') as output_file:
             output_file.write(s)
-        self.overwrite = False333
+        self.overwrite = False
 
 
 thread_global = threading.local()
