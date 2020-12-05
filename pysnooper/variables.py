@@ -6,11 +6,11 @@ try:
 except ImportError:
     from collections import Mapping, Sequence
 from copy import deepcopy
-
 from . import utils
 from . import pycompat
 
 
+# Check whether code needs parentheses or not. If parentheses are needed, return true
 def needs_parentheses(source):
     def code(s):
         return compile(s, '<variable>', 'eval').co_code
@@ -33,6 +33,7 @@ class BaseVariable(pycompat.ABC):
             main_value = eval(self.code, frame.f_globals or {}, frame.f_locals)
         except Exception:
             return ()
+
         return self._items(main_value, normalize)
 
     @abc.abstractmethod
