@@ -10,7 +10,6 @@ def bar():
         str(1)
         raise
 
-
 @pysnooper.snoop(depth=3)
 def main():
     try:

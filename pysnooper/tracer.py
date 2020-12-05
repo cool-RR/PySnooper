@@ -325,7 +325,7 @@ class Tracer:
         elapsed_time_string = pycompat.timedelta_format(duration)
         indent = ' ' * 4 * (thread_global.depth + 1)
         self.write(
-            '\033[33m' + '{indent}Elapsed time: {elapsed_time_string}' + '\033[0m'.format(**locals())
+            '\033[33m'+'{indent}Elapsed time: {elapsed_time_string}'+'\033[0m'.format(**locals())
         )
         #                                                                     #
         ### Finished writing elapsed time. ####################################
@@ -426,16 +426,16 @@ class Tracer:
 
         for name, value_repr in local_reprs.items():
             if name not in old_local_reprs:
-                str = '{indent}{newish_string}{name} = {value_repr}'.format(**locals())
+                str = '{indent}{newish_string}{name} = {value_repr}'.format( **locals())
                 idx = str.find(":")
-                if ("Start" in str):
-                    self.write('\033[95m' + str[0:idx + 3] + '\033[34m' + str[idx + 3:] + '\033[0m')
+                if("Start" in str):
+                    self.write('\033[33m' + str[0:idx+3] + '\033[34m' + str[idx+3:] + '\033[0m')
                 else:
-                    self.write('\033[33m' + str[0:idx + 8] + '\033[34m' + str[idx + 8:] + '\033[0m')
+                    self.write('\033[33m' + str[0:idx+8] + '\033[34m' + str[idx+8:] + '\033[0m')
             elif old_local_reprs[name] != value_repr:
                 str = '{indent}Modified var:.. {name} = {value_repr}'.format(**locals())
                 idx = str.find("..")
-                self.write('\033[33m' + str[0:idx + 2] + '\033[34m' + str[idx + 2:] + '\033[0m')
+                self.write('\033[33m' + str[0:idx+2] + '\033[34m' + str[idx+2:] + '\033[0m')
 
         #                                                                     #
         ### Finished newish and modified variables. ###########################
@@ -483,7 +483,7 @@ class Tracer:
             idx = str.find(" ")
 
             for s in str.split():
-                if s.isdigit(): num = s
+                if(s.isdigit()): num = s
             numidx = str.find(" " + num + " ")
             self.write('\033[30m' + str[:idx] + '\033[32m' + str[idx:numidx] + '\033[36m' + str[numidx:] + '\033[0m')
 
@@ -498,7 +498,7 @@ class Tracer:
                                                             self.max_variable_length,
                                                             self.normalize,
                                                             )
-                self.write('\033[95m' + '{indent}Return value:... {return_value_repr}'.
+                self.write('\033[95m' + '{indent}Return value:.. {return_value_repr}'.
                            format(**locals()) + '\033[0m')
 
         if event == 'exception':
