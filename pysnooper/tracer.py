@@ -505,7 +505,7 @@ class Tracer:
             exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
             if self.max_variable_length:
                 exception = utils.truncate(exception, self.max_variable_length)
-            self.write('{indent}Exception:..... {exception}'.
+            self.write('\033[31m' + '{indent}Exception:..... {exception}'.
                        format(**locals()))
 
         return self.trace
