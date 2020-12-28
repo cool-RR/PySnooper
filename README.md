@@ -1,8 +1,8 @@
 # PySnooper - Never use print for debugging again #
 
-**PySnooper** is a poor man's debugger.
+**PySnooper** is a poor man's debugger. If you've used Bash, it's like `set -x` for Python, except it's fancier.
 
-You're trying to figure out why your Python code isn't doing what you think it should be doing. You'd love to use a full-fledged debugger with breakpoints and watches, but you can't be bothered to set one up right now.
+Your story: You're trying to figure out why your Python code isn't doing what you think it should be doing. You'd love to use a full-fledged debugger with breakpoints and watches, but you can't be bothered to set one up right now.
 
 You want to know which lines are running and which aren't, and what the values of the local variables are.
 
