@@ -153,9 +153,6 @@ $ yay -S python-pysnooper
 
 Copyright (c) 2019 Ram Rachum and collaborators, released under the MIT license.
 
-I provide [Development services in Python and Django](https://chipmunkdev.com
-) and I [give Python workshops](http://pythonworkshops.co/) to teach people
-Python and related topics.
 
 # Media Coverage #
 
