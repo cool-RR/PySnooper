@@ -10,7 +10,7 @@ import ntpath
 import os
 import posixpath
 import re
-import six
+from pysnooper import pycompat
 import sys
 try:
     from collections.abc import Sequence
@@ -60,8 +60,8 @@ __all__ = [
 
 def _py2_fsencode(parts):
     # py2 => minimal unicode support
-    assert six.PY2
-    return [part.encode('ascii') if isinstance(part, six.text_type)
+    assert pycompat.PY2
+    return [part.encode('ascii') if isinstance(part, pycompat.text_type)
             else part for part in parts]
 
 
@@ -200,7 +200,7 @@ class _Flavour(object):
         self.join = self.sep.join
 
     def parse_parts(self, parts):
-        if six.PY2:
+        if pycompat.PY2:
             parts = _py2_fsencode(parts)
         parsed = []
         sep = self.sep
@@ -832,8 +832,8 @@ class PurePath(object):
                 if isinstance(a, str):
                     # Force-cast str subclasses to str (issue #21127)
                     parts.append(str(a))
-                # also handle unicode for PY2 (six.text_type = unicode)
-                elif six.PY2 and isinstance(a, six.text_type):
+                # also handle unicode for PY2 (pycompat.text_type = unicode)
+                elif pycompat.PY2 and isinstance(a, pycompat.text_type):
                     # cast to str using filesystem encoding
                     parts.append(a.encode(sys.getfilesystemencoding()))
                 else:
@@ -1107,7 +1107,7 @@ class PurePath(object):
     def __rtruediv__(self, key):
         return self._from_parts([key] + self._parts)
 
-    if six.PY2:
+    if pycompat.PY2:
         __div__ = __truediv__
         __rdiv__ = __rtruediv__
 
@@ -1267,8 +1267,8 @@ class Path(PurePath):
                 other_st = os.stat(other_path)
             return os.path.samestat(st, other_st)
         else:
-            filename1 = six.text_type(self)
-            filename2 = six.text_type(other_path)
+            filename1 = pycompat.text_type(self)
+            filename2 = pycompat.text_type(other_path)
             st1 = _win32_get_unique_path_id(filename1)
             st2 = _win32_get_unique_path_id(filename2)
             return st1 == st2
@@ -1406,10 +1406,10 @@ class Path(PurePath):
         """
         Open the file in bytes mode, write to it, and close the file.
         """
-        if not isinstance(data, six.binary_type):
+        if not isinstance(data, pycompat.binary_type):
             raise TypeError(
                 'data must be %s, not %s' %
-                (six.binary_type.__name__, data.__class__.__name__))
+                (pycompat.binary_type.__name__, data.__class__.__name__))
         with self.open(mode='wb') as f:
             return f.write(data)
 
@@ -1417,10 +1417,10 @@ class Path(PurePath):
         """
         Open the file in text mode, write to it, and close the file.
         """
-        if not isinstance(data, six.text_type):
+        if not isinstance(data, pycompat.text_type):
             raise TypeError(
                 'data must be %s, not %s' %
-                (six.text_type.__name__, data.__class__.__name__))
+                (pycompat.text_type.__name__, data.__class__.__name__))
         with self.open(mode='w', encoding=encoding, errors=errors) as f:
             return f.write(data)
 
