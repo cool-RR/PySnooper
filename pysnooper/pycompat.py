@@ -57,9 +57,12 @@ except AttributeError:
 if PY3:
     string_types = (str,)
     text_type = str
+    binary_type = bytes
 else:
     string_types = (basestring,)
     text_type = unicode
+    binary_type = str
+
 
 try:
     from collections import abc as collections_abc
