@@ -148,6 +148,11 @@ Arch Linux:
 $ yay -S python-pysnooper
 ```
 
+Fedora Linux:
+
+```console
+$ dnf install python3-pysnooper
+```
 
 # License #
 
