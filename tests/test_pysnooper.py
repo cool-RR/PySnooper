@@ -140,6 +140,7 @@ def test_relative_time():
 
             # In with in recursive call
             LineEntry('qux()'),
+            LineEntry(source_regex="with snoop:", min_python_version=(3, 10)),
             ElapsedTimeEntry(0.4),
 
             # Call to bar3 from after with
@@ -168,6 +169,7 @@ def test_relative_time():
 
             # In with in first call
             LineEntry('qux()'),
+            LineEntry(source_regex="with snoop:", min_python_version=(3, 10)),
             ElapsedTimeEntry(0.7),
 
             # Call to bar3 from after with
@@ -1086,6 +1088,7 @@ def test_with_block(normalize):
 
             # In with in recursive call
             LineEntry('qux()'),
+            LineEntry(source_regex="with snoop:", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
 
             # Call to bar3 from after with
@@ -1114,6 +1117,7 @@ def test_with_block(normalize):
 
             # In with in first call
             LineEntry('qux()'),
+            LineEntry(source_regex="with snoop:", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
 
             # Call to bar3 from after with
@@ -1183,6 +1187,8 @@ def test_with_block_depth(normalize):
             LineEntry(),
             ReturnEntry(),
             ReturnValueEntry('20'),
+            VariableEntry(min_python_version=(3, 10)),
+            LineEntry(source_regex="with pysnooper.snoop.*", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
         ),
         normalize=normalize,
@@ -1250,6 +1256,8 @@ def test_cellvars(normalize):
             ReturnValueEntry(),
             ReturnEntry(),
             ReturnValueEntry(),
+            VariableEntry(min_python_version=(3, 10)),
+            LineEntry(source_regex="with pysnooper.snoop.*", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
         ),
         normalize=normalize,
@@ -1298,6 +1306,8 @@ def test_var_order(normalize):
             VariableEntry("seven", "7"),
             ReturnEntry(),
             ReturnValueEntry(),
+            VariableEntry("result", "None", min_python_version=(3, 10)),
+            LineEntry(source_regex="with pysnooper.snoop.*", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
         ),
         normalize=normalize,
