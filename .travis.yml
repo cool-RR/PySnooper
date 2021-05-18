@@ -27,6 +27,7 @@ matrix:
   - env: TOXENV=flake8
   - env: TOXENV=pylint
   - env: TOXENV=bandit
+  - python: 3.10-dev
 
 jobs:
   include:
