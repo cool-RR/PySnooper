@@ -360,8 +360,8 @@ class Tracer:
                         return None
                     elif _frame_candidate.f_code in self.target_codes or _frame_candidate in self.target_frames:
                         break
-                else:
-                    return None
+                    else:
+                        return None
 
         if event == 'call':
             thread_global.depth += 1
@@ -394,7 +394,7 @@ class Tracer:
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
         if self.last_source_path != source_path:
-            self.write(u'{indent}Source path:... {source_path}'.
+            self.write(u'\n{indent}Source path:... {source_path}'.
                        format(**locals()))
             self.last_source_path = source_path
         source_line = source[line_no - 1]
@@ -422,11 +422,15 @@ class Tracer:
                                                             'New var:....... ')
 
         for name, value_repr in local_reprs.items():
+            if self.depth > 1:
+                file_name = sys._getframe().f_code.co_filename.split(os.sep)[-1] + "  "
+            else:
+                file_name = ""
             if name not in old_local_reprs:
-                self.write('{indent}{newish_string}{name} = {value_repr}'.format(
+                self.write('{indent}{file_name}{newish_string}{name} = {value_repr}\n'.format(
                                                                        **locals()))
             elif old_local_reprs[name] != value_repr:
-                self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
+                self.write('{indent}{file_name}Modified var:.. {name} = {value_repr}\n'.format(
                                                                    **locals()))
 
         #                                                                     #
