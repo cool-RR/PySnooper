@@ -360,8 +360,8 @@ class Tracer:
                         return None
                     elif _frame_candidate.f_code in self.target_codes or _frame_candidate in self.target_frames:
                         break
-                    else:
-                        return None
+                else:
+                    return None
 
         if event == 'call':
             thread_global.depth += 1
