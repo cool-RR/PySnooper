@@ -202,10 +202,16 @@ class Tracer:
 
         @pysnooper.snoop(relative_time=True)
 
+    The output is colored for easy viewing by default, except on Windows.
+    Disable colors like so:
+
+        @pysnooper.snoop(color=False)
+
     '''
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
-                 max_variable_length=100, normalize=False, relative_time=False):
+                 max_variable_length=100, normalize=False, relative_time=False,
+                 color=True):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -233,6 +239,33 @@ class Tracer:
         self.max_variable_length = max_variable_length
         self.normalize = normalize
         self.relative_time = relative_time
+        self.color = color and sys.platform in ('linux', 'linux2', 'cygwin',
+                                                'darwin')
+
+        if self.color:
+            self._FOREGROUND_BLUE = '\x1b[34m'
+            self._FOREGROUND_CYAN = '\x1b[36m'
+            self._FOREGROUND_GREEN = '\x1b[32m'
+            self._FOREGROUND_MAGENTA = '\x1b[35m'
+            self._FOREGROUND_RED = '\x1b[31m'
+            self._FOREGROUND_RESET = '\x1b[39m'
+            self._FOREGROUND_YELLOW = '\x1b[33m'
+            self._STYLE_BRIGHT = '\x1b[1m'
+            self._STYLE_DIM = '\x1b[2m'
+            self._STYLE_NORMAL = '\x1b[22m'
+            self._STYLE_RESET_ALL = '\x1b[0m'
+        else:
+            self._FOREGROUND_BLUE = ''
+            self._FOREGROUND_CYAN = ''
+            self._FOREGROUND_GREEN = ''
+            self._FOREGROUND_MAGENTA = ''
+            self._FOREGROUND_RED = ''
+            self._FOREGROUND_RESET = ''
+            self._FOREGROUND_YELLOW = ''
+            self._STYLE_BRIGHT = ''
+            self._STYLE_DIM = ''
+            self._STYLE_NORMAL = ''
+            self._STYLE_RESET_ALL = ''
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -317,12 +350,19 @@ class Tracer:
 
         ### Writing elapsed time: #############################################
         #                                                                     #
+        _FOREGROUND_YELLOW = self._FOREGROUND_YELLOW
+        _STYLE_DIM = self._STYLE_DIM
+        _STYLE_NORMAL = self._STYLE_NORMAL
+        _STYLE_RESET_ALL = self._STYLE_RESET_ALL
+
         start_time = self.start_times.pop(calling_frame)
         duration = datetime_module.datetime.now() - start_time
         elapsed_time_string = pycompat.timedelta_format(duration)
         indent = ' ' * 4 * (thread_global.depth + 1)
         self.write(
-            '{indent}Elapsed time: {elapsed_time_string}'.format(**locals())
+            '{indent}{_FOREGROUND_YELLOW}{_STYLE_DIM}'
+            'Elapsed time: {_STYLE_NORMAL}{elapsed_time_string}'
+            '{_STYLE_RESET_ALL}'.format(**locals())
         )
         #                                                                     #
         ### Finished writing elapsed time. ####################################
@@ -363,12 +403,24 @@ class Tracer:
                 else:
                     return None
 
+        #                                                                     #
+        ### Finished checking whether we should trace this line. ##############
+
         if event == 'call':
             thread_global.depth += 1
         indent = ' ' * 4 * thread_global.depth
 
-        #                                                                     #
-        ### Finished checking whether we should trace this line. ##############
+        _FOREGROUND_BLUE = self._FOREGROUND_BLUE
+        _FOREGROUND_CYAN = self._FOREGROUND_CYAN
+        _FOREGROUND_GREEN = self._FOREGROUND_GREEN
+        _FOREGROUND_MAGENTA = self._FOREGROUND_MAGENTA
+        _FOREGROUND_RED = self._FOREGROUND_RED
+        _FOREGROUND_RESET = self._FOREGROUND_RESET
+        _FOREGROUND_YELLOW = self._FOREGROUND_YELLOW
+        _STYLE_BRIGHT = self._STYLE_BRIGHT
+        _STYLE_DIM = self._STYLE_DIM
+        _STYLE_NORMAL = self._STYLE_NORMAL
+        _STYLE_RESET_ALL = self._STYLE_RESET_ALL
 
         ### Making timestamp: #################################################
         #                                                                     #
@@ -394,8 +446,9 @@ class Tracer:
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
         if self.last_source_path != source_path:
-            self.write(u'{indent}Source path:... {source_path}'.
-                       format(**locals()))
+            self.write(u'{_FOREGROUND_YELLOW}{_STYLE_DIM}{indent}Source path:... '
+                       u'{_STYLE_NORMAL}{source_path}'
+                       u'{_STYLE_RESET_ALL}'.format(**locals()))
             self.last_source_path = source_path
         source_line = source[line_no - 1]
         thread_info = ""
@@ -423,11 +476,13 @@ class Tracer:
 
         for name, value_repr in local_reprs.items():
             if name not in old_local_reprs:
-                self.write('{indent}{newish_string}{name} = {value_repr}'.format(
-                                                                       **locals()))
+                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
+                           '{newish_string}{_STYLE_NORMAL}{name} = '
+                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
             elif old_local_reprs[name] != value_repr:
-                self.write('{indent}Modified var:.. {name} = {value_repr}'.format(
-                                                                   **locals()))
+                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
+                           'Modified var:.. {_STYLE_NORMAL}{name} = '
+                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
 
         #                                                                     #
         ### Finished newish and modified variables. ###########################
@@ -468,11 +523,11 @@ class Tracer:
         )
 
         if ended_by_exception:
-            self.write('{indent}Call ended by exception'.
+            self.write('{_FOREGROUND_RED}{indent}Call ended by exception{_STYLE_RESET_ALL}'.
                        format(**locals()))
         else:
-            self.write(u'{indent}{timestamp} {thread_info}{event:9} '
-                       u'{line_no:4} {source_line}'.format(**locals()))
+            self.write(u'{indent}{_STYLE_DIM}{timestamp} {thread_info}{event:9} '
+                       u'{line_no:4}{_STYLE_RESET_ALL} {source_line}'.format(**locals()))
 
         if event == 'return':
             self.frame_to_local_reprs.pop(frame, None)
@@ -485,14 +540,17 @@ class Tracer:
                                                             max_length=self.max_variable_length,
                                                             normalize=self.normalize,
                                                             )
-                self.write('{indent}Return value:.. {return_value_repr}'.
+                self.write('{indent}{_FOREGROUND_CYAN}{_STYLE_DIM}'
+                           'Return value:.. {_STYLE_NORMAL}{return_value_repr}'
+                           '{_STYLE_RESET_ALL}'.
                            format(**locals()))
 
         if event == 'exception':
             exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
             if self.max_variable_length:
                 exception = utils.truncate(exception, self.max_variable_length)
-            self.write('{indent}Exception:..... {exception}'.
-                       format(**locals()))
+            self.write('{indent}{_FOREGROUND_RED}Exception:..... '
+                       '{_STYLE_BRIGHT}{exception}'
+                       '{_STYLE_RESET_ALL}'.format(**locals()))
 
         return self.trace

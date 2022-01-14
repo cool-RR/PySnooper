@@ -25,7 +25,7 @@ from . import mini_toolbox
 def test_string_io():
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, color=False)
     def my_function(foo):
         x = 7
         y = 8
@@ -53,7 +53,7 @@ def test_string_io():
 
 
 def test_relative_time():
-    snoop = pysnooper.snoop(relative_time=True)
+    snoop = pysnooper.snoop(relative_time=True, color=False)
 
     def foo(x):
         if x == 0:
@@ -186,7 +186,7 @@ def test_relative_time():
 
 def test_thread_info():
 
-    @pysnooper.snoop(thread_info=True)
+    @pysnooper.snoop(thread_info=True, color=False)
     def my_function(foo):
         x = 7
         y = 8
@@ -217,7 +217,7 @@ def test_thread_info():
 
 def test_multi_thread_info():
 
-    @pysnooper.snoop(thread_info=True)
+    @pysnooper.snoop(thread_info=True, color=False)
     def my_function(foo):
         x = 7
         y = 8
@@ -306,7 +306,7 @@ def test_callable(normalize):
     def write(msg):
         string_io.write(msg)
 
-    @pysnooper.snoop(write, normalize=normalize)
+    @pysnooper.snoop(write, normalize=normalize, color=False)
     def my_function(foo):
         x = 7
         y = 8
@@ -347,7 +347,7 @@ def test_watch(normalize):
             'foo.x',
             'io.__name__',
             'len(foo.__dict__["x"] * "abc")',
-    ), normalize=normalize)
+    ), normalize=normalize, color=False)
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -395,7 +395,8 @@ def test_watch_explode(normalize):
             self.x = x
             self.y = y
 
-    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'), normalize=normalize)
+    @pysnooper.snoop(watch_explode=('_d', '_point', 'lst + []'), normalize=normalize,
+                     color=False)
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _point = Foo(x=3, y=4)
@@ -454,7 +455,7 @@ def test_variables_classes(normalize):
             pysnooper.Attrs('_d'),  # doesn't have attributes
             pysnooper.Attrs('_s'),
             pysnooper.Indices('_lst')[-3:],
-    ), normalize=normalize)
+    ), normalize=normalize, color=False)
     def my_function():
         _d = {'a': 1, 'b': 2, 'c': 'ignore'}
         _s = WithSlots()
@@ -501,7 +502,7 @@ def test_single_watch_no_comma(normalize):
         def square(self):
             self.x **= 2
 
-    @pysnooper.snoop(watch='foo', normalize=normalize)
+    @pysnooper.snoop(watch='foo', normalize=normalize, color=False)
     def my_function():
         foo = Foo()
         for i in range(2):
@@ -537,7 +538,7 @@ def test_single_watch_no_comma(normalize):
 
 @pytest.mark.parametrize("normalize", (True, False))
 def test_long_variable(normalize):
-    @pysnooper.snoop(normalize=normalize)
+    @pysnooper.snoop(normalize=normalize, color=False)
     def my_function():
         foo = list(range(1000))
         return foo
@@ -566,7 +567,7 @@ def test_long_variable(normalize):
 
 @pytest.mark.parametrize("normalize", (True, False))
 def test_long_variable_with_custom_max_variable_length(normalize):
-    @pysnooper.snoop(max_variable_length=200, normalize=normalize)
+    @pysnooper.snoop(max_variable_length=200, normalize=normalize, color=False)
     def my_function():
         foo = list(range(1000))
         return foo
@@ -595,7 +596,7 @@ def test_long_variable_with_custom_max_variable_length(normalize):
 
 @pytest.mark.parametrize("normalize", (True, False))
 def test_long_variable_with_infinite_max_variable_length(normalize):
-    @pysnooper.snoop(max_variable_length=None, normalize=normalize)
+    @pysnooper.snoop(max_variable_length=None, normalize=normalize, color=False)
     def my_function():
         foo = list(range(1000))
         return foo
@@ -628,7 +629,7 @@ def test_repr_exception(normalize):
         def __repr__(self):
             1 / 0
 
-    @pysnooper.snoop(normalize=normalize)
+    @pysnooper.snoop(normalize=normalize, color=False)
     def my_function():
         bad = Bad()
 
@@ -669,7 +670,7 @@ def test_depth(normalize):
         result2 = f3(x2)
         return result2
 
-    @pysnooper.snoop(string_io, depth=3, normalize=normalize)
+    @pysnooper.snoop(string_io, depth=3, normalize=normalize, color=False)
     def f1(x1):
         result1 = f2(x1)
         return result1
@@ -722,7 +723,8 @@ def test_method_and_prefix(normalize):
         def __init__(self):
             self.x = 2
 
-        @pysnooper.snoop(watch=('self.x',), prefix='ZZZ', normalize=normalize)
+        @pysnooper.snoop(watch=('self.x',), prefix='ZZZ', normalize=normalize,
+                         color=False)
         def square(self):
             foo = 7
             self.x **= 2
@@ -762,7 +764,7 @@ def test_file_output(normalize):
     with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
 
-        @pysnooper.snoop(path, normalize=normalize)
+        @pysnooper.snoop(path, normalize=normalize, color=False)
         def my_function(_foo):
             x = 7
             y = 8
@@ -800,7 +802,7 @@ def test_confusing_decorator_lines(normalize):
 
     @empty_decorator
     @pysnooper.snoop(string_io, normalize=normalize,
-                     depth=2)  # Multi-line decorator for extra confusion!
+                     depth=2, color=False)
     @empty_decorator
     @empty_decorator
     def my_function(foo):
@@ -840,7 +842,7 @@ def test_confusing_decorator_lines(normalize):
 @pytest.mark.parametrize("normalize", (True, False))
 def test_lambda(normalize):
     string_io = io.StringIO()
-    my_function = pysnooper.snoop(string_io, normalize=normalize)(lambda x: x ** 2)
+    my_function = pysnooper.snoop(string_io, normalize=normalize, color=False)(lambda x: x ** 2)
     result = my_function(7)
     assert result == 49
     output = string_io.getvalue()
@@ -866,7 +868,7 @@ def test_unavailable_source():
         python_file_path = folder / ('%s.py' % (module_name,))
         content = textwrap.dedent(u'''
             import pysnooper
-            @pysnooper.snoop()
+            @pysnooper.snoop(color=False)
             def f(x):
                 return x
         ''')
@@ -898,7 +900,7 @@ def test_no_overwrite_by_default():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
-        @pysnooper.snoop(str(path))
+        @pysnooper.snoop(str(path), color=False)
         def my_function(foo):
             x = 7
             y = 8
@@ -932,7 +934,7 @@ def test_overwrite():
         path = folder / 'foo.log'
         with path.open('w') as output_file:
             output_file.write(u'lala')
-        @pysnooper.snoop(str(path), overwrite=True)
+        @pysnooper.snoop(str(path), overwrite=True, color=False)
         def my_function(foo):
             x = 7
             y = 8
@@ -975,7 +977,7 @@ def test_overwrite():
 def test_error_in_overwrite_argument():
     with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         with pytest.raises(Exception, match='can only be used when writing'):
-            @pysnooper.snoop(overwrite=True)
+            @pysnooper.snoop(overwrite=True, color=False)
             def my_function(foo):
                 x = 7
                 y = 8
@@ -1002,7 +1004,7 @@ def test_needs_parentheses():
 @pytest.mark.parametrize("normalize", (True, False))
 def test_with_block(normalize):
     # Testing that a single Tracer can handle many mixed uses
-    snoop = pysnooper.snoop(normalize=normalize)
+    snoop = pysnooper.snoop(normalize=normalize, color=False)
 
     def foo(x):
         if x == 0:
@@ -1151,7 +1153,7 @@ def test_with_block_depth(normalize):
 
     def f1(x1):
         str(3)
-        with pysnooper.snoop(string_io, depth=3, normalize=normalize):
+        with pysnooper.snoop(string_io, depth=3, normalize=normalize, color=False):
             result1 = f2(x1)
         return result1
 
@@ -1210,7 +1212,7 @@ def test_cellvars(normalize):
         return f3(a)
 
     def f1(a):
-        with pysnooper.snoop(string_io, depth=4, normalize=normalize):
+        with pysnooper.snoop(string_io, depth=4, normalize=normalize, color=False):
             result1 = f2(a)
         return result1
 
@@ -1275,7 +1277,7 @@ def test_var_order(normalize):
 
         five, six, seven = 5, 6, 7
 
-    with pysnooper.snoop(string_io, depth=2, normalize=normalize):
+    with pysnooper.snoop(string_io, depth=2, normalize=normalize, color=False):
         result = f(1, 2, 3, 4)
 
     output = string_io.getvalue()
@@ -1344,7 +1346,7 @@ def test_generator():
     original_tracer_active = lambda: (sys.gettrace() is original_tracer)
 
 
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, color=False)
     def f(x1):
         assert not original_tracer_active()
         x2 = (yield x1)
@@ -1441,7 +1443,7 @@ def test_custom_repr(normalize):
         (large, print_list_size),
         (dict, print_dict),
         (evil_condition, lambda x: 'I am evil')),
-            normalize=normalize,)
+            normalize=normalize, color=False)
     def sum_to_x(x):
         l = list(range(x))
         a = {'1': 1, '2': 2}
@@ -1473,7 +1475,8 @@ def test_custom_repr(normalize):
 def test_custom_repr_single(normalize):
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io, custom_repr=(list, lambda l: 'foofoo!'), normalize=normalize)
+    @pysnooper.snoop(string_io, custom_repr=(list, lambda l: 'foofoo!'),
+                     normalize=normalize, color=False)
     def sum_to_x(x):
         l = list(range(x))
         return 7
@@ -1507,7 +1510,7 @@ def test_disable():
         return x + y
 
     with mini_toolbox.TempValueSetter((pysnooper.tracer, 'DISABLED'), True):
-        tracer = pysnooper.snoop(string_io)
+        tracer = pysnooper.snoop(string_io, color=False)
         with tracer:
             result = my_function('baba')
         my_decorated_function = tracer(my_function)
@@ -1521,7 +1524,7 @@ def test_disable():
 def test_class(normalize):
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io, normalize=normalize)
+    @pysnooper.snoop(string_io, normalize=normalize, color=False)
     class MyClass(object):
         def __init__(self):
             self.x = 7
@@ -1568,7 +1571,7 @@ def test_class_with_decorated_method(normalize):
             return result
         return wrapper
 
-    @pysnooper.snoop(string_io, normalize=normalize)
+    @pysnooper.snoop(string_io, normalize=normalize, color=False)
     class MyClass(object):
         def __init__(self):
             self.x = 7
@@ -1617,13 +1620,13 @@ def test_class_with_decorated_method_and_snoop_applied_to_method(normalize):
             return result
         return wrapper
 
-    @pysnooper.snoop(string_io, normalize=normalize)
+    @pysnooper.snoop(string_io, normalize=normalize, color=False)
     class MyClass(object):
         def __init__(self):
             self.x = 7
 
         @decorator
-        @pysnooper.snoop(string_io, normalize=normalize)
+        @pysnooper.snoop(string_io, normalize=normalize, color=False)
         def my_method(self, foo):
             y = 8
             return y + self.x
@@ -1671,7 +1674,7 @@ def test_class_with_decorated_method_and_snoop_applied_to_method(normalize):
 def test_class_with_property(normalize):
     string_io = io.StringIO()
 
-    @pysnooper.snoop(string_io, normalize=normalize)
+    @pysnooper.snoop(string_io, normalize=normalize, color=False)
     class MyClass(object):
         def __init__(self):
             self._x = 0
@@ -1759,7 +1762,7 @@ def test_snooping_on_class_does_not_cause_base_class_to_be_snooped(normalize):
         def method_on_base_class(self):
             self.method_on_base_class_was_called = True
 
-    @pysnooper.snoop(string_io, normalize=normalize)
+    @pysnooper.snoop(string_io, normalize=normalize, color=False)
     class MyClass(UnsnoopedBaseClass):
         def method_on_child_class(self):
             self.method_on_base_class()
@@ -1793,7 +1796,7 @@ def test_normalize():
         def __init__(self, a):
             self.a = a
 
-    @pysnooper.snoop(string_io, normalize=True)
+    @pysnooper.snoop(string_io, normalize=True, color=False)
     def add():
         a = A(19)
         b = A(22)
@@ -1830,7 +1833,7 @@ def test_normalize_prefix():
         def __init__(self, a):
             self.a = a
 
-    @pysnooper.snoop(string_io, normalize=True, prefix=_prefix)
+    @pysnooper.snoop(string_io, normalize=True, prefix=_prefix, color=False)
     def add():
         a = A(19)
         b = A(22)
@@ -1866,7 +1869,7 @@ def test_normalize_thread_info():
         def __init__(self, a):
             self.a = a
 
-    @pysnooper.snoop(string_io, normalize=True, thread_info=True)
+    @pysnooper.snoop(string_io, normalize=True, thread_info=True, color=False)
     def add():
         a = A(19)
         b = A(22)
@@ -1879,7 +1882,7 @@ def test_normalize_thread_info():
 
 def test_exception():
     string_io = io.StringIO()
-    @pysnooper.snoop(string_io)
+    @pysnooper.snoop(string_io, color=False)
     def f():
         x = 8
         raise MemoryError
@@ -1905,7 +1908,7 @@ def test_exception():
 
 
 def test_exception_on_entry():
-    @pysnooper.snoop()
+    @pysnooper.snoop(color=False)
     def f(x):
         pass
 

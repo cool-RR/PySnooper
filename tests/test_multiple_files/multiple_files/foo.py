@@ -5,7 +5,7 @@ import pysnooper
 
 from .bar import bar_function
 
-@pysnooper.snoop(depth=2)
+@pysnooper.snoop(depth=2, color=False)
 def foo_function():
     z = bar_function(3)
     return z

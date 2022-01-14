@@ -38,7 +38,7 @@ def test_rejecting_coroutine_functions():
     assert pycompat.iscoroutinefunction(foo)
     assert not pycompat.isasyncgenfunction(foo)
     with pytest.raises(NotImplementedError):
-        pysnooper.snoop()(foo)
+        pysnooper.snoop(color=False)(foo)
 
 
 def test_rejecting_async_generator_functions():
@@ -56,6 +56,6 @@ def test_rejecting_async_generator_functions():
     assert not pycompat.iscoroutinefunction(foo)
     assert pycompat.isasyncgenfunction(foo)
     with pytest.raises(NotImplementedError):
-        pysnooper.snoop()(foo)
+        pysnooper.snoop(color=False)(foo)
 
 

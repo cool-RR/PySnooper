@@ -90,3 +90,9 @@ You can also use `max_variable_length=None` to never truncate them.
 
 Use `relative_time=True` to show timestamps relative to start time rather than
 wall time.
+
+The output is colored for easy viewing by default, except on Windows. Disable colors like so:
+
+```python
+    @pysnooper.snoop(color=False)
+````

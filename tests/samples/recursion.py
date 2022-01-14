@@ -1,7 +1,7 @@
 import pysnooper
 
 
-@pysnooper.snoop(depth=2)
+@pysnooper.snoop(depth=2, color=False)
 def factorial(x):
     if x <= 1:
         return 1

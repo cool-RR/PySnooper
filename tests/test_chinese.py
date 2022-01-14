@@ -26,7 +26,7 @@ from . import mini_toolbox
 def test_chinese():
     with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder:
         path = folder / 'foo.log'
-        @pysnooper.snoop(path)
+        @pysnooper.snoop(path, color=False)
         def foo():
             a = 1
             x = '失败'
