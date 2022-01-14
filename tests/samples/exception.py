@@ -13,7 +13,7 @@ def bar():
         raise
 
 
-@pysnooper.snoop(depth=3)
+@pysnooper.snoop(depth=3, color=False)
 def main():
     try:
         bar()
