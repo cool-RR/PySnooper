@@ -24,7 +24,7 @@ import collections
 __VersionInfo = collections.namedtuple('VersionInfo',
                                        ('major', 'minor', 'micro'))
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 __version_info__ = __VersionInfo(*(map(int, __version__.split('.'))))
 
 del collections, __VersionInfo # Avoid polluting the namespace
