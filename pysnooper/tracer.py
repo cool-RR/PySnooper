@@ -20,7 +20,7 @@ if pycompat.PY2:
 
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
-ansible_filename_pattern = re.compile('^(/.+zip)/(ansible/modules/.+)$')
+ansible_filename_pattern = re.compile(r'^(/.+\.zip)/(ansible/modules/.+\.py)$')
 
 
 def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=False):
