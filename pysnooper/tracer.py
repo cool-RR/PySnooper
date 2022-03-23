@@ -20,6 +20,7 @@ if pycompat.PY2:
 
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
+ansible_filename_pattern = re.compile('^(/.+zip)/(ansible/modules/.+)$')
 
 
 def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=False):
@@ -67,6 +68,7 @@ def get_path_and_source_from_frame(frame):
             source = source.splitlines()
     if source is None:
         ipython_filename_match = ipython_filename_pattern.match(file_name)
+        ansible_filename_match = ansible_filename_pattern.match(file_name)
         if ipython_filename_match:
             entry_number = int(ipython_filename_match.group(1))
             try:
@@ -75,6 +77,13 @@ def get_path_and_source_from_frame(frame):
                 ((_, _, source_chunk),) = ipython_shell.history_manager. \
                                   get_range(0, entry_number, entry_number + 1)
                 source = source_chunk.splitlines()
+            except Exception:
+                pass
+        elif ansible_filename_match:
+            try:
+                import zipfile
+                archive_file = zipfile.ZipFile(ansible_filename_match.group(1), 'r')
+                source = archive_file.read(ansible_filename_match.group(2)).splitlines()
             except Exception:
                 pass
         else:
