@@ -1947,7 +1947,7 @@ def test_valid_zipfile():
             python_file_path.unlink()
             folder.joinpath(zip_name).rename(folder.joinpath('%s.delete' % (zip_name)))
             folder.joinpath('foo_bar.zip').rename(folder.joinpath(zip_name))
-            breakpoint()
+
             with mini_toolbox.OutputCapturer(stdout=False,
                                              stderr=True) as output_capturer:
                 result = getattr(module, 'f')(7)
@@ -1999,7 +1999,7 @@ def test_invalid_zipfile():
             python_file_path.unlink()
             folder.joinpath(zip_name).rename(folder.joinpath('%s.delete' % (zip_name)))
             folder.joinpath('foo_bar.zip').rename(folder.joinpath(zip_name))
-            breakpoint()
+
             with mini_toolbox.OutputCapturer(stdout=False,
                                          stderr=True) as output_capturer:
                 result = getattr(module, 'f')(7)
@@ -2047,7 +2047,7 @@ def test_valid_damaged_zipfile():
             folder.joinpath(zip_name).rename(folder.joinpath('%s.delete' % (zip_name)))
 
             folder.joinpath(zip_name).write_text('I am not a zip file')
-            breakpoint()
+
             with mini_toolbox.OutputCapturer(stdout=False,
                                          stderr=True) as output_capturer:
                 result = getattr(module, 'f')(7)
