@@ -8,6 +8,7 @@ import time
 import types
 import os
 import sys
+import zipfile
 
 from pysnooper.utils import truncate
 import pytest
@@ -1914,3 +1915,153 @@ def test_exception_on_entry():
 
     with pytest.raises(TypeError):
         f()
+
+
+def test_valid_zipfile():
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder, \
+                                    mini_toolbox.TempSysPathAdder(str(folder)):
+        module_name = 'my_valid_zip_module'
+        zip_name = 'valid.zip'
+        zip_base_path = mini_toolbox.pathlib.Path('ansible/modules')
+        python_file_path = folder / zip_name / zip_base_path / ('%s.py' % (module_name))
+        os.makedirs(str(folder / zip_name / zip_base_path))
+        try:
+            sys.path.insert(0, str(folder / zip_name / zip_base_path))
+            content = textwrap.dedent(u'''
+                import pysnooper
+                @pysnooper.snoop(color=False)
+                def f(x):
+                    return x
+            ''')
+
+            python_file_path.write_text(content)
+
+            module = __import__(module_name)
+
+            with zipfile.ZipFile(str(folder / 'foo_bar.zip'), 'w') as myZipFile:
+                myZipFile.write(str(folder / zip_name / zip_base_path / ('%s.py' % (module_name))), \
+                                '%s/%s.py' % (zip_base_path, module_name,), \
+                                zipfile.ZIP_DEFLATED)
+
+            python_file_path.unlink()
+            folder.joinpath(zip_name).rename(folder.joinpath('%s.delete' % (zip_name)))
+            folder.joinpath('foo_bar.zip').rename(folder.joinpath(zip_name))
+
+            with mini_toolbox.OutputCapturer(stdout=False,
+                                             stderr=True) as output_capturer:
+                result = getattr(module, 'f')(7)
+            assert result == 7
+            output = output_capturer.output
+
+            assert_output(
+                output,
+                (
+                    SourcePathEntry(),
+                    VariableEntry(stage='starting'),
+                    CallEntry('def f(x):'),
+                    LineEntry('return x'),
+                    ReturnEntry('return x'),
+                    ReturnValueEntry('7'),
+                    ElapsedTimeEntry(),
+                )
+            )
+        finally:
+            sys.path.remove(str(folder / zip_name / zip_base_path))
+
+
+def test_invalid_zipfile():
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder, \
+                                    mini_toolbox.TempSysPathAdder(str(folder)):
+        module_name = 'my_invalid_zip_module'
+        zip_name = 'invalid.zip'
+        zip_base_path = mini_toolbox.pathlib.Path('invalid/modules/path')
+        python_file_path = folder / zip_name / zip_base_path / ('%s.py' % (module_name))
+        os.makedirs(str(folder / zip_name / zip_base_path))
+        try:
+            sys.path.insert(0, str(folder / zip_name / zip_base_path))
+            content = textwrap.dedent(u'''
+                import pysnooper
+                @pysnooper.snoop(color=False)
+                def f(x):
+                    return x
+            ''')
+            python_file_path.write_text(content)
+
+            module = __import__(module_name)
+
+            with zipfile.ZipFile(str(folder / 'foo_bar.zip'), 'w') as myZipFile:
+                myZipFile.write(str(folder / zip_name / zip_base_path / ('%s.py' % (module_name))), \
+                                str(zip_base_path / ('%s.py' % (module_name,))), \
+                                zipfile.ZIP_DEFLATED)
+
+            python_file_path.unlink()
+            folder.joinpath(zip_name).rename(folder.joinpath('%s.delete' % (zip_name)))
+            folder.joinpath('foo_bar.zip').rename(folder.joinpath(zip_name))
+
+            with mini_toolbox.OutputCapturer(stdout=False,
+                                         stderr=True) as output_capturer:
+                result = getattr(module, 'f')(7)
+            assert result == 7
+            output = output_capturer.output
+
+            assert_output(
+                output,
+                (
+                    SourcePathEntry(),
+                    VariableEntry(stage='starting'),
+                    CallEntry('SOURCE IS UNAVAILABLE'),
+                    LineEntry('SOURCE IS UNAVAILABLE'),
+                    ReturnEntry('SOURCE IS UNAVAILABLE'),
+                    ReturnValueEntry('7'),
+                    ElapsedTimeEntry(),
+                )
+            )
+        finally:
+            sys.path.remove(str(folder / zip_name / zip_base_path))
+
+
+def test_valid_damaged_zipfile():
+    with mini_toolbox.create_temp_folder(prefix='pysnooper') as folder, \
+                                    mini_toolbox.TempSysPathAdder(str(folder)):
+        module_name = 'my_damaged_module'
+        zip_name = 'damaged.zip'
+        zip_base_path = mini_toolbox.pathlib.Path('ansible/modules')
+        python_file_path = folder / zip_name / zip_base_path / ('%s.py' % (module_name))
+        os.makedirs(str(folder / zip_name / zip_base_path))
+        try:
+            sys.path.insert(0, str(folder / zip_name / zip_base_path))
+            content = textwrap.dedent(u'''
+                import pysnooper
+                @pysnooper.snoop(color=False)
+                def f(x):
+                    return x
+            ''')
+            python_file_path.write_text(content)
+
+            module = __import__(module_name)
+
+            python_file_path.unlink()
+            folder.joinpath(zip_name).rename(folder.joinpath('%s.delete' % (zip_name)))
+
+            folder.joinpath(zip_name).write_text(u'I am not a zip file')
+
+            with mini_toolbox.OutputCapturer(stdout=False,
+                                         stderr=True) as output_capturer:
+                result = getattr(module, 'f')(7)
+            assert result == 7
+            output = output_capturer.output
+
+            assert_output(
+                output,
+                (
+                    SourcePathEntry(),
+                    VariableEntry(stage='starting'),
+                    CallEntry('SOURCE IS UNAVAILABLE'),
+                    LineEntry('SOURCE IS UNAVAILABLE'),
+                    ReturnEntry('SOURCE IS UNAVAILABLE'),
+                    ReturnValueEntry('7'),
+                    ElapsedTimeEntry(),
+                )
+            )
+        finally:
+            sys.path.remove(str(folder / zip_name / zip_base_path))
