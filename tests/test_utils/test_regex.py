@@ -35,6 +35,12 @@ def test_ansible_filename_pattern():
     assert ansible_filename_pattern.match(file_name).group(1) == archive_file
     assert ansible_filename_pattern.match(file_name).group(2) == source_code_file
 
+    archive_file = 'C:\\Users\\vagrant\\AppData\\Local\\Temp\\pysnooperw5c2lg35\\valid.zip'
+    source_code_file = 'ansible\\modules\\my_valid_zip_module.py'
+    file_name = '%s\\%s' % (archive_file, source_code_file)
+    assert ansible_filename_pattern.match(file_name).group(1) == archive_file
+    assert ansible_filename_pattern.match(file_name).group(2) == source_code_file
+
     archive_file = '/tmp/ansible_my_module_payload_xyz1234/ansible_my_module_payload.zip'
     source_code_file = 'ANSIBLE/modules/my_module.py'
     file_name = '%s/%s' % (archive_file, source_code_file)
@@ -64,9 +70,3 @@ def test_ansible_filename_pattern():
     source_code_file = 'ansible/modules/my_module.py'
     file_name = '%s/%s' % (archive_file, source_code_file)
     assert ansible_filename_pattern.match(file_name) is None
-
-
-
-
-
-

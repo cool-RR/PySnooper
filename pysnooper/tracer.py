@@ -20,7 +20,7 @@ if pycompat.PY2:
 
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
-ansible_filename_pattern = re.compile(r'^(/.+\.zip)/(ansible/modules/.+\.py)$')
+ansible_filename_pattern = re.compile(r'^(.+\.zip)[/|\\](ansible[/|\\]modules[/|\\].+\.py)$')
 
 
 def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=False):
@@ -83,7 +83,7 @@ def get_path_and_source_from_frame(frame):
             try:
                 import zipfile
                 archive_file = zipfile.ZipFile(ansible_filename_match.group(1), 'r')
-                source = archive_file.read(ansible_filename_match.group(2)).splitlines()
+                source = archive_file.read(ansible_filename_match.group(2).replace('\\', '/')).splitlines()
             except Exception:
                 pass
         else:

@@ -9,7 +9,6 @@ import types
 import os
 import sys
 import zipfile
-import importlib
 
 from pysnooper.utils import truncate
 import pytest
@@ -1923,24 +1922,24 @@ def test_valid_zipfile():
                                     mini_toolbox.TempSysPathAdder(str(folder)):
         module_name = 'my_valid_zip_module'
         zip_name = 'valid.zip'
-        zip_base_path = 'ansible/modules'
+        zip_base_path = mini_toolbox.pathlib.Path('ansible/modules')
         python_file_path = folder / zip_name / zip_base_path / ('%s.py' % (module_name))
-        os.makedirs(folder / zip_name / zip_base_path)
+        os.makedirs(str(folder / zip_name / zip_base_path))
         try:
-            sys.path.insert(0, str(folder / zip_name))
+            sys.path.insert(0, str(folder / zip_name / zip_base_path))
             content = textwrap.dedent(u'''
                 import pysnooper
                 @pysnooper.snoop(color=False)
                 def f(x):
                     return x
             ''')
+
             python_file_path.write_text(content)
 
-            module = importlib.import_module('%s.%s' % ('.'.join(zip_base_path.split('/')), \
-                                                        module_name))
+            module = __import__(module_name)
 
-            with zipfile.ZipFile(folder / 'foo_bar.zip', 'w') as myZipFile:
-                myZipFile.write(folder / zip_name / zip_base_path / ('%s.py' % (module_name)), \
+            with zipfile.ZipFile(str(folder / 'foo_bar.zip'), 'w') as myZipFile:
+                myZipFile.write(str(folder / zip_name / zip_base_path / ('%s.py' % (module_name))), \
                                 '%s/%s.py' % (zip_base_path, module_name,), \
                                 zipfile.ZIP_DEFLATED)
 
@@ -1967,7 +1966,7 @@ def test_valid_zipfile():
                 )
             )
         finally:
-            sys.path.remove(str(folder / zip_name))
+            sys.path.remove(str(folder / zip_name / zip_base_path))
 
 
 def test_invalid_zipfile():
@@ -1975,11 +1974,11 @@ def test_invalid_zipfile():
                                     mini_toolbox.TempSysPathAdder(str(folder)):
         module_name = 'my_invalid_zip_module'
         zip_name = 'invalid.zip'
-        zip_base_path = 'invalid/modules/path'
+        zip_base_path = mini_toolbox.pathlib.Path('invalid/modules/path')
         python_file_path = folder / zip_name / zip_base_path / ('%s.py' % (module_name))
-        os.makedirs(folder / zip_name / zip_base_path)
+        os.makedirs(str(folder / zip_name / zip_base_path))
         try:
-            sys.path.insert(0, str(folder / zip_name))
+            sys.path.insert(0, str(folder / zip_name / zip_base_path))
             content = textwrap.dedent(u'''
                 import pysnooper
                 @pysnooper.snoop(color=False)
@@ -1988,12 +1987,11 @@ def test_invalid_zipfile():
             ''')
             python_file_path.write_text(content)
 
-            module = importlib.import_module('%s.%s' % ('.'.join(zip_base_path.split('/')), \
-                                                        module_name))
+            module = __import__(module_name)
 
-            with zipfile.ZipFile(folder / 'foo_bar.zip', 'w') as myZipFile:
-                myZipFile.write(folder / zip_name / zip_base_path / ('%s.py' % (module_name)), \
-                                '%s/%s.py' % (zip_base_path, module_name,), \
+            with zipfile.ZipFile(str(folder / 'foo_bar.zip'), 'w') as myZipFile:
+                myZipFile.write(str(folder / zip_name / zip_base_path / ('%s.py' % (module_name))), \
+                                str(zip_base_path / ('%s.py' % (module_name,))), \
                                 zipfile.ZIP_DEFLATED)
 
             python_file_path.unlink()
@@ -2019,7 +2017,7 @@ def test_invalid_zipfile():
                 )
             )
         finally:
-            sys.path.remove(str(folder / zip_name))
+            sys.path.remove(str(folder / zip_name / zip_base_path))
 
 
 def test_valid_damaged_zipfile():
@@ -2027,11 +2025,11 @@ def test_valid_damaged_zipfile():
                                     mini_toolbox.TempSysPathAdder(str(folder)):
         module_name = 'my_damaged_module'
         zip_name = 'damaged.zip'
-        zip_base_path = 'ansible/modules'
+        zip_base_path = mini_toolbox.pathlib.Path('ansible/modules')
         python_file_path = folder / zip_name / zip_base_path / ('%s.py' % (module_name))
-        os.makedirs(folder / zip_name / zip_base_path)
+        os.makedirs(str(folder / zip_name / zip_base_path))
         try:
-            sys.path.insert(0, str(folder / zip_name))
+            sys.path.insert(0, str(folder / zip_name / zip_base_path))
             content = textwrap.dedent(u'''
                 import pysnooper
                 @pysnooper.snoop(color=False)
@@ -2040,13 +2038,12 @@ def test_valid_damaged_zipfile():
             ''')
             python_file_path.write_text(content)
 
-            module = importlib.import_module('%s.%s' % ('.'.join(zip_base_path.split('/')), \
-                                                        module_name))
+            module = __import__(module_name)
 
             python_file_path.unlink()
             folder.joinpath(zip_name).rename(folder.joinpath('%s.delete' % (zip_name)))
 
-            folder.joinpath(zip_name).write_text('I am not a zip file')
+            folder.joinpath(zip_name).write_text(u'I am not a zip file')
 
             with mini_toolbox.OutputCapturer(stdout=False,
                                          stderr=True) as output_capturer:
@@ -2067,4 +2064,4 @@ def test_valid_damaged_zipfile():
                 )
             )
         finally:
-            sys.path.remove(str(folder / zip_name))
+            sys.path.remove(str(folder / zip_name / zip_base_path))
