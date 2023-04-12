@@ -1,26 +1,24 @@
 #!wing
-#!version=7.0
+#!version=9.0
 ##################################################################
 # Wing project file                                              #
 ##################################################################
 [project attributes]
 proj.directory-list = [{'dirloc': loc('../..'),
-                        'excludes': [u'PySnooper.egg-info',
-                                     u'dist',
-                                     u'build'],
+                        'excludes': ['PySnooper.egg-info',
+                                     'dist',
+                                     'build'],
                         'filter': '*',
                         'include_hidden': False,
                         'recursive': True,
                         'watch_for_changes': True}]
 proj.file-type = 'shared'
 proj.home-dir = loc('../..')
-proj.launch-config = {loc('../../../../../../../Program Files/Python37/Scripts/pasteurize-script.py'): ('p'\
-        'roject',
-        (u'"c:\\Users\\Administrator\\Documents\\Python Projects\\PySnooper\\pysnooper" "c:\\Users\\Administrator\\Documents\\Python Projects\\PySnooper\\tests"',
+proj.launch-config = {loc('../../../../../../../Program Files/Python37/Scripts/pasteurize-script.py'): ('project',
+        ('"c:\\Users\\Administrator\\Documents\\Python Projects\\PySnooper\\pysnooper" "c:\\Users\\Administrator\\Documents\\Python Projects\\PySnooper\\tests"',
          '')),
-                      loc('../../../../../Dropbox/Scripts and shortcuts/_simplify3d_add_m600.py'): ('p'\
-        'roject',
-        (u'"C:\\Users\\Administrator\\Dropbox\\Desktop\\foo.gcode"',
+                      loc('../../../../../Dropbox/Scripts and shortcuts/_simplify3d_add_m600.py'): ('project',
+        ('"C:\\Users\\Administrator\\Dropbox\\Desktop\\foo.gcode"',
          ''))}
 testing.auto-test-file-specs = (('regex',
                                  'pysnooper/tests.*/test[^./]*.py.?$'),)
