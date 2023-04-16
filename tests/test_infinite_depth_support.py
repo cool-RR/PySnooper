@@ -22,7 +22,7 @@ from .utils import (assert_output, assert_sample_output, VariableEntry,
 from . import mini_toolbox
 
 @pytest.mark.parametrize("normalize", (True, False))
-def test_var_order(normalize):
+def test_infinite_depth_support(normalize):
     string_io = io.StringIO()
 
     def func1(x):
@@ -46,8 +46,6 @@ def test_var_order(normalize):
         recursive_function(1)
 
     output = string_io.getvalue()
-    with open('test_var_order.txt', 'w') as f:
-        f.write(output)
     
     assert_output(
         output,
@@ -66,13 +64,12 @@ def test_var_order(normalize):
 
         CallEntry("def recursive_function(x):"),
         LineEntry("if x == 0:"),
-        LineEntry(),
         LineEntry("foo(x)"),
 
         VariableEntry("x", "1"),
-        VariableEntry("func1"),
-        CallEntry("def func(x):"),
-        LineEntry("func1(x)"),
+        VariableEntry("func"),
+        CallEntry("def foo(x):"),
+        LineEntry("func(x)"),
 
         VariableEntry("x", "1"),
         VariableEntry("func1"),

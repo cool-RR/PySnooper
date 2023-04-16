@@ -1,4 +1,5 @@
-# Copyright 2019 Ram Rachum and collaborators.
+# -*- coding: utf-8 -*-
+# Copyright 2023 Elijah Qi and Liuqing Yang.
 # This program is distributed under the MIT license.
 
 import io
