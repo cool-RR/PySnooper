@@ -470,7 +470,7 @@ class Tracer:
                                           "thread_info")
             current_thread = threading.current_thread()
             thread_info = "{ident}-{name} ".format(
-                ident=current_thread.ident, name=current_thread.getName())
+                ident=current_thread.ident, name=current_thread.name)
         thread_info = self.set_thread_info_padding(thread_info)
 
         ### Reporting newish and modified variables: ##########################
