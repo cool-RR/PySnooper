@@ -21,6 +21,11 @@ if pycompat.PY2:
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 ansible_filename_pattern = re.compile(r'^(.+\.zip)[/|\\](ansible[/|\\]modules[/|\\].+\.py)$')
+RETURN_OPCODES = {
+    'RETURN_GENERATOR', 'RETURN_VALUE', 'RETURN_CONST',
+    'INSTRUMENTED_RETURN_GENERATOR', 'INSTRUMENTED_RETURN_VALUE',
+    'INSTRUMENTED_RETURN_CONST', 'YIELD_VALUE', 'INSTRUMENTED_YIELD_VALUE'
+}
 
 
 def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=False):
@@ -527,8 +532,7 @@ class Tracer:
         ended_by_exception = (
                 event == 'return'
                 and arg is None
-                and (opcode.opname[code_byte]
-                     not in ('RETURN_VALUE', 'YIELD_VALUE'))
+                and opcode.opname[code_byte] not in RETURN_OPCODES
         )
 
         if ended_by_exception:
