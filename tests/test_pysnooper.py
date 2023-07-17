@@ -1902,6 +1902,7 @@ def test_exception():
             LineEntry(),
             ExceptionEntry(),
             ExceptionValueEntry('MemoryError'),
+            ReturnEntry(),
             CallEndedByExceptionEntry(),
             ElapsedTimeEntry(),
         )

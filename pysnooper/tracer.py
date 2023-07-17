@@ -162,6 +162,7 @@ class FileWriter(object):
 thread_global = threading.local()
 DISABLED = bool(os.getenv('PYSNOOPER_DISABLED', ''))
 
+
 class Tracer:
     '''
     Snoop on the function, writing everything it's doing to stderr.
@@ -460,7 +461,7 @@ class Tracer:
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
         if self.last_source_path != source_path:
-            self.write(u'{_FOREGROUND_YELLOW}{_STYLE_DIM}{indent}Source path:... '
+            self.write(u'{indent}{_FOREGROUND_YELLOW}{_STYLE_DIM}Source path:... '
                        u'{_STYLE_NORMAL}{source_path}'
                        u'{_STYLE_RESET_ALL}'.format(**locals()))
             self.last_source_path = source_path
@@ -535,12 +536,12 @@ class Tracer:
                 and opcode.opname[code_byte] not in RETURN_OPCODES
         )
 
+        _EVENT_COLOR = _FOREGROUND_RED if ended_by_exception else _STYLE_DIM
+        self.write(u'{indent}{_EVENT_COLOR}{timestamp} {thread_info}{event:9} '
+                    u'{line_no:4}{_STYLE_RESET_ALL} {source_line}'.format(**locals()))
         if ended_by_exception:
-            self.write('{_FOREGROUND_RED}{indent}Call ended by exception{_STYLE_RESET_ALL}'.
+            self.write('{indent}{_FOREGROUND_RED}Call ended by exception{_STYLE_RESET_ALL}'.
                        format(**locals()))
-        else:
-            self.write(u'{indent}{_STYLE_DIM}{timestamp} {thread_info}{event:9} '
-                       u'{line_no:4}{_STYLE_RESET_ALL} {source_line}'.format(**locals()))
 
         if event == 'return':
             self.frame_to_local_reprs.pop(frame, None)
@@ -558,7 +559,7 @@ class Tracer:
                            '{_STYLE_RESET_ALL}'.
                            format(**locals()))
 
-        if event == 'exception':
+        elif event == 'exception':
             exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
             if self.max_variable_length:
                 exception = utils.truncate(exception, self.max_variable_length)
