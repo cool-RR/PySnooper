@@ -1,4 +1,4 @@
-# PySnooper - Never use print for debugging again #
+# PySnooper - Never use print for debugging again
 
 **PySnooper** is a poor man's debugger. If you've used Bash, it's like `set -x` for Python, except it's fancier.
 
@@ -12,7 +12,7 @@ Most people would use `print` lines, in strategic locations, some of them showin
 
 What makes **PySnooper** stand out from all other code intelligence tools? You can use it in your shitty, sprawling enterprise codebase without having to do any setup. Just slap the decorator on, as shown below, and redirect the output to a dedicated log file by specifying its path as the first argument.
 
-# Example #
+## Example
 
 We're writing a function that converts a number to binary, by returning a list of bits. Let's snoop on it by adding the `@pysnooper.snoop()` decorator:
 
@@ -72,7 +72,7 @@ New var:....... mid = 453.0
 Elapsed time: 00:00:00.000344
 ```
 
-# Features #
+## Features
 
 If stderr is not easily accessible for you, you can redirect the output to a file:
 
@@ -97,7 +97,7 @@ Show snoop lines for functions that your function calls:
 **See [Advanced Usage](https://github.com/cool-RR/PySnooper/blob/master/ADVANCED_USAGE.md) for more options.** <------
 
 
-# Installation with Pip #
+## Installation with Pip
 
 The best way to install **PySnooper** is with Pip:
 
@@ -105,7 +105,7 @@ The best way to install **PySnooper** is with Pip:
 $ pip install pysnooper
 ```
 
-# Other installation options #
+## Other installation options
 
 Conda with conda-forge channel:
 
@@ -125,12 +125,13 @@ Fedora Linux:
 $ dnf install python3-pysnooper
 ```
 
-# License #
+
+## License
 
 Copyright (c) 2019 Ram Rachum and collaborators, released under the MIT license.
 
 
-# Media Coverage #
+## Media Coverage
 
 [Hacker News thread](https://news.ycombinator.com/item?id=19717786)
 and [/r/Python Reddit thread](https://www.reddit.com/r/Python/comments/bg0ida/pysnooper_never_use_print_for_debugging_again/) (22 April 2019)
