@@ -126,6 +126,23 @@ $ dnf install python3-pysnooper
 ```
 
 
+## Citing PySnooper
+
+If you use PySnooper in academic work, please use this citation format:
+
+```bibtex
+@software{rachum2019pysnooper,
+	title={PySnooper: Never use print for debugging again},
+	author={Rachum, Ram and Hall, Alex and Yanokura, Iori},
+	year={2019},
+	month={jun},
+	publisher={PyCon Israel},
+	doi={10.5281/zenodo.10462459},
+	url={https://github.com/cool-RR/PySnooper}
+}
+```
+
+
 ## License
 
 Copyright (c) 2019 Ram Rachum and collaborators, released under the MIT license.
