@@ -133,7 +133,7 @@ If you use PySnooper in academic work, please use this citation format:
 ```bibtex
 @software{rachum2019pysnooper,
     title={PySnooper: Never use print for debugging again},
-    author={Rachum, Ram and Hall, Alex and Yanokura, Iori},
+    author={Rachum, Ram and Hall, Alex and Yanokura, Iori and others},
     year={2019},
     month={jun},
     publisher={PyCon Israel},
