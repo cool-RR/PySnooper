@@ -147,6 +147,13 @@ def get_write_function(output, overwrite):
     return write
 
 
+def _file_in_dir(file, directory):
+    # ref: https://stackoverflow.com/q/3812849/12388699
+    # assert file == os.path.realpath(file), 'property of frame.f_code.co_filename'
+    directory = os.path.join(directory, '')
+    return os.path.commonprefix([file, directory]) == directory
+
+
 class FileWriter(object):
     def __init__(self, path, overwrite):
         self.path = pycompat.text_type(path)
@@ -191,6 +198,10 @@ class Tracer:
     Show snoop lines for functions that your function calls::
 
         @pysnooper.snoop(depth=2)
+    
+    Only snoop lines that are in the specified source directories::
+
+        @pysnooper.snoop(src_dir='path/to/myproj')
 
     Start all snoop lines with a prefix, to grep for them easily::
 
@@ -225,7 +236,7 @@ class Tracer:
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
                  max_variable_length=100, normalize=False, relative_time=False,
-                 color=True):
+                 src_dir=[], color=True):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -253,6 +264,12 @@ class Tracer:
         self.max_variable_length = max_variable_length
         self.normalize = normalize
         self.relative_time = relative_time
+        if isinstance(src_dir, str):
+            self.src_dirs = [src_dir]
+        else:
+            assert isinstance(src_dir, list)
+            self.src_dirs = src_dir
+        self.src_dirs = list(map(os.path.realpath, self.src_dirs))
         self.color = color and sys.platform in ('linux', 'linux2', 'cygwin',
                                                 'darwin')
 
@@ -397,7 +414,11 @@ class Tracer:
         # We should trace this line either if it's in the decorated function,
         # or the user asked to go a few levels deeper and we're within that
         # number of levels deeper.
-
+        if self.src_dirs and not (
+            frame.f_code.co_filename[0] == '/' and # in case of '<frozen xxx>'
+            any(_file_in_dir(frame.f_code.co_filename, d) for d in self.src_dirs)
+        ):
+            return None
         if not (frame.f_code in self.target_codes or frame in self.target_frames):
             if self.depth == 1:
                 # We did the most common and quickest check above, because the
