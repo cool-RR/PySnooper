@@ -147,11 +147,12 @@ def get_write_function(output, overwrite):
     return write
 
 
-def _file_in_dir(file, directory):
+def _path_eq_or_sub(c, p):
     # ref: https://stackoverflow.com/q/3812849/12388699
     # assert file == os.path.realpath(file), 'property of frame.f_code.co_filename'
-    directory = os.path.join(directory, '')
-    return os.path.commonprefix([file, directory]) == directory
+    p_slash = os.path.join(p, '')
+    return c.rstrip(os.sep) == p.rstrip(os.sep) or \
+            os.path.commonprefix([c, p_slash]).rstrip(os.sep) == p.rstrip(os.sep)
 
 
 class FileWriter(object):
@@ -236,7 +237,7 @@ class Tracer:
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
                  max_variable_length=100, normalize=False, relative_time=False,
-                 src_dir=[], color=True):
+                 color=True, source_paths=[], exclude_paths=[]):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -264,15 +265,8 @@ class Tracer:
         self.max_variable_length = max_variable_length
         self.normalize = normalize
         self.relative_time = relative_time
-        if isinstance(src_dir, str):
-            self.src_dirs = [src_dir]
-        else:
-            assert isinstance(src_dir, list)
-            self.src_dirs = src_dir
-        self.src_dirs = list(map(os.path.realpath, self.src_dirs))
         self.color = color and sys.platform in ('linux', 'linux2', 'cygwin',
                                                 'darwin')
-
         if self.color:
             self._FOREGROUND_BLUE = '\x1b[34m'
             self._FOREGROUND_CYAN = '\x1b[36m'
@@ -297,6 +291,18 @@ class Tracer:
             self._STYLE_DIM = ''
             self._STYLE_NORMAL = ''
             self._STYLE_RESET_ALL = ''
+
+        def process_paths(paths):
+            ret = []
+            if isinstance(paths, str):
+                ret = [paths]
+            else:
+                assert isinstance(paths, list)
+                ret = paths
+            return list(map(os.path.realpath, ret))
+
+        self.source_paths = process_paths(source_paths)
+        self.exclude_paths = process_paths(exclude_paths)
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -414,11 +420,18 @@ class Tracer:
         # We should trace this line either if it's in the decorated function,
         # or the user asked to go a few levels deeper and we're within that
         # number of levels deeper.
-        if self.src_dirs and not (
+        if self.source_paths and not (
             frame.f_code.co_filename[0] == '/' and # in case of '<frozen xxx>'
-            any(_file_in_dir(frame.f_code.co_filename, d) for d in self.src_dirs)
+            any(_path_eq_or_sub(frame.f_code.co_filename, p) for p in self.source_paths)
         ):
             return None
+        
+        if self.exclude_paths and (
+            frame.f_code.co_filename[0] == '/' and # in case of '<frozen xxx>'
+            any(_path_eq_or_sub(frame.f_code.co_filename, p) for p in self.exclude_paths)
+        ):
+            return None
+
         if not (frame.f_code in self.target_codes or frame in self.target_frames):
             if self.depth == 1:
                 # We did the most common and quickest check above, because the
