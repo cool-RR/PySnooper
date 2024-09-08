@@ -77,8 +77,11 @@ def get_path_and_source_from_frame(frame):
         ansible_filename_match = ansible_filename_pattern.match(file_name)
         ipykernel_filename_match = ipykernel_filename_pattern.match(file_name)
         if ipykernel_filename_match:
-            import linecache
-            _, _, source, _ = linecache.cache.get(file_name)
+            try:
+                import linecache
+                _, _, source, _ = linecache.cache.get(file_name)
+            except Exception:
+                pass
         if ipython_filename_match:
             entry_number = int(ipython_filename_match.group(1))
             try:
