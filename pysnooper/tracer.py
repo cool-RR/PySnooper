@@ -80,6 +80,7 @@ def get_path_and_source_from_frame(frame):
             try:
                 import linecache
                 _, _, source, _ = linecache.cache.get(file_name)
+                source = [line.rstrip() for line in source] # remove '\n' at the end
             except Exception:
                 pass
         elif ipython_filename_match:
