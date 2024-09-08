@@ -21,7 +21,7 @@ if pycompat.PY2:
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 ansible_filename_pattern = re.compile(r'^(.+\.zip)[/|\\](ansible[/|\\]modules[/|\\].+\.py)$')
-ipykernel_filename_pattern = re.compile('^/var/folders/.*/ipykernel_\d+/\d+.py$')
+ipykernel_filename_pattern = re.compile(f'^/var/folders/.*/ipykernel_\d+/\d+.py$')
 RETURN_OPCODES = {
     'RETURN_GENERATOR', 'RETURN_VALUE', 'RETURN_CONST',
     'INSTRUMENTED_RETURN_GENERATOR', 'INSTRUMENTED_RETURN_VALUE',
