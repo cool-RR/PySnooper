@@ -21,6 +21,7 @@ if pycompat.PY2:
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 ansible_filename_pattern = re.compile(r'^(.+\.zip)[/|\\](ansible[/|\\]modules[/|\\].+\.py)$')
+ipykernel_filename_pattern = re.compile(r'^/var/folders/.*/ipykernel_[0-9]+/[0-9]+.py$')
 RETURN_OPCODES = {
     'RETURN_GENERATOR', 'RETURN_VALUE', 'RETURN_CONST',
     'INSTRUMENTED_RETURN_GENERATOR', 'INSTRUMENTED_RETURN_VALUE',
@@ -74,7 +75,15 @@ def get_path_and_source_from_frame(frame):
     if source is None:
         ipython_filename_match = ipython_filename_pattern.match(file_name)
         ansible_filename_match = ansible_filename_pattern.match(file_name)
-        if ipython_filename_match:
+        ipykernel_filename_match = ipykernel_filename_pattern.match(file_name)
+        if ipykernel_filename_match:
+            try:
+                import linecache
+                _, _, source, _ = linecache.cache.get(file_name)
+                source = [line.rstrip() for line in source] # remove '\n' at the end
+            except Exception:
+                pass
+        elif ipython_filename_match:
             entry_number = int(ipython_filename_match.group(1))
             try:
                 import IPython
