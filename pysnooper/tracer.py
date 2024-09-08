@@ -82,7 +82,7 @@ def get_path_and_source_from_frame(frame):
                 _, _, source, _ = linecache.cache.get(file_name)
             except Exception:
                 pass
-        if ipython_filename_match:
+        elif ipython_filename_match:
             entry_number = int(ipython_filename_match.group(1))
             try:
                 import IPython
