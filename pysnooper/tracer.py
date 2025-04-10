@@ -225,7 +225,9 @@ class Tracer:
 
         @pysnooper.snoop(relative_time=True)
 
-    The output is colored for easy viewing by default, except on Windows.
+    The output is colored for easy viewing by default, except on Windows
+    (but can be enabled by setting `color=True`).
+
     Disable colors like so:
 
         @pysnooper.snoop(color=False)
@@ -234,7 +236,7 @@ class Tracer:
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
                  max_variable_length=100, normalize=False, relative_time=False,
-                 color=True):
+                 color=sys.platform in ('linux', 'linux2', 'cygwin', 'darwin')):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -262,8 +264,7 @@ class Tracer:
         self.max_variable_length = max_variable_length
         self.normalize = normalize
         self.relative_time = relative_time
-        self.color = color and sys.platform in ('linux', 'linux2', 'cygwin',
-                                                'darwin')
+        self.color = color
 
         if self.color:
             self._FOREGROUND_BLUE = '\x1b[34m'
