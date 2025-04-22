@@ -418,9 +418,12 @@ class Tracer:
                 return None
             else:
                 _frame_candidate = frame
-                for i in range(1, self.depth):
+                depth_iterator = itertools.count(1) if (self.depth == float('inf')) else range(1, self.depth)
+                for i in depth_iterator:
                     _frame_candidate = _frame_candidate.f_back
                     if _frame_candidate is None:
+                        return None
+                    elif self._is_internal_frame(_frame_candidate):
                         return None
                     elif _frame_candidate.f_code in self.target_codes or _frame_candidate in self.target_frames:
                         break
