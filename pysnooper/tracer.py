@@ -264,7 +264,7 @@ class Tracer:
         self.max_variable_length = max_variable_length
         self.normalize = normalize
         self.relative_time = relative_time
-        self.color = color
+        self.color = color and (output is None)
 
         if self.color:
             self._FOREGROUND_BLUE = '\x1b[34m'
