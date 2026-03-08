@@ -1908,6 +1908,65 @@ def test_exception():
     )
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11),
+                    reason='ExceptionGroup requires Python 3.11+')
+def test_exception_group():
+    string_io = io.StringIO()
+    @pysnooper.snoop(string_io, color=False)
+    def f():
+        raise ExceptionGroup('task errors', [ValueError('bad'), TypeError('wrong'), RuntimeError('fail')])
+
+    with pytest.raises(ExceptionGroup):
+        f()
+
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            CallEntry(),
+            LineEntry(),
+            ExceptionEntry(),
+            ExceptionValueEntry(
+                value_regex=r"ExceptionGroup: 'task errors' "
+                            r"\(3 sub-exceptions: ValueError, TypeError, "
+                            r"RuntimeError\)"
+            ),
+            CallEndedByExceptionEntry(),
+            ElapsedTimeEntry(),
+        )
+    )
+
+
+@pytest.mark.skipif(sys.version_info < (3, 11),
+                    reason='ExceptionGroup requires Python 3.11+')
+def test_nested_exception_group():
+    string_io = io.StringIO()
+    @pysnooper.snoop(string_io, color=False)
+    def f():
+        raise ExceptionGroup('outer', [ExceptionGroup('inner', [ValueError('deep')]), TypeError('shallow')])
+
+    with pytest.raises(ExceptionGroup):
+        f()
+
+    output = string_io.getvalue()
+    assert_output(
+        output,
+        (
+            SourcePathEntry(),
+            CallEntry(),
+            LineEntry(),
+            ExceptionEntry(),
+            ExceptionValueEntry(
+                value_regex=r"ExceptionGroup: 'outer' "
+                            r"\(2 sub-exceptions: ExceptionGroup, TypeError\)"
+            ),
+            CallEndedByExceptionEntry(),
+            ElapsedTimeEntry(),
+        )
+    )
+
+
 def test_exception_on_entry():
     @pysnooper.snoop(color=False)
     def f(x):

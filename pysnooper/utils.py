@@ -3,6 +3,7 @@
 
 import abc
 import re
+import traceback
 
 import sys
 from .pycompat import ABC, string_types, collections_abc
@@ -85,6 +86,21 @@ def truncate(string, max_length):
         left = (max_length - 3) // 2
         right = max_length - 3 - left
         return u'{}...{}'.format(string[:left], string[-right:])
+
+
+def format_exception(exc_type, exc_value):
+    try:
+        is_group = isinstance(exc_value, BaseExceptionGroup)
+    except NameError:
+        is_group = False
+    if is_group:
+        sub_types = ', '.join(type(e).__name__ for e in exc_value.exceptions)
+        message = exc_value.args[0] if exc_value.args else ''
+        return u"{}: '{}' ({} sub-exceptions: {})".format(
+            exc_type.__name__, message,
+            len(exc_value.exceptions), sub_types,
+        )
+    return u'\n'.join(traceback.format_exception_only(exc_type, exc_value)).strip()
 
 
 def ensure_tuple(x):
