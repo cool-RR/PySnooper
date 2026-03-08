@@ -569,7 +569,7 @@ class Tracer:
                            format(**locals()))
 
         if event == 'exception':
-            exception = '\n'.join(traceback.format_exception_only(*arg[:2])).strip()
+            exception = utils.format_exception(*arg[:2])
             if self.max_variable_length:
                 exception = utils.truncate(exception, self.max_variable_length)
             self.write('{indent}{_FOREGROUND_RED}Exception:..... '
