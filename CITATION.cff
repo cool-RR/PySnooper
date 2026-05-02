@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "PySnooper: Never use print for debugging again"
+message: "If you use PySnooper in academic work, please cite it as below."
+type: software
+authors:
+  - family-names: Rachum
+    given-names: Ram
+  - family-names: Hall
+    given-names: Alex
+  - family-names: Yanokura
+    given-names: Iori
+  - name: "PySnooper contributors"
+date-released: 2019-06-03
+doi: 10.5281/zenodo.10462459
+repository-code: "https://github.com/cool-RR/PySnooper"
+url: "https://github.com/cool-RR/PySnooper"
+license: MIT
