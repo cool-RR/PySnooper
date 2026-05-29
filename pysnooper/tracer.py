@@ -29,6 +29,23 @@ RETURN_OPCODES = {
 }
 
 
+def call_ended_by_exception(frame, event, arg):
+    """Whether a 'return' event was caused by an exception, not a normal return.
+
+    On an exception the interpreter still emits a 'return' event with ``arg`` of
+    ``None``, so the last executed opcode is what tells them apart. A frame's
+    ``f_lasti`` can be ``-1`` (e.g. before any instruction has run); indexing
+    ``co_code[-1]`` would read the wrong opcode, so treat that as a normal
+    return. See https://github.com/cool-RR/PySnooper/issues/260.
+    """
+    if event != 'return' or arg is not None or frame.f_lasti < 0:
+        return False
+    code_byte = frame.f_code.co_code[frame.f_lasti]
+    if not isinstance(code_byte, int):
+        code_byte = ord(code_byte)
+    return opcode.opname[code_byte] not in RETURN_OPCODES
+
+
 def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=False):
     code = frame.f_code
     vars_order = (code.co_varnames + code.co_cellvars + code.co_freevars +
@@ -536,14 +553,7 @@ class Tracer:
         # If a call ends due to an exception, we still get a 'return' event
         # with arg = None. This seems to be the only way to tell the difference
         # https://stackoverflow.com/a/12800909/2482744
-        code_byte = frame.f_code.co_code[frame.f_lasti]
-        if not isinstance(code_byte, int):
-            code_byte = ord(code_byte)
-        ended_by_exception = (
-                event == 'return'
-                and arg is None
-                and opcode.opname[code_byte] not in RETURN_OPCODES
-        )
+        ended_by_exception = call_ended_by_exception(frame, event, arg)
 
         if ended_by_exception:
             self.write('{_FOREGROUND_RED}{indent}Call ended by exception{_STYLE_RESET_ALL}'.
