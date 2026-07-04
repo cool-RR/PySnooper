@@ -3,6 +3,7 @@
 
 import functools
 import inspect
+import dis
 import opcode
 import os
 import sys
@@ -17,6 +18,20 @@ from .variables import CommonVariable, Exploding, BaseVariable
 from . import utils, pycompat
 if pycompat.PY2:
     from io import open
+
+
+def _get_line_number(code, offset):
+    # Line number for a bytecode offset, from the code object's line table.
+    # frame.f_lineno at __enter__ is not reliable for the `with` line when the
+    # same statement runs again in a loop (older Pythons), but f_lasti is, so we
+    # resolve the line from it instead.
+    line_number = None
+    best = -1
+    for start, line in dis.findlinestarts(code):
+        if line is not None and best < start <= offset:
+            best = start
+            line_number = line
+    return line_number
 
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
@@ -264,6 +279,8 @@ class Tracer:
              for v in utils.ensure_tuple(watch_explode)
         ]
         self.frame_to_local_reprs = {}
+        self.frame_to_with_line = {}
+        self.frame_to_pending_flush = {}
         self.start_times = {}
         self.depth = depth
         self.prefix = prefix
@@ -372,6 +389,10 @@ class Tracer:
         if not self._is_internal_frame(calling_frame):
             calling_frame.f_trace = self.trace
             self.target_frames.add(calling_frame)
+            self.frame_to_with_line[calling_frame] = _get_line_number(
+                calling_frame.f_code, calling_frame.f_lasti
+            )
+            self.frame_to_pending_flush[calling_frame] = False
 
         stack = self.thread_local.__dict__.setdefault(
             'original_trace_functions', []
@@ -387,7 +408,32 @@ class Tracer:
         sys.settrace(stack.pop())
         calling_frame = inspect.currentframe().f_back
         self.target_frames.discard(calling_frame)
-        self.frame_to_local_reprs.pop(calling_frame, None)
+        start_time = self.start_times.pop(calling_frame)
+        # Variable changes are reported on the *next* trace event. The last line
+        # of a `with` block may have no next event before we get here (Python <
+        # 3.10, or a one-line body), so flush it now. We skip it when a later
+        # event already captured the final state: the block-exit line event on
+        # 3.10+ (which clears the pending flag), or the exception events on an
+        # exceptional exit. Otherwise every repr / watch / custom_repr would be
+        # evaluated twice, and on an exceptional exit a failing callback could
+        # even replace the user's exception. The frame is not in
+        # frame_to_local_reprs when the body produced no trace event at all (a
+        # one-line body), which still needs a flush. Cleanup runs in finally so
+        # a failing callback can't strand the per-frame state.
+        try:
+            # Only real `with` blocks (not the internal frame of the decorator
+            # form) are registered in frame_to_with_line.
+            is_with_block = calling_frame in self.frame_to_with_line
+            pending = self.frame_to_pending_flush.get(calling_frame, False)
+            never_reported = calling_frame not in self.frame_to_local_reprs
+            if exc_type is None and is_with_block and (pending or never_reported):
+                self._report_variable_changes(
+                    calling_frame, ' ' * 4 * thread_global.depth
+                )
+        finally:
+            self.frame_to_local_reprs.pop(calling_frame, None)
+            self.frame_to_with_line.pop(calling_frame, None)
+            self.frame_to_pending_flush.pop(calling_frame, None)
 
         ### Writing elapsed time: #############################################
         #                                                                     #
@@ -396,7 +442,6 @@ class Tracer:
         _STYLE_NORMAL = self._STYLE_NORMAL
         _STYLE_RESET_ALL = self._STYLE_RESET_ALL
 
-        start_time = self.start_times.pop(calling_frame)
         duration = datetime_module.datetime.now() - start_time
         elapsed_time_string = pycompat.timedelta_format(duration)
         indent = ' ' * 4 * (thread_global.depth + 1)
@@ -407,6 +452,32 @@ class Tracer:
         )
         #                                                                     #
         ### Finished writing elapsed time. ####################################
+
+    def _report_variable_changes(self, frame, indent, is_call=False):
+        _FOREGROUND_GREEN = self._FOREGROUND_GREEN
+        _STYLE_DIM = self._STYLE_DIM
+        _STYLE_NORMAL = self._STYLE_NORMAL
+        _STYLE_RESET_ALL = self._STYLE_RESET_ALL
+
+        old_local_reprs = self.frame_to_local_reprs.get(frame, {})
+        self.frame_to_local_reprs[frame] = local_reprs = \
+                                       get_local_reprs(frame,
+                                                       watch=self.watch, custom_repr=self.custom_repr,
+                                                       max_length=self.max_variable_length,
+                                                       normalize=self.normalize,
+                                                       )
+
+        newish_string = 'Starting var:.. ' if is_call else 'New var:....... '
+
+        for name, value_repr in local_reprs.items():
+            if name not in old_local_reprs:
+                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
+                           '{newish_string}{_STYLE_NORMAL}{name} = '
+                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
+            elif old_local_reprs[name] != value_repr:
+                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
+                           'Modified var:.. {_STYLE_NORMAL}{name} = '
+                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename == Tracer.__enter__.__code__.co_filename
@@ -504,27 +575,17 @@ class Tracer:
 
         ### Reporting newish and modified variables: ##########################
         #                                                                     #
-        old_local_reprs = self.frame_to_local_reprs.get(frame, {})
-        self.frame_to_local_reprs[frame] = local_reprs = \
-                                       get_local_reprs(frame,
-                                                       watch=self.watch, custom_repr=self.custom_repr,
-                                                       max_length=self.max_variable_length,
-                                                       normalize=self.normalize,
-                                                       )
-
-        newish_string = ('Starting var:.. ' if event == 'call' else
-                                                            'New var:....... ')
-
-        for name, value_repr in local_reprs.items():
-            if name not in old_local_reprs:
-                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
-                           '{newish_string}{_STYLE_NORMAL}{name} = '
-                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
-            elif old_local_reprs[name] != value_repr:
-                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
-                           'Modified var:.. {_STYLE_NORMAL}{name} = '
-                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
-
+        self._report_variable_changes(frame, indent, is_call=(event == 'call'))
+        # Changes for a line are reported on the *next* event, so a body line
+        # leaves them pending. The block-exit line event (back on the `with`
+        # line, Python 3.10+) and non-line events like 'exception'/'return' have
+        # already captured the final state, so they clear the flag. __exit__
+        # uses it to flush the last line without re-reporting an already flushed
+        # one (which would re-run every repr / watch / custom_repr).
+        if frame in self.frame_to_with_line:
+            self.frame_to_pending_flush[frame] = (
+                event == 'line' and line_no != self.frame_to_with_line[frame]
+            )
         #                                                                     #
         ### Finished newish and modified variables. ###########################
 
