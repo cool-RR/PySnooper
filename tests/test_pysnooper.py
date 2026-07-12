@@ -1190,7 +1190,7 @@ def test_with_block_depth(normalize):
             LineEntry(),
             ReturnEntry(),
             ReturnValueEntry('20'),
-            VariableEntry(min_python_version=(3, 10)),
+            VariableEntry(),
             LineEntry(source_regex="with pysnooper.snoop.*", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
         ),
@@ -1259,12 +1259,142 @@ def test_cellvars(normalize):
             ReturnValueEntry(),
             ReturnEntry(),
             ReturnValueEntry(),
-            VariableEntry(min_python_version=(3, 10)),
+            VariableEntry(),
             LineEntry(source_regex="with pysnooper.snoop.*", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
         ),
         normalize=normalize,
     )
+
+
+def test_with_block_reports_last_line_variables():
+    # Regression for #237: the last line of a `with` block is not followed by
+    # another trace event on Python < 3.10, so a variable created or modified
+    # there used to be dropped. Make sure a final line that both modifies an
+    # existing variable and creates a new one is reported, exactly once, on
+    # every Python version.
+    string_io = io.StringIO()
+
+    def f():
+        with pysnooper.snoop(string_io, color=False, normalize=True):
+            x = 1
+            y = 2
+            x = 3; z = 4
+
+    f()
+    assert_output(
+        string_io.getvalue(),
+        (
+            SourcePathEntry(),
+            VariableEntry(),  # the output stream local
+            LineEntry('x = 1'),
+            VariableEntry('x', '1', stage='new'),
+            LineEntry('y = 2'),
+            VariableEntry('y', '2', stage='new'),
+            LineEntry('x = 3; z = 4'),
+            VariableEntry('x', '3', stage='modified'),
+            VariableEntry('z', '4', stage='new'),
+            LineEntry(source_regex="with pysnooper.snoop.*",
+                      min_python_version=(3, 10)),
+            ElapsedTimeEntry(),
+        ),
+        normalize=True,
+    )
+
+
+def test_with_block_one_line_body():
+    # Regression for #237: a one-line `with` body produces no trace event at
+    # all, so its variables have to be reported from __exit__.
+    string_io = io.StringIO()
+
+    def f():
+        with pysnooper.snoop(string_io, color=False, normalize=True): answer = 42
+
+    f()
+    assert_output(
+        string_io.getvalue(),
+        (
+            VariableEntry('answer', '42', stage='new'),
+            VariableEntry(),  # the output stream local
+            ElapsedTimeEntry(),
+        ),
+        normalize=True,
+    )
+
+
+def test_with_block_exit_does_not_reevaluate_reprs():
+    # Regression for #237: on Python 3.10+ leaving the block already reports
+    # the final variables via a line event, so __exit__ must not evaluate the
+    # reprs a second time (which would double custom_repr / watch calls).
+    string_io = io.StringIO()
+    call_count = [0]
+
+    def count_repr(x):
+        call_count[0] += 1
+        return 'LIST'
+
+    def f():
+        with pysnooper.snoop(
+            string_io, color=False,
+            custom_repr=((lambda x: isinstance(x, list), count_repr),),
+        ):
+            data = [1, 2, 3]
+
+    f()
+    assert call_count[0] == 1
+
+
+def test_with_block_repeated_in_loop():
+    # Regression for #237: a `with` block reused across loop iterations must
+    # report each iteration's final value. Older Pythons don't reliably report
+    # the `with` line at __enter__, so a mechanism keyed on it would report only
+    # the first iteration and leave the rest stale.
+    string_io = io.StringIO()
+
+    def f():
+        for i in range(3):
+            with pysnooper.snoop(string_io, color=False, normalize=True):
+                x = i
+
+    f()
+    output = string_io.getvalue()
+    assert 'New var:....... x = 0' in output
+    assert 'Modified var:.. x = 1' in output
+    assert 'Modified var:.. x = 2' in output
+
+
+def test_with_block_exceptional_exit():
+    # Regression for #237: when the block exits because of an exception, the
+    # trace events have already captured the final state, so __exit__ must not
+    # snapshot again (re-running callbacks, which could even replace the user's
+    # exception). The user's exception must propagate and per-frame state must
+    # be cleaned up.
+    string_io = io.StringIO()
+    tracer = pysnooper.snoop(string_io, color=False)
+
+    exit_snapshots = [0]
+    original = tracer._report_variable_changes
+
+    def spy(frame, indent, is_call=False):
+        if sys._getframe(1).f_code.co_name == '__exit__':
+            exit_snapshots[0] += 1
+        return original(frame, indent, is_call)
+
+    tracer._report_variable_changes = spy
+
+    def f():
+        with tracer:
+            data = [1, 2, 3]
+            raise ValueError("boom")
+
+    with pytest.raises(ValueError):
+        f()
+
+    assert exit_snapshots[0] == 0
+    assert not tracer.frame_to_local_reprs
+    assert not tracer.frame_to_with_line
+    assert not tracer.frame_to_pending_flush
+    assert not tracer.start_times
 
 
 @pytest.mark.parametrize("normalize", (True, False))
@@ -1309,7 +1439,7 @@ def test_var_order(normalize):
             VariableEntry("seven", "7"),
             ReturnEntry(),
             ReturnValueEntry(),
-            VariableEntry("result", "None", min_python_version=(3, 10)),
+            VariableEntry("result", "None"),
             LineEntry(source_regex="with pysnooper.snoop.*", min_python_version=(3, 10)),
             ElapsedTimeEntry(),
         ),
