@@ -17,6 +17,13 @@ def needs_parentheses(source):
     return code('{}.x'.format(source)) != code('({}).x'.format(source))
 
 
+def _evaluate(code, frame):
+    try:
+        return True, eval(code, frame.f_globals or {}, frame.f_locals)
+    except Exception:
+        return False, None
+
+
 class BaseVariable(pycompat.ABC):
     def __init__(self, source, exclude=()):
         self.source = source
@@ -28,11 +35,15 @@ class BaseVariable(pycompat.ABC):
             self.unambiguous_source = source
 
     def items(self, frame, normalize=False):
-        try:
-            main_value = eval(self.code, frame.f_globals or {}, frame.f_locals)
-        except Exception:
+        available, main_value = _evaluate(self.code, frame)
+        if not available:
             return ()
         return self._items(main_value, normalize)
+
+    def items_with_options(self, frame, normalize=False, custom_repr=(),
+                           max_length=None):
+        """Return items with formatting options, preserving old subclasses."""
+        return self.items(frame, normalize)
 
     @abc.abstractmethod
     def _items(self, key, normalize=False):
@@ -51,8 +62,21 @@ class BaseVariable(pycompat.ABC):
 
 
 class CommonVariable(BaseVariable):
-    def _items(self, main_value, normalize=False):
-        result = [(self.source, utils.get_shortish_repr(main_value, normalize=normalize))]
+    def items_with_options(self, frame, normalize=False, custom_repr=(),
+                           max_length=None):
+        # Preserve the historical _items/_format_key override shape for
+        # user-defined CommonVariable subclasses.
+        if type(self) not in (CommonVariable, Attrs, Keys, Indices):
+            return self.items(frame, normalize)
+        available, main_value = _evaluate(self.code, frame)
+        if not available:
+            return ()
+        return self._items(main_value, normalize, custom_repr, max_length)
+
+    def _items(self, main_value, normalize=False, custom_repr=(),
+               max_length=None):
+        result = [(self.source, utils.get_shortish_repr(
+            main_value, custom_repr, max_length, normalize))]
         for key in self._safe_keys(main_value):
             try:
                 if key in self.exclude:
@@ -61,8 +85,10 @@ class CommonVariable(BaseVariable):
             except Exception:
                 continue
             result.append((
-                '{}{}'.format(self.unambiguous_source, self._format_key(key)),
-                utils.get_shortish_repr(value)
+                '{}{}'.format(self.unambiguous_source,
+                              self._format_key(key)),
+                utils.get_shortish_repr(value, custom_repr, max_length,
+                                        normalize)
             ))
         return result
 
@@ -122,7 +148,17 @@ class Indices(Keys):
 
 
 class Exploding(BaseVariable):
-    def _items(self, main_value, normalize=False):
+    def items_with_options(self, frame, normalize=False, custom_repr=(),
+                           max_length=None):
+        if type(self) is not Exploding:
+            return self.items(frame, normalize)
+        available, main_value = _evaluate(self.code, frame)
+        if not available:
+            return ()
+        return self._items(main_value, normalize, custom_repr, max_length)
+
+    def _items(self, main_value, normalize=False, custom_repr=(),
+               max_length=None):
         if isinstance(main_value, Mapping):
             cls = Keys
         elif isinstance(main_value, Sequence):
@@ -130,4 +166,5 @@ class Exploding(BaseVariable):
         else:
             cls = Attrs
 
-        return cls(self.source, self.exclude)._items(main_value, normalize)
+        return cls(self.source, self.exclude)._items(
+            main_value, normalize, custom_repr, max_length)

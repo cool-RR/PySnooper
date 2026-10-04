@@ -14,6 +14,7 @@ from pysnooper.utils import truncate
 import pytest
 
 import pysnooper
+from pysnooper.variables import BaseVariable, CommonVariable, Exploding
 from pysnooper.variables import needs_parentheses
 from .utils import (assert_output, assert_sample_output, VariableEntry,
                     CallEntry, LineEntry, ReturnEntry, OpcodeEntry,
@@ -440,6 +441,133 @@ def test_watch_explode(normalize):
         ),
         normalize=normalize,
     )
+
+
+@pytest.mark.parametrize("normalize", (True, False))
+def test_watch_options_propagate_to_expressions_and_explode(normalize):
+    class Obj:
+        def __repr__(self):
+            return 'OBJ-DEFAULT-123456789'
+
+    class Holder:
+        def __init__(self):
+            self.value = Obj()
+
+        def __repr__(self):
+            return 'HOLDER'
+
+    @pysnooper.snoop(
+        watch=('holder.value',),
+        watch_explode=(pysnooper.Attrs('holder'),
+                       pysnooper.Keys('mapping'),
+                       pysnooper.Indices('items')),
+        custom_repr=((Obj, lambda value: 'CUSTOM-REPRESENTATION'),),
+        max_variable_length=8,
+        normalize=normalize,
+        color=False,
+    )
+    def inspect_values():
+        holder = Holder()
+        mapping = {'key': 'long-value'}
+        items = ['long-value']
+        assert holder and mapping and items
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        inspect_values()
+    output = output_capturer.string_io.getvalue()
+    assert 'holder.value = CU...ION' in output
+    assert 'holder = HOLDER' in output
+    assert "mapping['key'] = 'l...ue'" in output
+    assert "items[0] = 'l...ue'" in output
+
+
+def test_watch_max_variable_length_none_keeps_full_values():
+    class Obj:
+        def __repr__(self):
+            return 'OBJ-DEFAULT-123456789'
+
+    @pysnooper.snoop(
+        watch=('value',),
+        watch_explode=('mapping',),
+        custom_repr=((Obj, lambda value: 'CUSTOM-REPRESENTATION'),),
+        max_variable_length=None,
+        color=False,
+    )
+    def inspect_values():
+        value = Obj()
+        mapping = {'key': 'long-value'}
+        assert value and mapping
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        inspect_values()
+    output = output_capturer.string_io.getvalue()
+    assert 'value = CUSTOM-REPRESENTATION' in output
+    assert "mapping['key'] = 'long-value'" in output
+
+
+def test_watch_accepts_old_signature_base_variable():
+    class OldVariable(BaseVariable):
+        def _items(self, value, normalize=False):
+            return [('old_variable', repr(value))]
+
+    @pysnooper.snoop(watch=(OldVariable('value'),), color=False)
+    def inspect_value():
+        value = 7
+        assert value == 7
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        inspect_value()
+    assert 'old_variable = 7' in output_capturer.string_io.getvalue()
+
+
+def test_watch_legacy_variable_subclasses_and_key_labels():
+    class LegacyCommon(CommonVariable):
+        def _items(self, value, normalize=False):
+            return [('legacy_common', 'ok')]
+
+    class LegacyExploding(Exploding):
+        def _items(self, value, normalize=False):
+            return [('legacy_exploding', 'ok')]
+
+    @pysnooper.snoop(
+        watch=(LegacyCommon('value'), LegacyExploding('value'),),
+        watch_explode=('mapping',),
+        max_variable_length=5,
+        color=False,
+    )
+    def inspect_values():
+        value = 7
+        mapping = {'KEY-123456789': 'long-value'}
+        assert value and mapping
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        inspect_values()
+    output = output_capturer.string_io.getvalue()
+    assert 'legacy_common = ok' in output
+    assert 'legacy_exploding = ok' in output
+    assert "mapping['KEY-123456789'] = '...'" in output
+
+
+@pytest.mark.parametrize("max_length, expected", (
+    (1, '.'), (2, '..'), (3, '...')
+))
+def test_watch_small_max_variable_length_is_honored(max_length, expected):
+    @pysnooper.snoop(watch=('value',), max_variable_length=max_length,
+                     custom_repr=((int, lambda value: 'LONG-VALUE'),),
+                     color=False)
+    def inspect_value():
+        value = 7
+        assert value == 7
+
+    with mini_toolbox.OutputCapturer(stdout=False,
+                                     stderr=True) as output_capturer:
+        inspect_value()
+    output = output_capturer.string_io.getvalue()
+    assert 'value = {}'.format(expected) in output
 
 
 @pytest.mark.parametrize("normalize", (True, False))

@@ -58,7 +58,8 @@ def get_local_reprs(frame, watch=(), custom_repr=(), max_length=None, normalize=
     result = collections.OrderedDict(result_items)
 
     for variable in watch:
-        result.update(sorted(variable.items(frame, normalize)))
+        result.update(sorted(variable.items_with_options(
+            frame, normalize, custom_repr, max_length)))
     return result
 
 

@@ -82,6 +82,8 @@ def get_shortish_repr(item, custom_repr=(), max_length=None, normalize=False):
 def truncate(string, max_length):
     if (max_length is None) or (len(string) <= max_length):
         return string
+    elif 1 <= max_length <= 3:
+        return u'...'[:max_length]
     else:
         left = (max_length - 3) // 2
         right = max_length - 3 - left
@@ -109,6 +111,4 @@ def ensure_tuple(x):
         return tuple(x)
     else:
         return (x,)
-
-
 
