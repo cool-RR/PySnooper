@@ -18,6 +18,115 @@ from . import utils, pycompat
 if pycompat.PY2:
     from io import open
 
+import subprocess
+import platform
+from enum import Enum
+from typing import Optional, TextIO
+
+
+class FGColor(Enum):
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    GREEN = "\033[32m"
+    MAGENTA = "\033[35m"
+    RED = "\033[31m"
+    YELLOW = "\033[33m"
+    RESET = "\033[39m"
+
+
+class Style(Enum):
+    BRIGHT = "\033[1m"
+    DIM = "\033[2m"
+    NORMAL = "\033[22m"
+    RESET_ALL = "\033[0m"
+
+
+def _is_color_supported(stream: Optional[TextIO]) -> bool:
+    """
+    Detect whether target stream supports ANSI VT color output
+    Args:
+        stream: target stream(sys.stdout / sys.stderr)
+    Returns:
+        bool: True if ANSI color available
+    """
+    if stream is None or not stream.isatty():
+        return False
+
+    if sys.platform.startswith("win"):
+        try:
+            win_version = platform.version()
+            ver_parts = win_version.split(".")
+            if len(ver_parts) < 3:
+                return False
+            major, _, build = map(int, ver_parts[:3])
+            if not (major >= 10 and build >= 10586):
+                return False
+
+            from ctypes import windll, wintypes, POINTER, byref
+            INVALID_HANDLE_VALUE = wintypes.HANDLE(-1)
+            if stream is sys.stdout:
+                STD_HANDLE = wintypes.DWORD(-11)
+            elif stream is sys.stderr:
+                STD_HANDLE = wintypes.DWORD(-12)
+            else:
+                return False
+
+            kernel32 = windll.kernel32
+            kernel32.GetStdHandle.argtypes = [wintypes.DWORD]
+            kernel32.GetStdHandle.restype = wintypes.HANDLE
+            kernel32.GetConsoleMode.argtypes = [wintypes.HANDLE, POINTER(wintypes.DWORD)]
+            kernel32.GetConsoleMode.restype = wintypes.BOOL
+            kernel32.SetConsoleMode.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+            kernel32.SetConsoleMode.restype = wintypes.BOOL
+
+            handle = kernel32.GetStdHandle(STD_HANDLE)
+            if handle == INVALID_HANDLE_VALUE:
+                return False
+
+            mode = wintypes.DWORD()
+            ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x04
+            if kernel32.GetConsoleMode(handle, byref(mode)):
+                vt_enabled = bool(mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+                if not vt_enabled:
+                    new_mode = wintypes.DWORD(mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+                    return bool(kernel32.SetConsoleMode(handle, new_mode))
+                return True
+            return False
+        except BaseException as e:
+            if isinstance(e, (SystemExit, KeyboardInterrupt)):
+                raise e
+            return False
+    else:
+        try:
+            devnull = getattr(subprocess, 'DEVNULL', None)
+            result = subprocess.check_output(
+                ["tput", "colors"],
+                stderr=devnull if devnull is not None else subprocess.PIPE,
+                text=True
+            )
+            color_count = int(result.strip())
+            return color_count >= 8
+        except (subprocess.CalledProcessError, OSError, ValueError, AttributeError):
+            return False
+
+
+def apply_fg_style(
+    text: str,
+    fg: Optional[FGColor] = None,
+    style: Optional[Style] = None,
+    color_support: bool = True
+) -> str:
+    if not color_support:
+        return text
+
+    buf = []
+    if fg is not None:
+        buf.append(fg.value)
+    if style is not None:
+        buf.append(style.value)
+    buf.append(text)
+    buf.append(Style.RESET_ALL.value)
+    return "".join(buf)
 
 ipython_filename_pattern = re.compile('^<ipython-input-([0-9]+)-.*>$')
 ansible_filename_pattern = re.compile(r'^(.+\.zip)[/|\\](ansible[/|\\]modules[/|\\].+\.py)$')
@@ -148,6 +257,19 @@ def get_path_and_source_from_frame(frame):
     return result
 
 
+def get_color_stream(output):
+    """Best-effort guess of the stream that the output actually lands in.
+
+    Returns ``None`` when there's no stream to inspect (a file path, a callback,
+    or a dumb write-only object), which means colors get turned off.
+    """
+    if output is None:
+        return sys.stderr
+    if isinstance(output, (pycompat.PathLike, str)) or callable(output):
+        return None
+    return output if hasattr(output, 'isatty') else None
+
+
 def get_write_function(output, overwrite):
     is_path = isinstance(output, (pycompat.PathLike, str))
     if overwrite and not is_path:
@@ -242,8 +364,9 @@ class Tracer:
 
         @pysnooper.snoop(relative_time=True)
 
-    The output is colored for easy viewing by default, except on Windows
-    (but can be enabled by setting `color=True`).
+    The output is colored by default whenever the target stream is a terminal
+    that supports ANSI colors (Windows 10 10586+ included, where virtual
+    terminal processing is enabled automatically).
 
     Disable colors like so:
 
@@ -253,7 +376,7 @@ class Tracer:
     def __init__(self, output=None, watch=(), watch_explode=(), depth=1,
                  prefix='', overwrite=False, thread_info=False, custom_repr=(),
                  max_variable_length=100, normalize=False, relative_time=False,
-                 color=sys.platform in ('linux', 'linux2', 'cygwin', 'darwin')):
+                 color=True):
         self._write = get_write_function(output, overwrite)
 
         self.watch = [
@@ -281,32 +404,18 @@ class Tracer:
         self.max_variable_length = max_variable_length
         self.normalize = normalize
         self.relative_time = relative_time
-        self.color = color and (output is None)
 
-        if self.color:
-            self._FOREGROUND_BLUE = '\x1b[34m'
-            self._FOREGROUND_CYAN = '\x1b[36m'
-            self._FOREGROUND_GREEN = '\x1b[32m'
-            self._FOREGROUND_MAGENTA = '\x1b[35m'
-            self._FOREGROUND_RED = '\x1b[31m'
-            self._FOREGROUND_RESET = '\x1b[39m'
-            self._FOREGROUND_YELLOW = '\x1b[33m'
-            self._STYLE_BRIGHT = '\x1b[1m'
-            self._STYLE_DIM = '\x1b[2m'
-            self._STYLE_NORMAL = '\x1b[22m'
-            self._STYLE_RESET_ALL = '\x1b[0m'
-        else:
-            self._FOREGROUND_BLUE = ''
-            self._FOREGROUND_CYAN = ''
-            self._FOREGROUND_GREEN = ''
-            self._FOREGROUND_MAGENTA = ''
-            self._FOREGROUND_RED = ''
-            self._FOREGROUND_RESET = ''
-            self._FOREGROUND_YELLOW = ''
-            self._STYLE_BRIGHT = ''
-            self._STYLE_DIM = ''
-            self._STYLE_NORMAL = ''
-            self._STYLE_RESET_ALL = ''
+        ### Deciding whether to use color: ####################################
+        #                                                                     #
+        # Color is only used when the user didn't disable it *and* the stream
+        # we're actually writing to is a terminal that speaks ANSI. Writing to
+        # a file, a callback or a non-tty stream never gets escape sequences.
+        self.color = bool(color) and _is_color_supported(
+            get_color_stream(output)
+        )
+        #                                                                     #
+        ### Finished deciding whether to use color. ###########################
+
 
     def __call__(self, function_or_class):
         if DISABLED:
@@ -391,20 +500,17 @@ class Tracer:
 
         ### Writing elapsed time: #############################################
         #                                                                     #
-        _FOREGROUND_YELLOW = self._FOREGROUND_YELLOW
-        _STYLE_DIM = self._STYLE_DIM
-        _STYLE_NORMAL = self._STYLE_NORMAL
-        _STYLE_RESET_ALL = self._STYLE_RESET_ALL
-
         start_time = self.start_times.pop(calling_frame)
         duration = datetime_module.datetime.now() - start_time
         elapsed_time_string = pycompat.timedelta_format(duration)
         indent = ' ' * 4 * (thread_global.depth + 1)
-        self.write(
-            '{indent}{_FOREGROUND_YELLOW}{_STYLE_DIM}'
-            'Elapsed time: {_STYLE_NORMAL}{elapsed_time_string}'
-            '{_STYLE_RESET_ALL}'.format(**locals())
-        )
+        self.write(u'{}{}{}'.format(
+            indent,
+            apply_fg_style(u'Elapsed time: ', FGColor.YELLOW, Style.DIM,
+                           self.color),
+            apply_fg_style(elapsed_time_string, FGColor.YELLOW, Style.NORMAL,
+                           self.color),
+        ))
         #                                                                     #
         ### Finished writing elapsed time. ####################################
 
@@ -450,18 +556,7 @@ class Tracer:
         if event == 'call':
             thread_global.depth += 1
         indent = ' ' * 4 * thread_global.depth
-
-        _FOREGROUND_BLUE = self._FOREGROUND_BLUE
-        _FOREGROUND_CYAN = self._FOREGROUND_CYAN
-        _FOREGROUND_GREEN = self._FOREGROUND_GREEN
-        _FOREGROUND_MAGENTA = self._FOREGROUND_MAGENTA
-        _FOREGROUND_RED = self._FOREGROUND_RED
-        _FOREGROUND_RESET = self._FOREGROUND_RESET
-        _FOREGROUND_YELLOW = self._FOREGROUND_YELLOW
-        _STYLE_BRIGHT = self._STYLE_BRIGHT
-        _STYLE_DIM = self._STYLE_DIM
-        _STYLE_NORMAL = self._STYLE_NORMAL
-        _STYLE_RESET_ALL = self._STYLE_RESET_ALL
+        color = self.color
 
         ### Making timestamp: #################################################
         #                                                                     #
@@ -487,9 +582,13 @@ class Tracer:
         source_path, source = get_path_and_source_from_frame(frame)
         source_path = source_path if not self.normalize else os.path.basename(source_path)
         if self.last_source_path != source_path:
-            self.write(u'{_FOREGROUND_YELLOW}{_STYLE_DIM}{indent}Source path:... '
-                       u'{_STYLE_NORMAL}{source_path}'
-                       u'{_STYLE_RESET_ALL}'.format(**locals()))
+            self.write(u'{}{}{}'.format(
+                indent,
+                apply_fg_style(u'Source path:... ', FGColor.YELLOW, Style.DIM,
+                               color),
+                apply_fg_style(source_path, FGColor.YELLOW, Style.NORMAL,
+                               color),
+            ))
             self.last_source_path = source_path
         source_line = source[line_no - 1]
         thread_info = ""
@@ -517,13 +616,21 @@ class Tracer:
 
         for name, value_repr in local_reprs.items():
             if name not in old_local_reprs:
-                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
-                           '{newish_string}{_STYLE_NORMAL}{name} = '
-                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
+                self.write(u'{}{}{}'.format(
+                    indent,
+                    apply_fg_style(newish_string, FGColor.GREEN, Style.DIM,
+                                   color),
+                    apply_fg_style(u'{} = {}'.format(name, value_repr),
+                                   FGColor.GREEN, Style.NORMAL, color),
+                ))
             elif old_local_reprs[name] != value_repr:
-                self.write('{indent}{_FOREGROUND_GREEN}{_STYLE_DIM}'
-                           'Modified var:.. {_STYLE_NORMAL}{name} = '
-                           '{value_repr}{_STYLE_RESET_ALL}'.format(**locals()))
+                self.write(u'{}{}{}'.format(
+                    indent,
+                    apply_fg_style(u'Modified var:.. ', FGColor.GREEN,
+                                   Style.DIM, color),
+                    apply_fg_style(u'{} = {}'.format(name, value_repr),
+                                   FGColor.GREEN, Style.NORMAL, color),
+                ))
 
         #                                                                     #
         ### Finished newish and modified variables. ###########################
@@ -556,11 +663,20 @@ class Tracer:
         ended_by_exception = call_ended_by_exception(frame, event, arg)
 
         if ended_by_exception:
-            self.write('{_FOREGROUND_RED}{indent}Call ended by exception{_STYLE_RESET_ALL}'.
-                       format(**locals()))
+            self.write(apply_fg_style(
+                u'{}Call ended by exception'.format(indent),
+                FGColor.RED, None, color,
+            ))
         else:
-            self.write(u'{indent}{_STYLE_DIM}{timestamp} {thread_info}{event:9} '
-                       u'{line_no:4}{_STYLE_RESET_ALL} {source_line}'.format(**locals()))
+            self.write(u'{}{} {}'.format(
+                indent,
+                apply_fg_style(
+                    u'{} {}{:9} {:4}'.format(timestamp, thread_info, event,
+                                             line_no),
+                    style=Style.DIM, color_support=color,
+                ),
+                source_line,
+            ))
 
         if event == 'return':
             self.frame_to_local_reprs.pop(frame, None)
@@ -573,17 +689,22 @@ class Tracer:
                                                             max_length=self.max_variable_length,
                                                             normalize=self.normalize,
                                                             )
-                self.write('{indent}{_FOREGROUND_CYAN}{_STYLE_DIM}'
-                           'Return value:.. {_STYLE_NORMAL}{return_value_repr}'
-                           '{_STYLE_RESET_ALL}'.
-                           format(**locals()))
+                self.write(u'{}{}{}'.format(
+                    indent,
+                    apply_fg_style(u'Return value:.. ', FGColor.CYAN,
+                                   Style.DIM, color),
+                    apply_fg_style(return_value_repr, FGColor.CYAN,
+                                   Style.NORMAL, color),
+                ))
 
         if event == 'exception':
             exception = utils.format_exception(*arg[:2])
             if self.max_variable_length:
                 exception = utils.truncate(exception, self.max_variable_length)
-            self.write('{indent}{_FOREGROUND_RED}Exception:..... '
-                       '{_STYLE_BRIGHT}{exception}'
-                       '{_STYLE_RESET_ALL}'.format(**locals()))
+            self.write(u'{}{}{}'.format(
+                indent,
+                apply_fg_style(u'Exception:..... ', FGColor.RED, None, color),
+                apply_fg_style(exception, FGColor.RED, Style.BRIGHT, color),
+            ))
 
         return self.trace
