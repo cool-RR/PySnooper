@@ -369,14 +369,13 @@ class Tracer:
             return
         thread_global.__dict__.setdefault('depth', -1)
         calling_frame = inspect.currentframe().f_back
-        if not self._is_internal_frame(calling_frame):
-            calling_frame.f_trace = self.trace
-            self.target_frames.add(calling_frame)
-
         stack = self.thread_local.__dict__.setdefault(
             'original_trace_functions', []
         )
-        stack.append(sys.gettrace())
+        stack.append((sys.gettrace(), calling_frame.f_trace))
+        if not self._is_internal_frame(calling_frame):
+            calling_frame.f_trace = self.trace
+            self.target_frames.add(calling_frame)
         self.start_times[calling_frame] = datetime_module.datetime.now()
         sys.settrace(self.trace)
 
@@ -384,8 +383,10 @@ class Tracer:
         if DISABLED:
             return
         stack = self.thread_local.original_trace_functions
-        sys.settrace(stack.pop())
+        previous_global, previous_local = stack.pop()
+        sys.settrace(previous_global)
         calling_frame = inspect.currentframe().f_back
+        calling_frame.f_trace = previous_local
         self.target_frames.discard(calling_frame)
         self.frame_to_local_reprs.pop(calling_frame, None)
 
