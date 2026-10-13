@@ -49,9 +49,19 @@ def shitcode(s):
     )
 
 
-def get_shortish_repr(item):
+def get_repr_function(item, custom_repr):
+    for condition, action in custom_repr:
+        if isinstance(condition, type):
+            condition = lambda x, y=condition: isinstance(x, y)
+        if condition(item):
+            return action
+    return repr
+
+
+def get_shortish_repr(item, custom_repr=()):
+    repr_function = get_repr_function(item, custom_repr)
     try:
-        r = repr(item)
+        r = repr_function(item)
     except Exception:
         r = 'REPR FAILED'
     r = r.replace('\r', '').replace('\n', '')
