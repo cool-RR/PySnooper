@@ -348,7 +348,7 @@ class Tracer:
                         return
                 try:
                     method, incoming = gen.send, (yield outgoing)
-                except Exception as e:
+                except BaseException as e:
                     method, incoming = gen.throw, e
 
         if pycompat.iscoroutinefunction(function):
