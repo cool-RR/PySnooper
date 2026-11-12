@@ -276,6 +276,7 @@ class Tracer:
         if len(custom_repr) == 2 and not all(isinstance(x,
                       pycompat.collections_abc.Iterable) for x in custom_repr):
             custom_repr = (custom_repr,)
+        utils.check_custom_repr(custom_repr)
         self.custom_repr = custom_repr
         self.last_source_path = None
         self.max_variable_length = max_variable_length

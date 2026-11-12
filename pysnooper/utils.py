@@ -112,3 +112,22 @@ def ensure_tuple(x):
 
 
 
+def check_custom_repr(custom_repr):
+    idx = 0
+    for rule in custom_repr:
+        if not isinstance(rule, (list, tuple)):
+            raise TypeError(
+                "Rule #%d of custom_repr is not a 2-element sequence, got: %r" % (idx, rule)
+            )
+        if len(rule) != 2:
+            raise ValueError(
+                "Rule #%d of custom_repr must have exactly 2 elements, got length %d: %r"
+                % (idx, len(rule), rule)
+            )
+        cond, func = rule
+        if not callable(func):
+            raise TypeError(
+                "The second element of rule #%d in custom_repr must be callable, got: %r"
+                % (idx, func)
+            )
+        idx += 1
