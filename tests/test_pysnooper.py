@@ -2,6 +2,7 @@
 # This program is distributed under the MIT license.
 
 import io
+import inspect
 import textwrap
 import threading
 import time
@@ -492,6 +493,59 @@ def test_variables_classes(normalize):
         ),
         normalize=normalize,
     )
+
+
+@pytest.mark.parametrize("normalize", (True, False))
+@pytest.mark.parametrize("explode", (True, False))
+@pytest.mark.parametrize("slot_spec", ('child_value', ('child_value',)))
+def test_slotted_attribute_watches(normalize, explode, slot_spec):
+    class Base(object):
+        __slots__ = ('base_value', '__private', 'unset')
+
+        def __init__(self):
+            self.base_value = 11
+            self.__private = 22
+
+    class Child(Base):
+        __slots__ = slot_spec
+
+        def __init__(self):
+            Base.__init__(self)
+            self.child_value = 33
+
+    output = io.StringIO()
+    options = ({'watch_explode': 'value'} if explode else
+               {'watch': pysnooper.Attrs('value', exclude='base_value')})
+
+    @pysnooper.snoop(output, normalize=normalize, color=False, **options)
+    def watched():
+        value = Child()
+        value.child_value += 1
+        return value
+
+    assert watched().child_value == 34
+    trace = output.getvalue()
+    assert 'value.child_value = 33' in trace
+    assert 'value.child_value = 34' in trace
+    assert 'value._Base__private = 22' in trace
+    assert ('value.base_value = 11' in trace) == explode
+    assert 'value.unset =' not in trace
+
+
+def test_inherited_slots_and_instance_dictionary():
+    class Base(object):
+        __slots__ = ('base_value', 'unset')
+
+    class Child(Base):
+        pass
+
+    value = Child()
+    value.base_value = 11
+    value.dynamic = 22
+    items = dict(pysnooper.Attrs('value').items(inspect.currentframe()))
+    assert items['value.base_value'] == '11'
+    assert items['value.dynamic'] == '22'
+    assert 'value.unset' not in items
 
 
 @pytest.mark.parametrize("normalize", (True, False))
