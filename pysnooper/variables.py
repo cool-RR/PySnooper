@@ -1,5 +1,6 @@
 import itertools
 import abc
+import weakref
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:
@@ -85,10 +86,25 @@ class CommonVariable(BaseVariable):
 
 class Attrs(CommonVariable):
     def _keys(self, main_value):
-        return itertools.chain(
-            getattr(main_value, '__dict__', ()),
-            getattr(main_value, '__slots__', ())
-        )
+        key_groups = [getattr(main_value, '__dict__', ())]
+        # Each class owns only its declared slots; private slots are mangled.
+        value_type = type(main_value)
+        if value_type in weakref.ProxyTypes:
+            # Attribute access on a proxy forwards to its referent.
+            value_type = main_value.__class__
+        for cls in value_type.__mro__:
+            slots = cls.__dict__.get('__slots__', ())
+            if isinstance(slots, pycompat.string_types):
+                slots = (slots,)
+            keys = []
+            for key in slots:
+                if key.startswith('__') and not key.endswith('__'):
+                    class_name = cls.__name__.lstrip('_')
+                    if class_name:
+                        key = '_{}{}'.format(class_name, key)
+                keys.append(key)
+            key_groups.append(keys)
+        return itertools.chain.from_iterable(key_groups)
 
     def _format_key(self, key):
         return '.' + key

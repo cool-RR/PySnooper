@@ -2,6 +2,7 @@
 # This program is distributed under the MIT license.
 
 import io
+import inspect
 import textwrap
 import threading
 import time
@@ -9,6 +10,7 @@ import types
 import os
 import sys
 import zipfile
+import weakref
 
 from pysnooper.utils import truncate
 import pytest
@@ -492,6 +494,97 @@ def test_variables_classes(normalize):
         ),
         normalize=normalize,
     )
+
+
+@pytest.mark.parametrize("normalize", (True, False))
+@pytest.mark.parametrize("explode", (True, False))
+@pytest.mark.parametrize("slot_spec", ('child_value', ('child_value',)))
+def test_slotted_attribute_watches(normalize, explode, slot_spec):
+    class Base(object):
+        __slots__ = ('base_value', '__private', 'unset')
+
+        def __init__(self):
+            self.base_value = 11
+            self.__private = 22
+
+    class Child(Base):
+        __slots__ = slot_spec
+
+        def __init__(self):
+            Base.__init__(self)
+            self.child_value = 33
+
+    output = io.StringIO()
+    options = ({'watch_explode': 'value'} if explode else
+               {'watch': pysnooper.Attrs('value', exclude='base_value')})
+
+    @pysnooper.snoop(output, normalize=normalize, color=False, **options)
+    def watched():
+        value = Child()
+        value.child_value += 1
+        return value
+
+    assert watched().child_value == 34
+    trace = output.getvalue()
+    assert 'value.child_value = 33' in trace
+    assert 'value.child_value = 34' in trace
+    assert 'value._Base__private = 22' in trace
+    assert ('value.base_value = 11' in trace) == explode
+    assert 'value.unset =' not in trace
+
+
+@pytest.mark.parametrize("normalize", (True, False))
+@pytest.mark.parametrize("explode", (True, False))
+@pytest.mark.parametrize("callable_proxy", (True, False))
+def test_weakref_proxy_slotted_attribute_watches(
+        normalize, explode, callable_proxy):
+    class Slotted(object):
+        __slots__ = ('value', '__private', '__weakref__')
+
+        def __init__(self):
+            self.value = 11
+            self.__private = 22
+
+    class CallableSlotted(Slotted):
+        __slots__ = ()
+
+        def __call__(self):
+            return self.value
+
+    referent = CallableSlotted() if callable_proxy else Slotted()
+    value = weakref.proxy(referent)
+    assert type(value) in weakref.ProxyTypes
+    output = io.StringIO()
+    options = ({'watch_explode': 'value'} if explode else
+               {'watch': pysnooper.Attrs('value', exclude='__weakref__')})
+
+    @pysnooper.snoop(output, normalize=normalize, color=False, **options)
+    def watched():
+        value.value += 1
+        return value.value
+
+    assert watched() == 12
+    trace = output.getvalue()
+    assert 'value.value = 11' in trace
+    assert 'value.value = 12' in trace
+    assert 'value._Slotted__private = 22' in trace
+    assert ('value.__weakref__ =' in trace) == explode
+
+
+def test_inherited_slots_and_instance_dictionary():
+    class Base(object):
+        __slots__ = ('base_value', 'unset')
+
+    class Child(Base):
+        pass
+
+    value = Child()
+    value.base_value = 11
+    value.dynamic = 22
+    items = dict(pysnooper.Attrs('value').items(inspect.currentframe()))
+    assert items['value.base_value'] == '11'
+    assert items['value.dynamic'] == '22'
+    assert 'value.unset' not in items
 
 
 @pytest.mark.parametrize("normalize", (True, False))
